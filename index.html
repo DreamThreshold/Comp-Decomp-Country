@@ -200,11 +200,21 @@ button{
   aspect-ratio: 1 / 1;
   /* width: 5ch; */
   background-color: rgba(0,0,0,0);
-  /* width: 4ch; */
+  
+  box-sizing: border-box;
+  width: 4ch;
 }
+/* when we select this palette */
+.color_item_selected{
+  box-sizing: border-box;
+  border-top: dashed 3px rgba(255, 255, 0, 0.75);
+  border-bottom: dashed 3px rgba(255, 255, 0, 0.75);
+}
+
 .color_label{
   text-shadow: 1px 1px 0px black, -1px -1px 0px black;
-  color: white;
+  color: rgba(255, 255, 255, 0.75);;
+  pointer-events: none;
 }
 
 .panel_header{
@@ -916,7 +926,7 @@ class View {
     // console.log(pp);
     el.state.d = el.dmake(pp, this.right, this.up );
     el.state.r = rrr;
-    this.groups[el.group].dist+= distSum;
+    this.groups[el.group].dist+= distSum/count;
 
     // console.log(px);
     // console.log(`px.state.x, px.state.y, px.state.z,dist,r: ${[px.state.x,px.state.y,px.state.z,dist,px.state.r]}`);
@@ -994,6 +1004,7 @@ class View {
     this.groupsArray = Object.entries( this.groups ).sort( (entryA,entryB) => entryA[1].dist - entryB[1].dist ).reverse().map( d => d[1] );
 
 
+    // this.newOrder = this.groupsArray.map( d => `${d.name}[${Math.round(d.dist)}]`).join(' -> ');
     this.newOrder = this.groupsArray.map( d => `${d.name}`).join(' -> ');
     let orderChange = this.newOrder+'' != this.oldOrder+''; 
     if (orderChange) console.log( this.newOrder );
@@ -1043,7 +1054,7 @@ class View {
 }
 
 
-function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
+function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, palette=null){
 
   //NOTE: this uses format "bitplane 0" as first bp index... not bp 1.
 
@@ -1059,6 +1070,11 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
     dat = Array.from(Array(32)).map(d=> Math.round(Math.random()*255));
   }
 
+  // console.log("received palette...");
+  // console.log(palette);
+
+  // console.log("Generating svg with palette...");
+  // console.log(pal);
   // A lot of variables... maybe too much, but should simplify later...
   // byte column / 2d svg fixed coordinates
 
@@ -1094,7 +1110,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
     'fill-opacity': 0,
     stroke: [255, 255, 255],
     'stroke-opacity': 0.95,
-    'stroke-width': 2,
+    'stroke-width': 1,
   };
   var solidsDefaults = {
     'fill-opacity': 1,
@@ -1144,7 +1160,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
   let bpt = bpcy-(bps/2); // bitplane top edge
   let bptph = -(bpt + bpch); // top plus half a cell length
 
-  let bpnz = bpd/1000; // bit plane numbers z depth (offset from their plane)
+  let bpnz = bpd/100; // bit plane numbers z depth (offset from their plane)
 
   // text height, width, x and y offsets
   // let txthsc = 0.5;
@@ -1347,6 +1363,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
               ] ),
             fixedPoints: [], 
             ...textDefaults,
+            'stroke-opacity': 1,
             group: `indices`,
             classes: [`${tile[i][j]}`],
             dmake(p){
@@ -1357,6 +1374,32 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
         ], 0,0,0,0)
       );
 
+      // PIXEL SQUARES
+      //
+      if (palette != null ) dataPaths.push(
+        new Sprite([
+          new State(
+            {
+              pathPoints: [ 
+                [ bpl + (bpc*j) ,  bpd-(indexplane*scz), -bpt - (bpc*i) ], 
+                [ bpl + (bpc*j) + bpc ,  bpd-(indexplane*scz), -bpt - (bpc*i) ], 
+                [ bpl + (bpc*j) + bpc ,  bpd-(indexplane*scz), -bpt - (bpc*i) - bpc],
+                [ bpl + (bpc*j) ,  bpd-(indexplane*scz), -bpt - (bpc*i) - bpc]
+              ],
+              fixedPoints: [], 
+              fill: palette[ tile[i][j] ],
+              stroke: [0,0,0],
+              'stroke-opacity': 0,
+              'fill-opacity': 0.9,
+              group: `pixels`,
+              classes: [`pixels_${tile[i][j]}`],
+              dmake(p){
+                return `M${( p.map(e => e.join(", ") )).join(" L")} z`;
+              }
+            },
+            'path')
+          ], 0,0,0,0)
+        );
       
     // PIXEL BUBBLES
     //
@@ -1472,7 +1515,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
         ],
         fixedPoints: [], 
         ...textDefaults,
-        group: `indices`,
+        group: `indicesArrow`,
         classes: [`arrowToIndicesPlane`],
         dmake(p){
           return `M${( p.map(e => e.join(", ") )).join(" L")}`;
@@ -1682,23 +1725,16 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
 //     ];
 
 // grayscale
+// Array.from(Array(16).keys()).map(d=>[Math.round(255*d/16),Math.round(255*d/16),Math.round(255*d/16)])
 const pal = [
-  [ 0, 0, 0 ],
-  [ 15.9375, 15.9375, 15.9375 ],
-  [ 31.875, 31.875, 31.875 ],
-  [ 47.8125, 47.8125, 47.8125 ],
-  [ 63.75, 63.75, 63.75 ],
-  [ 79.6875, 79.6875, 79.6875 ],
-  [ 95.625, 95.625, 95.625 ],
-  [ 111.5625, 111.5625, 111.5625 ],
-  [ 127.5, 127.5, 127.5 ],
-  [ 143.4375, 143.4375, 143.4375 ],
-  [ 159.375, 159.375, 159.375 ],
-  [ 175.3125, 175.3125, 175.3125 ],
-  [ 191.25, 191.25, 191.25 ],
-  [ 207.1875, 207.1875, 207.1875 ],
-  [ 223.125, 223.125, 223.125 ],
-  [ 239.0625, 239.0625, 239.0625 ]
+  [ 0, 0, 0 ],       [ 16, 16, 16 ],
+  [ 32, 32, 32 ],    [ 48, 48, 48 ],
+  [ 64, 64, 64 ],    [ 80, 80, 80 ],
+  [ 96, 96, 96 ],    [ 112, 112, 112 ],
+  [ 128, 128, 128 ], [ 143, 143, 143 ],
+  [ 159, 159, 159 ], [ 175, 175, 175 ],
+  [ 191, 191, 191 ], [ 207, 207, 207 ],
+  [ 223, 223, 223 ], [ 239, 239, 239 ]
 ];
 
 // each panel of the ui; comes in different kinds
@@ -1789,7 +1825,7 @@ class Panel {
                       <li> Click "Download" to download the raw, decompressed data (still 4BPP intertwined).</li>
                     </ul>
                   </li>
-                  <li> View color palettes used in the game's levels.</li>
+                  <li> View color palettes used in the game's levels. Select a color to have its sub-palette appear in the bitplane viewer and tileset viewer.</li>
                   <li> View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
                   <li> View 32x32 pixel metatiles (each composed of 4x4 tiles) with an assigned palette. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
                   <li> View level maps built from the metatiles. Currently limited to only part of the level, for app performance reaons. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
@@ -1997,7 +2033,7 @@ class Panel {
     }
   }
 
-  generateHexHTML(input = null, offset=0, mode16=true){
+  generateHexHTML(input = null, offset=0, mode16=null){
     // does main work for generating hex editor-style view and bp viewer ui
     // console.log(input);
     // debug: random bytes:
@@ -2016,6 +2052,9 @@ class Panel {
       // we will look only at these 32 bytes.
       rbytes = rbytes.slice(offset, offset+32);
       indices = indices.slice(offset, offset+32);
+    }
+    if (mode16==null){
+      mode16 = this.inner.getAttribute("data-mode")=='byte16';
     }
 
     console.log(`${this.name}: Generating hex html for data with ${rbytes.length} bytes...`);
@@ -2155,6 +2194,7 @@ class Panel {
         let g32sp = document.getElementById(str);
         // console.log(hexContent);
         // console.log(g32sp);
+        // console.log(this.palette);
         this.bpsvgs.push(
           makeBitplaneSVG(
             g32sp, 
@@ -2162,12 +2202,23 @@ class Panel {
             rbytes.slice(i, i+32),
             angleh,
             anglev,
-            observation
+            observation,
+            this.palette
           )
         );
         ntiles++;
+
+        //HACK: weird way to do it; checks for palette source and loads it if needed
+        // if (this.links[1].source){
+
+        //   g32sp
+        // }
+
+
       }
     }
+
+    
 
   }
 
@@ -2181,7 +2232,7 @@ class Panel {
 
     this.downloadButton.addEventListener("click", (event) => { 
 
-      const dataBlob = new Blob( [data], {type: "application/cotet-stream"});
+      const dataBlob = new Blob( [data], {type: "application/octet-stream"});
       let urlObject = URL.createObjectURL( dataBlob );
 
       let a = document.createElement("a");
@@ -2195,6 +2246,7 @@ class Panel {
 
   generateTilesetHTML(input = null){
     let tilesetContent = this.inner.querySelector(".tileset_content");
+    tilesetContent.innerHTML = ""; //clear all content first
     // console.log("this.inner");
     // console.log(this.inner);
     // console.log("tileset content");
@@ -2257,6 +2309,7 @@ class Panel {
     for (let i=0; i<input.length; i++){
       let colorItem = document.createElement("div");
       colorItem.className = "color_item";
+      colorItem.classList.add(`subPalette_${Math.floor(i/16)}`);
       colorItem.style.backgroundColor = `rgba(${input[i].join(", ")}, 1)`;
       // colorItem.style.color = `rgba(${input[i].map(d => (127+d)%255).join(", ")}, 1)`;
       let c = paletteContent.appendChild( colorItem);
@@ -2265,6 +2318,75 @@ class Panel {
       a.innerHTML = hex(i,2);
       a.className = "color_label";
       c.appendChild(a);
+
+
+      // Handle the selection of palettes:
+
+      c.addEventListener("click", (event) => { 
+        let ClickedColorItem = event.target;
+        // console.log(ClickedColorItem);
+        let parent = ClickedColorItem.parentNode;
+        // console.log(parent);
+        let subPaletteClass = "subPalette_0"; // placeholder...
+        // find the classname containing info about sub-palette:
+
+        for (let className of event.target.classList){
+          if ( className.includes("subPalette") ){
+            subPaletteClass = className;
+            break;
+          }
+        }
+        if ( subPaletteClass == this.selectedSubPalette ){
+          // clicking again will remove the palette, go back to grayscale.
+          this.selectedSubPalette = "none";
+          // Now that we know the current palette, go through and clear others and add to this one.
+          for (let colorItem of parent.querySelectorAll(".color_item")){
+            if ( colorItem.classList.contains( subPaletteClass ) ) colorItem.classList.remove( "color_item_selected" );
+          }
+          this.palette = pal;
+
+        } else {
+          // otherwise, switch to other subpalete
+          this.selectedSubPalette = subPaletteClass;
+
+
+          // Now that we know the current palette, go through and clear others and add to this one.
+          for (let colorItem of parent.querySelectorAll(".color_item")){
+            if ( colorItem.classList.contains( subPaletteClass ) ){
+              // console.log("adding class: selected");
+              colorItem.classList.add( "color_item_selected" );
+            } else{
+              colorItem.classList.remove( "color_item_selected" );
+            }
+          }
+          
+          // assign the palette values to this panel, so other things can reference it.
+          // ( by default, this.palette is the global pal constant )
+          let subPaletteIndex = subPaletteClass.split("_")[1]*1;
+          // console.log("assigning palette "+subPaletteIndex);
+          this.palette = input.slice( subPaletteIndex*16, (subPaletteIndex+1)*16 );
+        }
+
+        // update dependent panels' palettes:
+        this.nexts.forEach( d => d.palette = this.palette);
+        
+        // update the bitplane viewer if it's available
+        //HACK: assumes index 0 is the bitplane viewer
+        if (this.nexts[0].source){
+          // this.nexts[0].generateHexHTML( this.nexts[0].source.data);
+          // A wrapper that prevents jumping to 1st tile
+          // last argument, override, will ensure the svg is updated.
+          updateBitplaneSeek(this.nexts[0].inner, this.nexts[0], 0, true )
+        }
+        if (this.nexts[1].source){
+          this.nexts[1].generateTilesetHTML( this.nexts[1].source.data);
+          // A wrapper that prevents jumping to 1st tile
+          // last argument, override, will ensure the svg is updated.
+          // updateBitplaneSeek(this.nexts[0].inner, this.nexts[0], 0, true )
+        }
+        
+      });
+
     }
 
   }
@@ -2279,19 +2401,24 @@ class Panel {
 
       case "bitplaneViewer":
         // decompress
-        this.source = {
-            name: "Decompressed from "+this.links[0].source.file.name,
-            kind: "bytes",
-            data: dkc1decompress( this.links[0].source.data ),
-            panel: this,
-            from: this.links[0]
-        };
-        updateBitplaneSeek(this.inner, this, 0 );
-        this.generateHexHTML( this.source.data);
+        // if we have source compressed graphics (ignore for calls from others )
+        if (this.links[0].source){
+          this.source = {
+              name: "Decompressed from "+this.links[0].source.file.name,
+              kind: "bytes",
+              data: dkc1decompress( this.links[0].source.data ),
+              panel: this,
+              from: this.links[0]
+          };
+          updateBitplaneSeek(this.inner, this, 0 );
+          this.generateHexHTML( this.source.data);
 
-        // download setup
-        let downloadFileName = this.links[0].source.file.name.replace(".bin","_Decompressed.bin");
-        this.generateDownloadButton( this.source.data, downloadFileName, "Download Decompressed Graphics File (.bin)");
+          // download setup
+          if (!this.downloadButton){
+            let downloadFileName = this.links[0].source.file.name.replace(".bin","_Decompressed.bin");
+            this.generateDownloadButton( this.source.data, downloadFileName, "Download Decompressed Graphics File (.bin)");
+          }
+        }
 
         break;
 
@@ -2372,7 +2499,9 @@ class Panel {
 
     }
     // now do the next one, if it exists:
-    if (this.nexts[0]) { this.nexts[0].propagateSource(); }
+    if (this.nexts[0] && (this.kind != "paletteViewer") ) { this.nexts[0].propagateSource(); }
+    // if (this.nexts[0] ) { this.nexts[0].propagateSource(); }
+    // this.nexts.forEach( d => d.propagateSource());
   }
 
 }
@@ -2505,7 +2634,7 @@ function changeByteWidth(panel, overrideMode=null){
 
 }
 
-function updateBitplaneSeek(panelNode, panel, change ){
+function updateBitplaneSeek(panelNode, panel, change, override=false ){
   let texts = panelNode.querySelectorAll(".panel_header > .seekButtons > a");
   // first update the total number
 
@@ -2519,7 +2648,7 @@ function updateBitplaneSeek(panelNode, panel, change ){
 
   if (panel.source){
     let totalNumber = Math.ceil(panel.source.data.length/32);
-    console.log(`total number: ${totalNumber}`);
+    // console.log(`total number: ${totalNumber}`);
     texts[3].innerHTML = totalNumber;
     //
     let oldVal = (1*texts[1].innerHTML);
@@ -2529,7 +2658,7 @@ function updateBitplaneSeek(panelNode, panel, change ){
 
 
     // if we have a valid change:
-    if (newVal != oldVal){
+    if ( (newVal != oldVal) || override ){
       texts[1].innerHTML = newVal;
 
       // let offset = 
@@ -2705,19 +2834,19 @@ class UImodel {
 
 //              _, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, link
 var inputPanel = ["fileIn",               13, 14,  2, 10, "Input - Compressed Data"];
-var bitplanePanel = ["bitplaneViewer",     2, 28, 11, 25, "Bitplane Viewer - Decompressed Data", [0]];
-var paletteInputPanel = ["fileIn",        14, 15,  2, 10, "Input - Palette"];  //  2
-var paletteViewer = ["paletteViewer",      2,  7, 26, 32, "Palette", [2]]; // 3
-var tilesetViewer = ["tilesetViewer",      8, 14, 26, 32, "Tiles", [1,3]]; //  4
+var paletteInputPanel = ["fileIn",        14, 15,  2, 10, "Input - Palette"];  //  1
+var paletteViewer = ["paletteViewer",      2,  7, 26, 32, "Palette", [1]]; // 2
+var bitplanePanel = ["bitplaneViewer",     2, 28, 11, 25, "Bitplane Viewer - Decompressed Data", [0, 2]]; // 3
+var tilesetViewer = ["tilesetViewer",      8, 14, 26, 32, "Tiles", [3, 2]]; //  4
 var metatilemapInputPanel = ["fileIn",    15, 16,  2, 10, "Input - Tilemap32 (Metatiles)"]; //  5
-var metatilesViewer = ["metatilesViewer", 15, 28, 26, 32, "Tilemap32 (Metatiles)", [3,4,5]]; // 6
+var metatilesViewer = ["metatilesViewer", 15, 28, 26, 32, "Tilemap32 (Metatiles)", [2,4,5]]; // 6 pal viewer, tileset viewer, metatile input
 var levelMapInputPanel = ["fileIn",       16, 17,  2, 10, "Input - Level Map"]; //  7
-var levelMapViewer = ["levelMapViewer",   18, 28,  2, 10, "Level Map", [3,6,7]];
+var levelMapViewer = ["levelMapViewer",   18, 28,  2, 10, "Level Map", [2,6,7]]; // 8 paletteViewer, metatilesViewer, fileIn
 var description = ["textDescription",      2, 12,  2, 10, "About"];
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
-        [ inputPanel, bitplanePanel, paletteInputPanel, paletteViewer, tilesetViewer, 
+        [ inputPanel, paletteInputPanel, paletteViewer, bitplanePanel, tilesetViewer, 
         metatilemapInputPanel, metatilesViewer,
         levelMapInputPanel, levelMapViewer,
         description ],
