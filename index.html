@@ -1233,7 +1233,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
           fixedPoints: [true, true, false, false],
           ...outlinesDefaults,
           stroke: bprgbbg[bp],
-          'stroke-width': 12,
+          'stroke-width': 5,
           group: `bp${bp}`,
           dmake(p){
             return `M ${p[0].join(" ")} \
@@ -1245,34 +1245,35 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1){
       ], 0,0,0,0)
     );
     // FG ARROW
-    curvs.push(
-      new Sprite([
-      new State(
-        {
-          pathPoints: [
-            [0, ((i+0.5)*bscy) - bpnz, 0],
-            [bscx, ((i+0.5)*bscy) - bpnz, 0],
-            [arrowHandle, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)],
-            [arrowTip, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)],
+    // (removed: too busy-looking)
+    // curvs.push(
+    //   new Sprite([
+    //   new State(
+    //     {
+    //       pathPoints: [
+    //         [0, ((i+0.5)*bscy) - bpnz, 0],
+    //         [bscx, ((i+0.5)*bscy) - bpnz, 0],
+    //         [arrowHandle, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)],
+    //         [arrowTip, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)],
             
-            [arrowHead, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)-bpcq],
-            [arrowTip, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)],
-            [arrowHead, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)+bpcq]
-          ],
-          fixedPoints: [true, true, false, false],
-          ...outlinesDefaults,
-          stroke: bprgbfg[bp],
-          'stroke-width': 2,
-          group: `bp${bp}`,
-          dmake(p){
-            return `M ${p[0].join(" ")} \
-                    C ${p.slice(1,4).map(e => e.join(" ")).join(", ")} \
-                    L ${p.slice(4).map(e => e.join(" ") ).join(" L ")}`;
-          }
-        },
-        'path')
-      ], 0,0,0,0)
-    );
+    //         [arrowHead, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)-bpcq],
+    //         [arrowTip, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)],
+    //         [arrowHead, bpd - (bp*scz) - bpnz, bptph-(bpr[bp]*bpc)+bpcq]
+    //       ],
+    //       fixedPoints: [true, true, false, false],
+    //       ...outlinesDefaults,
+    //       stroke: bprgbfg[bp],
+    //       'stroke-width': 2,
+    //       group: `bp${bp}`,
+    //       dmake(p){
+    //         return `M ${p[0].join(" ")} \
+    //                 C ${p.slice(1,4).map(e => e.join(" ")).join(", ")} \
+    //                 L ${p.slice(4).map(e => e.join(" ") ).join(" L ")}`;
+    //       }
+    //     },
+    //     'path')
+    //   ], 0,0,0,0)
+    // );
 
     // 1S AND 0S
     //
@@ -1785,6 +1786,7 @@ class Panel {
                       <li> Click "Change View" to see a diagram of the bitplanes. Click again to return to the hex editor-like view. With the diagram, you can see how they the bits from each plane form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. for example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
                       <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out. Smaller windows/displays might encounter issues viewing clearly.</li>
                       <li> Click "<" and ">" to flip through the tiles.</li>
+                      <li> Click "Download" to download the raw, decompressed data (still 4BPP intertwined).</li>
                     </ul>
                   </li>
                   <li> View color palettes used in the game's levels.</li>
@@ -2169,6 +2171,28 @@ class Panel {
 
   }
 
+  generateDownloadButton(data, fileName, title, label="Download"){
+    let header = this.inner.querySelector(" .panel_header");
+    let downloadButton = document.createElement("button");
+    downloadButton.className = "downloadButtons";
+    downloadButton.innerHTML = label;
+    downloadButton.title = title;
+    this.downloadButton = header.appendChild( downloadButton );
+
+    this.downloadButton.addEventListener("click", (event) => { 
+
+      const dataBlob = new Blob( [data], {type: "application/cotet-stream"});
+      let urlObject = URL.createObjectURL( dataBlob );
+
+      let a = document.createElement("a");
+      a.download = fileName;
+      a.href = urlObject;
+      a.click();
+      setTimeout( () => URL.revokeObjectURL( urlObject ) );
+    });
+
+  }
+
   generateTilesetHTML(input = null){
     let tilesetContent = this.inner.querySelector(".tileset_content");
     // console.log("this.inner");
@@ -2265,6 +2289,9 @@ class Panel {
         updateBitplaneSeek(this.inner, this, 0 );
         this.generateHexHTML( this.source.data);
 
+        // download setup
+        let downloadFileName = this.links[0].source.file.name.replace(".bin","_Decompressed.bin");
+        this.generateDownloadButton( this.source.data, downloadFileName, "Download Decompressed Graphics File (.bin)");
 
         break;
 
