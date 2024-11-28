@@ -17,7 +17,10 @@
   
 }
 :root {
-  --bitplaneViewerTransition: 5s cubic-bezier( 0.33, 0, 0.31, 1 ) 0s;
+  /* --bitplaneViewerTransition: 3s cubic-bezier( 0.33, 0, 0.31, 1 ) 0s;
+  --bitplaneViewerTransition2: 2s cubic-bezier( 0.33, 0, 0.31, 1 ) 3s; */
+  --bitplaneViewerTransition: 5s cubic-bezier( 0.31, 0, 0, 1 );
+  --bitplaneViewerTransition2: 5s cubic-bezier( 0.99, 0, 0.34, 1 );
   --bp0bg: 0;
   --bp0fg: 255;
 }
@@ -202,7 +205,7 @@ button{
   background-color: rgba(0,0,0,0);
   
   box-sizing: border-box;
-  width: 4ch;
+  width: 2ch;
 }
 /* when we select this palette */
 .color_item_selected{
@@ -273,7 +276,7 @@ button{
   grid-template-columns: repeat(16, 1fr);
   place-self: stretch;
   opacity: 1;
-  transition: var(--bitplaneViewerTransition)
+  transition: var(--bitplaneViewerTransition2)
 }
 .hex_base_labels{
   display: grid;
@@ -283,10 +286,10 @@ button{
   grid-template-columns:2fr 4fr;
   place-self: stretch;
   opacity: 0;
-  transition: var(--bitplaneViewerTransition)
+  transition: var(--bitplaneViewerTransition2)
 }
 .hex_offset_label{
-transition: var(--bitplaneViewerTransition);
+transition: var(--bitplaneViewerTransition2);
 }
 
 .hex_content{
@@ -412,7 +415,7 @@ transition: var(--bitplaneViewerTransition);
   align-items: start;
   text-align: center;
   /* text-align: right; */
-  transition: var(--bitplaneViewerTransition);
+  transition: var(--bitplaneViewerTransition2);
 
 }
 .byte_byCellEven{
@@ -495,7 +498,7 @@ transition: var(--bitplaneViewerTransition);
   color: white;
   opacity: 0;
   width: 0;
-  transition: var(--bitplaneViewerTransition);
+  transition: var(--bitplaneViewerTransition2);
 }
 
 /* .byteOffsetPrefixOneByteWide{} */
@@ -509,7 +512,7 @@ transition: var(--bitplaneViewerTransition);
   background-color: rgba(0, 0, 0, 0.25);
   width: 100%;
   height: 100%;
-  transition: var(--bitplaneViewerTransition);
+  transition: var(--bitplaneViewerTransition2);
 }
 .byteBin{
   direction: ltr;
@@ -520,7 +523,7 @@ transition: var(--bitplaneViewerTransition);
   /* align-items: end; */
   width: 0%;
   overflow: hidden;
-  transition: var(--bitplaneViewerTransition);
+  transition: var(--bitplaneViewerTransition2);
 }
 .byteBinOneByteWide{
   width: 100%;
@@ -599,10 +602,27 @@ function binar(integer,bit=8,sp=0){
     for (let i=0; i<bit; i++){
         str+= `${ (integer  & (mask >> i)) >> (b1-i)}`;
         if (sp) if ( (i+1)%sp==0) str+= "&#8239;";
+        // if (sp) if ( (i+1)%sp==0) str+= " ";
     }
     return `${sp!=0?"&#8239;":""}${str}`;
+    // return `${sp!=0?" ":""}${str}`;
 }
-
+// version specifically for html titles, and other non-html character sets (?)
+function binart(integer,bit=8,sp=0){
+    // assumes 8-bits
+    // if space is specified, will add a narrow non-breaking space
+    // every sp characters, and a space before and after the string.
+    let str = "";
+    let b1 = bit-1;
+    let mask = 1 << b1;
+    for (let i=0; i<bit; i++){
+        str+= `${ (integer  & (mask >> i)) >> (b1-i)}`;
+        // if (sp) if ( (i+1)%sp==0) str+= "&#8239;";
+        if (sp) if ( (i+1)%sp==0) str+= " ";
+    }
+    // return `${sp!=0?"&#8239;":""}${str}`;
+    return `${sp!=0?" ":""}${str}`;
+}
 // This generates a 2D array pre-filled with zeros. Much like np.zeros() in python.
 // Probably pretty efficient...?
 function zeros(m,n){
@@ -2311,13 +2331,14 @@ class Panel {
       colorItem.className = "color_item";
       colorItem.classList.add(`subPalette_${Math.floor(i/16)}`);
       colorItem.style.backgroundColor = `rgba(${input[i].join(", ")}, 1)`;
+      colorItem.title = `Index 0x${hex(i,2)}\nSNES 15-bit RGB (${binart(rgb2snes(input[i]),15,5)})\n24-bit RGB (${input[i].join(", ")})`;
       // colorItem.style.color = `rgba(${input[i].map(d => (127+d)%255).join(", ")}, 1)`;
       let c = paletteContent.appendChild( colorItem);
 
-      let a = document.createElement("a");
-      a.innerHTML = hex(i,2);
-      a.className = "color_label";
-      c.appendChild(a);
+      // let a = document.createElement("a");
+      // a.innerHTML = hex(i,2);
+      // a.className = "color_label";
+      // c.appendChild(a);
 
 
       // Handle the selection of palettes:
