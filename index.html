@@ -19,8 +19,8 @@
 :root {
   /* --bitplaneViewerTransition: 3s cubic-bezier( 0.33, 0, 0.31, 1 ) 0s;
   --bitplaneViewerTransition2: 2s cubic-bezier( 0.33, 0, 0.31, 1 ) 3s; */
-  --bitplaneViewerTransition: 5s cubic-bezier( 0.31, 0, 0, 1 );
-  --bitplaneViewerTransition2: 5s cubic-bezier( 0.99, 0, 0.34, 1 );
+  --bitplaneViewerTransition: 3s cubic-bezier( 0.31, 0, 0, 1 );
+  --bitplaneViewerTransition2: 3s cubic-bezier( 0.99, 0, 0.34, 1 );
   --bp0bg: 0;
   --bp0fg: 255;
 }
@@ -34,10 +34,18 @@ body{
   overflow: hidden;
   position: relative;
 }
+
 h3{
   margin:1ch;
   font-size: 1.2em;;
 }
+
+h4{
+  margin:0.5ch;
+  /* font-size: 1.2em;; */
+}
+
+
 a{text-align: center;}
 g{overflow: visible}
 button{
@@ -100,6 +108,7 @@ button{
     /* overflow-y: scroll; */
 }
 
+/* Global classes used by all panels */
 
 .panel_inner{
 
@@ -112,10 +121,63 @@ button{
     align-items: stretch;
     display: grid;
     grid-template-rows: 3em 1.5em 1fr;
-    grid-template-columns: 2fr 16fr 0fr;
-    transition:  var(--bitplaneViewerTransition);
+    grid-template-rows: 3em auto;
+    
+    /* grid-template-columns: 2fr 16fr 0fr;
+    transition:  var(--bitplaneViewerTransition); */
     box-shadow: 1em 1em black;
 }
+
+
+.panel_header{
+    /* height: 2em; */
+    background-color: rgb(10, 30, 10);
+    display: grid;
+    grid-template-columns: auto 3ch 3ch;
+    /* flex-direction: row; */
+    /* justify-content: space-between; */
+    align-items: center;
+    grid-area: 1 / 1 / 2 / -1;
+    /* transition:  var(--bitplaneViewerTransition); */
+}
+
+.panel_content{
+  
+  display: grid;
+  /* grid-template-columns: 2fr repeat(16, 1fr);
+  grid-area: 2 / 1 / 3 / -1; */
+  grid-column: 1 / -1;
+  grid-row: 2 / 3;
+  overflow-y: auto; /* allows scrolling */
+}
+
+.panel_header_title{
+  
+  margin:1ch;
+  margin-right: 2ch;
+  font-size: 1.2em;;
+}
+
+
+/* panel type -specific classes */
+
+
+.bitplane_header{
+    /* height: 2em; */
+    background-color: rgb(20, 40, 20);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    grid-area: 1 / 1 / 2 / -1;
+    transition:  var(--bitplaneViewerTransition);
+}
+
+.panel_inner_bitplane{
+  /* grid-template-columns: 2fr 16fr 0fr; */
+}
+
+
 
 .panel_inner_tileset{
 
@@ -123,6 +185,7 @@ button{
   grid-template-columns: 1fr;
   /* overflow: hidden; */
 }
+
 .tileset_content{
   display: flex;
   /* display: grid;
@@ -220,16 +283,6 @@ button{
   pointer-events: none;
 }
 
-.panel_header{
-    /* height: 2em; */
-    background-color: rgb(20, 40, 20);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    grid-area: 1 / 1 / 2 / -1;
-    transition:  var(--bitplaneViewerTransition);
-}
 .fileButton{}
 .byteWidthButton{}
 
@@ -267,30 +320,10 @@ button{
   grid-row: 1 / 2;
 
 }
-
-.hex_offset_labels{
-  display: grid;
-  place-items: stretch;
-  grid-row: 1 / 2;  
-  grid-column: 2 / 3;
-  grid-template-columns: repeat(16, 1fr);
-  place-self: stretch;
-  opacity: 1;
-  transition: var(--bitplaneViewerTransition2)
-}
-.hex_base_labels{
-  display: grid;
-  place-items: stretch;
-  grid-row: 1 / 2;  
-  grid-column: 2 / 3;
-  grid-template-columns:2fr 4fr;
-  place-self: stretch;
-  opacity: 0;
-  transition: var(--bitplaneViewerTransition2)
-}
 .hex_offset_label{
-transition: var(--bitplaneViewerTransition2);
+/* transition: var(--bitplaneViewerTransition2); */
 }
+
 
 .hex_content{
     
@@ -303,12 +336,12 @@ transition: var(--bitplaneViewerTransition2);
     grid-column: 1 / -1;
     grid-row: 3 / 4;
     grid-template-columns: subgrid;
-    grid-template-rows: 100%; /* //HACK: assumes viewing only 32 bytes */
+    /* grid-template-rows: 100%; /*HACK: assumes viewing only 32 bytes */
     /* grid-template-rows: 1fr; */
     /* grid-template-columns: subgrid; */
     scrollbar-gutter: stable;
     
-    transition: var(--bitplaneViewerTransition);
+    /* transition: var(--bitplaneViewerTransition); */
 
     /* scroll-snap-type: mandatory; */
     scroll-snap-points-y: repeat(100%);
@@ -317,94 +350,174 @@ transition: var(--bitplaneViewerTransition2);
     overflow-y: auto;
     overflow-x: hidden;
 }
-
-.g32{
-    display: grid;
-    /* grid-column: 1 / 3; */
-    /* grid-template-columns: 2fr 16fr 5fr; */
-    grid-template-columns: 2fr 16fr;
-    /* height: max-content; */
-    /* min-height: 0; */
-    /* height: fit-content; */
-    /* grid-template-columns: subgrid; */
-    grid-template-rows: 1fr;
-    transition: var(--bitplaneViewerTransition);
-    content-visibility: auto;
-    
-}
 .g32l{
     scroll-snap-align: start;
     display: grid;
-    /* grid-area: 1 / 1 / 2 / 2; */
-    /* grid-template-columns: 1fr; */
-    /* grid-template-rows: 1fr 1fr; */
     grid-column: 1 / 2;
     grid-template-columns: subgrid;
     grid-auto-flow: row;
     align-items: start;
     justify-items: center;
-    /* min-height: 0; */
+    
 }
-/* parent to g32s */
+
+
 .g32rr{
     scroll-snap-align: start;
     display: grid;
     grid-column: 2 / 3;
     grid-template-columns: subgrid;
-    /* grid-area: 1 / 1 / 2 / 2; */
-    /* grid-template-columns: 1fr; */
     grid-template-rows: 1fr;
     grid-auto-flow: row;
-    /* align-items: start; */
-    /* justify-items: end; */
-    /* min-height: 0; */
     pointer-events: none;
 }
-.g32r{
-    display: grid;
-    grid-area: 1 / 2 / 1 / 2;
-    /* align-items: start; */
-    place-items: stretch;
-    pointer-events: none;
-    /* min-height: 0; */
-
-    /* this wraps all bytes, making 1-byte-wide: */
-
-    /* grid-template-columns: 1fr;
-    grid-template-rows: repeat(32, 1fr); */
-
-    /* Third method, 32x32 box, we rearrange as needed */
-    transition: var(--bitplaneViewerTransition);
-    
-}
-
 
 .g32s{
-    /* grid-area: 1 / 3 / 2 / 4; */
-    /* grid-area: 1 / 18 / 2 / 20; */
-    
     grid-column: 3 / 4;
     grid-template-columns: subgrid;
     overflow: visible;
-    content-visibility: auto;
-    transition: var(--bitplaneViewerTransition);
+    content-visibility: auto; /* keep this; somehow prevents weird unnecessary scrollbar */
+    /* transition: var(--bitplaneViewerTransition); */
 }
-.byte{
-  /* grid-area for third method: */
-  grid-area: 2 / 2 / 3 / 3;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  place-items: center;
-  align-items: start;
+
+
+
+.byteHex{
+  direction: ltr;
+  align-items: center;
   text-align: center;
-  /* text-align: right; */
-  transition: var(--bitplaneViewerTransition);
-  
-  pointer-events: none; /* ?? */
+  background-color: rgba(0, 0, 0, 0.25);
+  width: 100%;
+  height: 100%;
+  /* transition: var(--bitplaneViewerTransition2); */
 }
+
+
+
+
+/* 
+
+classes for bitplane animation 
+(in order of expanding from 16-wide to 1-wide) 
+
+*/
+
+
+.g32{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  grid-template-rows: 1fr;
+  /* transition: var(--bitplaneViewerTransition); */
+}
+.g32_b16{
+  transition: 1s ease-in-out 7s;
+  height: 4em;
+}
+.g32_b1{
+  transition: 1s ease-in-out 0s;
+  height: 100%;
+}
+
+.hex_offset_labels{
+  display: grid;
+  place-items: stretch;
+  grid-row: 1 / 2;  
+  grid-column: 2 / 3;
+  grid-template-columns: repeat(16, 1fr);
+  place-self: stretch;
+  opacity: 1;
+  /* transition: var(--bitplaneViewerTransition2) */
+}
+.hex_offset_labels_b16{
+  transition: 1s ease-in-out 6s;
+  opacity: 1;
+}
+.hex_offset_labels_b1{
+  transition: 1s ease-in-out 1s;
+  opacity: 0;
+}
+
+.g32r{
+  /* NOTE: the grid-template row/col is custom to each cell and not shown here */
+  display: grid;
+  grid-area: 1 / 2 / 1 / 2;
+  place-items: stretch;
+  pointer-events: none;
+  /* transition: var(--bitplaneViewerTransition); */
+}
+.g32r_b16{
+  transition: 2s ease-in-out 4s;
+
+}
+.g32r_b1{
+  transition: 2s ease-in-out 2s;
+  
+}
+
+
+.byteOffsetPrefix{
+  direction: rtl; /* doing weird stuff so it overflows to the left */
+  color: white;
+  opacity: 0;
+  width: 0;
+  /* transition: var(--bitplaneViewerTransition2); */
+}
+.byteOffsetPrefix_b16{
+  transition: 1s ease-in-out 3s;
+  opacity: 0;
+
+}
+.byteOffsetPrefix_b1{
+  transition: 1s ease-in-out 4s;
+  opacity: 1;
+}
+
+
+
+/* following two classes should change at the same time */
+
+
+.hex_base_labels{
+  display: grid;
+  place-items: stretch;
+  grid-row: 1 / 2;  
+  grid-column: 2 / 3;
+  grid-template-columns:2fr 4fr;
+  place-self: stretch;
+  opacity: 0;
+  /* transition: var(--bitplaneViewerTransition2) */
+}
+.hex_base_labels_b16{
+  transition: 0.5s ease-in-out 2s;
+  opacity: 0;
+}
+.hex_base_labels_b1{
+  transition: 0.5s ease-in-out 5.5s;
+  opacity: 1;
+}
+
+.byteBin{
+  direction: ltr;
+  opacity: 0;
+  align-items: center;
+  text-align: right;
+  width: 0%;
+  overflow: hidden;
+  /* transition: var(--bitplaneViewerTransition2); */
+}
+.byteBin_b16{
+  transition: 0.5s ease-in-out 2.5s;
+  width: 0%;
+  opacity: 0;
+}
+.byteBin_b1{
+  transition: 0.5s ease-in-out 5s;
+  width: 100%;
+  opacity: 1;
+}
+
 .byte{
-  /* grid-area for third method: */
   grid-area: 2 / 2 / 3 / 3;
   display: grid;
   grid-template-columns: 0fr 1fr; /*NOTE: backwards because rtl*/
@@ -414,15 +527,15 @@ transition: var(--bitplaneViewerTransition2);
   place-items: center;
   align-items: start;
   text-align: center;
-  /* text-align: right; */
   transition: var(--bitplaneViewerTransition2);
+}
+.byte_b16{
+  transition: 1s ease-in-out 1s;
 
 }
-.byte_byCellEven{
-  /* background-color: rgba(255,255,0,0.5); */
-}
-.byte_byCellOdd{
-  /* background-color: rgba(255,0,255,0.5);  */
+.byte_b1{
+  transition: 1s ease-in-out 6s;
+
 }
 .byte_by16RowEven{
   background-color: rgba(86, 86, 86, 0.5);
@@ -430,105 +543,66 @@ transition: var(--bitplaneViewerTransition2);
 .byte_by16RowOdd{
   background-color: rgba(0,0,0,0.5); 
 }
-
 /* here we would have all 64 .byte_valueXX classes...? */
-
- 
-/* .byte_bp0{
---bg: 0;
---fg: 127;
-  background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
-  color: rgb(  var(--fg), var(--fg), var(--fg) );
-}
-.byte_bp1{
-  --bg: 127;
-  --fg: 255;
-  background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
-  color: rgb(  var(--fg), var(--fg), var(--fg) );
-}
-.byte_bp2{
---bg: 255;
---fg: 127;
-  background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
-  color: rgb(  var(--fg), var(--fg), var(--fg) );
-}
-.byte_bp3{
---bg: 127;
---fg: 0;
-  background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
-  color: rgb(  var(--fg), var(--fg), var(--fg) );
-} */
-
 .byte_bp0{
---bg: 0;
---fg: 127;
+  --bg: 0;
+  /* --fg: 127; */
+  --fg: 255;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
   grid-template-columns: 4fr 2fr;
 }
 .byte_bp1{
   --bg: 85;
-  --fg: 212;
+  /* --fg: 212; */
+  --fg: 255;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
   grid-template-columns: 4fr 2fr;
 }
 .byte_bp2{
---bg: 170;
---fg: 42;
+  --bg: 170;
+  /* --fg: 42; */
+  --fg: 0;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
   grid-template-columns: 4fr 2fr;
 }
 .byte_bp3{
---bg: 255;
---fg: 127;
+  --bg: 255;
+  /* --fg: 127; */
+  --fg: 0;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
   grid-template-columns: 4fr 2fr;
 }
-.offset{}
 
-.byteOffsetPrefix{
-  direction: rtl; /* doing weird stuff so it overflows to the left */
-  /* position:absolute; */
-  /* grid-column: 0 / 1; */
-  /* margin-right: 100%; */
-  /* overflow: hidden; */
-  color: white;
-  opacity: 0;
-  width: 0;
-  transition: var(--bitplaneViewerTransition2);
+
+
+/* panel_content goes here */
+.panel_content_b16{
+  transition: 1s ease-in-out 0s;
+  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
+  grid-template-columns: 2fr 16fr 0fr;
+}
+.panel_content_b1{
+  transition: 1s ease-in-out 7s;
+  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
+  grid-template-columns: 2fr 4fr 25fr;
 }
 
-/* .byteOffsetPrefixOneByteWide{} */
 
-.byteHex{
-  direction: ltr;
-  align-items: center;
-  text-align: center;
-  /* text-align: right; */
-  /* align-items: end; */
-  background-color: rgba(0, 0, 0, 0.25);
-  width: 100%;
-  height: 100%;
-  transition: var(--bitplaneViewerTransition2);
-}
-.byteBin{
-  direction: ltr;
-  opacity: 0;
-  align-items: center;
-  text-align: right;
-  /* text-align: right; */
-  /* align-items: end; */
-  width: 0%;
-  overflow: hidden;
-  transition: var(--bitplaneViewerTransition2);
-}
-.byteBinOneByteWide{
-  width: 100%;
-  opacity: 1;
-}
+/* 
+end of animation classes
+ */
+
+
+
+
+
+
+
+
 
 .bpsvg{
   height:100%;
@@ -1111,11 +1185,17 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
   //   [127,127,127]
   // ]; // background
   
+  // let bprgbfg = [
+  //   [127,127,127],
+  //   [212,212,212],
+  //   [42,42,42],
+  //   [127,127,127]
+  // ]; // colors for stroke of each bitplane
   let bprgbfg = [
-    [127,127,127],
-    [212,212,212],
-    [42,42,42],
-    [127,127,127]
+    [255,255,255],
+    [255,255,255],
+    [0,0,0],
+    [0,0,0]
   ]; // colors for stroke of each bitplane
   let bprgbbg = [
     [0,0,0],
@@ -1203,10 +1283,10 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
     "0":[ [3,1],  [5,1],  [6,2],  [6,6],  [5,7],  [3,7],  [2,6], [2,2], [3,1]  ],
     "1":[ [3,2],  [4,1],  [4,7],  [5,7],  [3,7] ],
     "2":[ [2,2], [3,1], [5,1], [6,2], [2,7], [6,7] ],
-    "3":[ [2,2], [3,1], [5,1], [6,2], [6,3], [5,4], [3,4], [5,4], [6,5], [5,7], [3,7], [2,6] ],
+    "3":[ [2,2], [3,1], [5,1], [6,2], [6,3], [5,4], [3,4], [5,4], [6,5], [6,6], [5,7], [3,7], [2,6] ],
     "4":[ [6,5], [2,5], [5,1], [5,7]],
     "5":[ [6,1], [2,1], [2,4], [3,3], [5,3], [6,4], [6,6], [5,7], [3,7], [2,6] ],
-    "6":[ [5,1], [3,1], [2,2], [2,6], [3,7], [5,7], [6,6], [6,4], [3,3], [2,4] ],
+    "6":[ [5,1], [3,1], [2,2], [2,6], [3,7], [5,7], [6,6], [6,4], [5,3], [3,3], [2,4] ],
     "7":[ [2,1], [6,1], [5,2], [3,7] ],
     "8": [ [5,4], [3,4], [2,3], [2,2], [3,1], [5,1], [6,2], [6,3], [5,4], [6,5], [6,6], [5,7], [3,7], [2,6], [2,5], [3,4] ],
     "9": [ [6,4], [3,4], [2,3], [2,2], [3,1], [5,1], [6,2], [6,4], [3,7] ],
@@ -1802,25 +1882,37 @@ class Panel {
     this.index = this.ui.panels.length;
     console.log(`panel  ${this.name} should be index ${this.index}`);
 
-    // create a header, assuming all panels need one
-    // this.panelHeader = document.createElement("div");
-    // // input.type = "file";
-    // // input.value = null;
-    // // this.panelHeader = panelHeader;
-    // this.panelHeader.id = this.name+"_header";
-    // this.panelHeader.className = "panel_header";
-    // this.inner.appendChild(this.panelHeader);
+    // create a header 
     this.inner.appendChild(document.createElement("div") );
     this.panelHeader = this.inner.children[this.inner.children.length-1];
     this.panelHeader.id = this.name+"_header";
     this.panelHeader.className = "panel_header";
-    // this.panelHeader.style.gridArea = "1 / 1 / 2 / 3";
+    
+    
 
+    // add the title
+    this.title = document.createElement("div");
+    this.title.innerHTML += this.name;
+    this.title.classList.add("panel_header_title");
+    this.title = this.panelHeader.appendChild(this.title);
 
-    //
-    this.h3 = document.createElement("h3");
-    this.h3.innerHTML += this.name;
-    this.panelHeader.appendChild(this.h3);
+    // add the settings/menu
+    this.menu = document.createElement("div");
+    this.menu.innerHTML += "☰";
+    this.menu = this.panelHeader.appendChild(this.menu);
+
+    
+    // add the collapse button
+    this.collapse = document.createElement("div");
+    this.collapse.innerHTML += "˄";
+    this.collapse = this.panelHeader.appendChild(this.collapse);
+
+    
+    // create the content
+    this.inner.appendChild(document.createElement("div") );
+    this.panelContent = this.inner.children[this.inner.children.length-1];
+    this.panelContent.id = this.name+"_content";
+    this.panelContent.className = "panel_content";
 
     // create outer and inner html divs
     // let headerHeight = 0;
@@ -1828,8 +1920,8 @@ class Panel {
     switch (kind){
         case "textDescription":
           //TODO: move the below text to another file
-          this.inner.classList.add("panel_inner_text");
-          this.inner.innerHTML += `\
+          // this.panelContent.classList.add("panel_inner_text");
+          this.panelContent.innerHTML += `\
             <div class="text_content" >
               <p>
                 <b>Hello!</b> This app decompresses graphics data from DKC. 
@@ -1869,8 +1961,9 @@ class Panel {
           break;
 
         case "fileIn":
-
-            // this.inner.appendChild( ff() );
+            // Create a file input, save it to the panel object, and add to panel gui
+            //TODO: clean up
+            // this.panelContent.appendChild( ff() );
             this.fileInputs.push(document.createElement("input"));
             this.fileInputs[this.fileInputs.length-1].id = "ii";
             this.fileInputs[this.fileInputs.length-1].className = "fileInput";
@@ -1879,7 +1972,7 @@ class Panel {
             this.fileInputs[this.fileInputs.length-1].value = null;
             // this.input = input;
             // this.fileInputs.push(this.input);
-            this.panelHeader.appendChild(this.fileInputs[this.fileInputs.length-1]);
+            this.panelContent.appendChild(this.fileInputs[this.fileInputs.length-1]);
             // console.log("panelHeader children");
             // console.log(this.panelHeader.children);
             // headerHeight += this.input.style.height;
@@ -1889,24 +1982,55 @@ class Panel {
 
         case "bitplaneViewer":
             
+            // bitplane header (controls)
+            //
+
+
+
+            // `<div id="Bitplane Viewer - Decompressed Data_bitplane_header" class="bitplane_header">
+            //   <button class="byteWidthButton">Change View</button>
+            //   <div class="seekButtons">
+            //     <button class="seekTileDownButton">&lt;</button>
+            //     <a>Tile&nbsp;</a>
+            //     <a>1</a>
+            //     <a>&nbsp;of&nbsp;</a>
+            //     <a>...</a>
+            //     <button class="seekTileUpButton">&gt;</button>
+            //   </div>
+            // </div>`
+
+            // header itself
+            let bph = document.createElement("div")
+            // bph = this.panelContent.children[this.panelContent.children.length-1];
+            bph.id = this.name+"_bitplane_header";
+            bph.className = "bitplane_header";
+
+            // this.bitplaneHeader2 = this.panelContent.querySelector(".bitplane_header");
+            // console.log("bitplane header query selector:");
+            // console.log(this.bitplaneHeader2);
+
+            
+            // this.bitplaneHeader3 = this.inner.querySelector(".panel_content > .bitplane_header");
+            // console.log(" inner query selector:");
+            // console.log(this.bitplaneHeader3.innerHTML);
+
+            
+           
+
+            // buttons
             this.byteWidthButton = document.createElement("button");
-            // this.byteWidthButton.id = "btn";
-            this.byteWidthButton.innerHTML += "Change View";
+            
+            this.byteWidthButton.innerHTML = "Change View";
             this.byteWidthButton.className = "byteWidthButton";
-            // this.btn.addEventListener("click", (event) => {console.log(event)});
-            this.panelHeader.appendChild(this.byteWidthButton);
-            // console.log(this.byteWidthButton);
-            // this.panelHeader.querySelectorAll(".fileButton")[0].addEventListener("click",
-            //   (event) => {changeByteWidth(event.target.parentNode.parentNode)});
+            
+            bph.appendChild(this.byteWidthButton);
+            // this.byteWidthButton = this.bitplaneHeader.children[this.bitplaneHeader.children.length-1];
+            
             
             this.seekTileDownButton = document.createElement("button");
-            this.seekTileDownButton.innerHTML += "<";
+            this.seekTileDownButton.append("<");
             this.seekTileDownButton.className = "seekTileDownButton";
-            // this.btn.addEventListener("click", (event) => {console.log(event)});
-            // this.seekTileDownButton = this.panelHeader.appendChild(this.seekTileDownButton);
-            // console.log(this.byteWidthButton);
-            // this.panelHeader.querySelectorAll(".fileButton")[0].addEventListener("click",
-            //   (event) => {changeByteWidth(event.target.parentNode.parentNode)});
+            
 
             let seek0 = document.createElement("a");
             seek0.innerHTML = "Tile&nbsp;";
@@ -1918,35 +2042,37 @@ class Panel {
             seek3.innerHTML = "...";
 
             this.seekTileUpButton = document.createElement("button");
-            this.seekTileUpButton.innerHTML += ">";
+            this.seekTileUpButton.append(">");
             this.seekTileUpButton.className = "seekTileUpButton";
-            // this.btn.addEventListener("click", (event) => {console.log(event)});
-            // this.seekTileUpButton = this.panelHeader.appendChild(this.seekTileUpButton);
-            // console.log(this.byteWidthButton);
-            // this.panelHeader.querySelectorAll(".fileButton")[0].addEventListener("click",
-            //   (event) => {changeByteWidth(event.target.parentNode.parentNode)});
+            
 
             let seekButtons = document.createElement("div");
             seekButtons.className = "seekButtons";
-            this.seekButtons = this.panelHeader.appendChild(seekButtons);
+            this.seekButtons = bph.appendChild(seekButtons);
 
             this.seekTileDownButton = this.seekButtons.appendChild(this.seekTileDownButton);
             [ seek0, seek1, seek2, seek3 ].forEach(d => this.seekButtons.appendChild(d));
             this.seekTileUpButton = this.seekButtons.appendChild(this.seekTileUpButton);
 
-            this.seekTileDownButton.addEventListener("click",
-              (event) => { 
-                // this.generateHexHTML(this.source.data, OFFSET_HERE, target.parentNode.parentNode.panel.getAttribute("data-mode"));
-                console.log(event);
-              }
-            );
+            // this.seekTileDownButton.addEventListener("click",
+            //   (event) => { 
+            //     // this.generateHexHTML(this.source.data, OFFSET_HERE, target.parentNode.parentNode.panel.getAttribute("data-mode"));
+            //     console.log(event);
+            //   }
+            // );
 
-            this.seekTileUpButton.addEventListener("click",
-              (event) => { 
-                // this.generateHexHTML(this.source.data, OFFSET_HERE, target.parentNode.parentNode.panel.getAttribute("data-mode"));
-                console.log(event);
-              }
-            );
+            // this.seekTileUpButton.addEventListener("click",
+            //   (event) => { 
+            //     // this.generateHexHTML(this.source.data, OFFSET_HERE, target.parentNode.parentNode.panel.getAttribute("data-mode"));
+            //     console.log(event);
+            //   }
+            // );
+            
+            this.bitplaneHeader = this.panelContent.appendChild( bph );
+            console.log("bitplane header .children[last]:");
+            console.log(this.bitplaneHeader);
+            this.inner.classList.add("panel_inner_bitplane");
+            this.panelContent.classList.add("panel_content_b16");
 
             
         case "hexViewer":
@@ -1955,9 +2081,9 @@ class Panel {
             // also, should only show hex offset header if the hex file is loaded and in view?
             let offsetsTop = `\
               <div class="hex_offset_offset"><a>OFFSET</a></div>
-              <div class="hex_offset_labels">${Array.from( Array(16).keys() ).map(
+              <div class="hex_offset_labels hex_offset_labels_b16">${Array.from( Array(16).keys() ).map(
                     d => `<a class="hex_offset_label">${hex(d,1)}</a>`).join('')}</div>
-                    <div class="hex_base_labels">
+                    <div class="hex_base_labels hex_base_labels_b16">
                       <a class="hex_offset_label">Hex</a>
                       <a class="hex_offset_label">Binary</a>
                     </div>`;
@@ -1968,12 +2094,12 @@ class Panel {
             // debug
 
             
-            this.inner.innerHTML +=
+            this.panelContent.innerHTML +=
                 `<div class="hex_offset_header">${offsetsTop}</div>
                 <div class="hex_content"
                  style=""></div>`;
 
-            this.inner.setAttribute("data-mode","byte16");
+            this.panelContent.setAttribute("data-mode","byte16");
                 // this.inner.innerHTML +=
                 // `<div class="hexViewer" >
                 //     <div class="hexViewerTop"></div>
@@ -1988,25 +2114,25 @@ class Panel {
 
         case "paletteViewer":
           this.inner.classList.add("panel_inner_palette");
-          this.inner.innerHTML +=
+          this.panelContent.innerHTML +=
                 `<div class="palette_content" ></div>`;
           break;
 
         case "tilesetViewer":
           this.inner.classList.add("panel_inner_tileset");
-          this.inner.innerHTML += `<div class="tileset_content"></div>`;
+          this.panelContent.innerHTML += `<div class="tileset_content"></div>`;
 
           break;
 
         case "metatilesViewer":
           this.inner.classList.add("panel_inner_tileset");
-          this.inner.innerHTML += `<div class="tileset_content"></div>`;
+          this.panelContent.innerHTML += `<div class="tileset_content"></div>`;
 
           break;
 
         case "levelMapViewer":
           this.inner.classList.add("panel_inner_tileset");
-          this.inner.innerHTML += `<div class="levelMap_content"></div>`;
+          this.panelContent.innerHTML += `<div class="levelMap_content"></div>`;
 
           break;
     }
@@ -2074,8 +2200,9 @@ class Panel {
       indices = indices.slice(offset, offset+32);
     }
     if (mode16==null){
-      mode16 = this.inner.getAttribute("data-mode")=='byte16';
+      mode16 = this.panelContent.getAttribute("data-mode")=='byte16';
     }
+    var m = mode16?"_b16":"_b1"; // shorthand to be used later
 
     console.log(`${this.name}: Generating hex html for data with ${rbytes.length} bytes...`);
 
@@ -2101,7 +2228,7 @@ class Panel {
     let ntiles = 0; // will track how many (unnecessary?)
 
     // parent div for following g32 elements
-    var hexContent = this.inner.querySelector(" .hex_content");
+    var hexContent = this.inner.querySelector(" .panel_content > .hex_content");
     hexContent.innerHTML = ''; // clear it first
     // hexContent.style.gridTemplateRows = `repeat(${Math.ceil(rbytes.length/32)}, auto)`;
 
@@ -2132,16 +2259,16 @@ class Panel {
         let row16Odd = (i>>4)%2;
 
         g32r += `\
-        <div class="g32r"
+        <div class="g32r g32r${m}"
           data-mode-byte32="${gtcnn};${gtrnn}"
           data-mode-byte16="${gtcn};${gtrn}"
           data-mode-byte1="${gtc1};${gtr1}"
           style="grid-template-columns:${mode16?gtcn:gtc1};grid-template-rows:${mode16?gtrn:gtr1};">
-          <div class="byte byte_byCell${i%2?'Odd':'Even'} byte_by16Row${row16Odd?'Odd':'Even'} byte_value${rbytesHex[i]} byte_panel${this.index}_index${i} ${mode16?'':('byte_bp'+bp+'')}" 
+          <div class="byte byte${m} byte_byCell${i%2?'Odd':'Even'} byte_by16Row${row16Odd?'Odd':'Even'} byte_value${rbytesHex[i]} byte_panel${this.index}_index${i} ${mode16?'':('byte_bp'+bp+'')}" 
            data-bitplane="${bp}" >
-              <div class="byteBin ${mode16?'':'byteBinOneByteWide'}">${rbytesBin[i]}&#8239;</div>
+              <div class="byteBin byteBin${m}">${rbytesBin[i]}&#8239;</div>
               <div class="byteHex">${rbytesHex[i]}</div>
-              <div class="byteOffsetPrefix" style="opacity:${mode16?0:1}">&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
+              <div class="byteOffsetPrefix byteOffsetPrefix${m}" >&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
           </div>
         </div>`;
         //NOTE:  for byteOffsetPrefix, direction is rtl, 
@@ -2155,18 +2282,23 @@ class Panel {
         }
         // if we're 1 before the end of the 32-batch, or at the overall end, close up this group:
         if (  ((i+1)%32 == 0) || (i == (rbytes.length-1)) ){
+            // wrapper g32
+            let g32elem = document.createElement('div');
+            g32elem.className = "g32";
+            g32elem.classList.add("g32"+m);
+            hexContent.appendChild(g32elem);
 
             // g32l 
             let g32lelem = document.createElement('div');
             g32lelem.className = "g32l";
             g32lelem.innerHTML = `${g32l}`;
-            hexContent.appendChild(g32lelem);
+            g32elem.appendChild(g32lelem);
 
             // g32rr (<=32)
             let g32rrelem = document.createElement('div');
             g32rrelem.className = "g32rr";
             g32rrelem.innerHTML = `${g32r}`;
-            hexContent.appendChild(g32rrelem);
+            g32elem.appendChild(g32rrelem);
 
             // create the g32s, currently empty but will later contain an svg, if bitplane
             let g32selem = document.createElement('div');
@@ -2174,7 +2306,7 @@ class Panel {
             g32selem.id=`${this.nameValid}_g32s_${ntiles}`;
             // Now append these to the parent element
               //
-            hexContent.appendChild(g32selem); // comment these out for debugging (slow af)
+            g32elem.appendChild(g32selem); // comment these out for debugging (slow af)
 
             // increment and reset for next group of 32 bytes
             ntiles++;
@@ -2242,13 +2374,13 @@ class Panel {
 
   }
 
-  generateDownloadButton(data, fileName, title, label="Download"){
-    let header = this.inner.querySelector(" .panel_header");
+  generateDownloadButton(parent, data, fileName, title, label="Download"){
+    // let header = this.inner.querySelector(" .panel_header");
     let downloadButton = document.createElement("button");
     downloadButton.className = "downloadButtons";
     downloadButton.innerHTML = label;
     downloadButton.title = title;
-    this.downloadButton = header.appendChild( downloadButton );
+    this.downloadButton = parent.appendChild( downloadButton );
 
     this.downloadButton.addEventListener("click", (event) => { 
 
@@ -2265,7 +2397,7 @@ class Panel {
   }
 
   generateTilesetHTML(input = null){
-    let tilesetContent = this.inner.querySelector(".tileset_content");
+    let tilesetContent = this.panelContent.querySelector(".tileset_content");
     tilesetContent.innerHTML = ""; //clear all content first
     // console.log("this.inner");
     // console.log(this.inner);
@@ -2282,7 +2414,7 @@ class Panel {
   }
 
   generateMetatilesetHTML(input = null){
-    let tilesetContent = this.inner.querySelector(".tileset_content");
+    let tilesetContent = this.panelContent.querySelector(".tileset_content");
 
 
     for (let mt of input){
@@ -2299,7 +2431,7 @@ class Panel {
 
   generateLevelMapHTML(input = null){
     console.log("Generating level map (${input.length} metatiles)...");
-    let tilesetContent = this.inner.querySelector(".levelMap_content");
+    let tilesetContent = this.panelContent.querySelector(".levelMap_content");
     
     let cutoff = 16*16;
     let count = 0;
@@ -2324,7 +2456,7 @@ class Panel {
   }
 
   generatePaletteHTML(input = null){
-    let paletteContent = this.inner.querySelector(".palette_content");
+    let paletteContent = this.panelContent.querySelector(".palette_content");
 
     for (let i=0; i<input.length; i++){
       let colorItem = document.createElement("div");
@@ -2412,6 +2544,181 @@ class Panel {
 
   }
 
+  animate16to1(overrideMode=null,tile=null){
+  // var panel = e.target.parentNode.parentNode;
+
+  // console.log(panel);
+
+  // panel.style.gridTemplateColumns = newMode=="byte1"?"2fr 4fr 14fr":"2fr 16fr 0fr";
+
+  var hexOffsetHeaderLabels = this.panelContent.querySelector(".hex_offset_header > .hex_offset_labels");
+  var hexBaseLabels = this.panelContent.querySelector(".hex_offset_header > .hex_base_labels");
+  var hexContent = this.panelContent.querySelector(".hex_content");
+  // console.log(overrideMode);
+  // console.log(tile);
+  
+  if (tile==null){
+    var g32tile = hexContent.querySelector(".g32");
+    console.log(g32tile);
+  }
+  else{
+    var g32tile = tile;
+  }
+
+  var oldMode = this.panelContent.getAttribute("data-mode");
+  var newMode = "";
+  if (overrideMode){
+    newMode = overrideMode;
+  }
+  else{
+    newMode = oldMode=="byte16"?"byte1":"byte16"; // simplified: toggle
+  }
+
+  // animation "steps" labeled according to order when going byte16 -> byte1
+
+    // expand/collapse height of this tile (g32l, g32rr, and g32s)
+    g32tile.classList.toggle("g32_b16");               // 0
+    g32tile.classList.toggle("g32_b1");
+
+    // offset labels 0-F
+    hexOffsetHeaderLabels.classList.toggle("hex_offset_labels_b16"); // 1
+    hexOffsetHeaderLabels.classList.toggle("hex_offset_labels_b1");
+
+    // base labels, "hex" and "binary"
+    hexBaseLabels.classList.toggle("hex_base_labels_b16");      // 4
+    hexBaseLabels.classList.toggle("hex_base_labels_b1");
+
+    // widen/shrink the data columns
+    this.panelContent.classList.toggle("panel_content_b16");      // 6
+    this.panelContent.classList.toggle("panel_content_b1");
+
+    // for grid elements, get the custom grid-template-rows and columns
+    var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
+    for (var gr32r of g32rs){
+
+      // get the cell-specific grid-template rows and columns info:
+      gr32r.classList.toggle("g32r_b16");                   // 2
+      gr32r.classList.toggle("g32r_b1");
+      let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
+      gr32r.style.gridTemplateColumns = gcr[0];
+      gr32r.style.gridTemplateRows = gcr[1];
+
+      // change the coloring of the byte
+      let gr32rByte = gr32r.querySelector(".byte");
+      gr32rByte.classList.toggle("byte_b16");             // 5
+      gr32rByte.classList.toggle("byte_b1");
+      let bp = gr32rByte.getAttribute('data-bitplane');
+      // gr32rByte.classList.add(`byte_bp${bp}`);
+      gr32rByte.classList.toggle(`byte_bp${bp}`);
+
+      // remove/add binary representation
+      let binSpan = gr32rByte.querySelector(".byteBin");
+      binSpan.classList.toggle("byteBin_b16");            // 4
+      binSpan.classList.toggle("byteBin_b1");
+
+      // fade in/out the offset prefix
+      let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
+      prefix.classList.toggle("byteOffsetPrefix_b16");        // 3
+      prefix.classList.toggle("byteOffsetPrefix_b1");        
+      
+    }
+
+
+    // case "byte16": 
+
+    //   // expand/collapse height of this tile (g32l, g32rr, and g32s)
+    //   g32tile.style.height = "auto";
+        
+    //   this.panelContent.style.gridTemplateColumns = "2fr 16fr 0fr";
+        
+    //   // for grid elements, get the custom grid-template-rows and columns
+    //   var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
+    //   for (var gr32r of g32rs){
+
+    //     // get the cell-specific grid-template rows and columns info:
+    //     let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
+    //     gr32r.style.gridTemplateColumns = gcr[0];
+    //     gr32r.style.gridTemplateRows = gcr[1];
+
+    //     // change the coloring of the byte
+    //     let gr32rByte = gr32r.querySelector(".byte");
+    //     let bp = gr32rByte.getAttribute('data-bitplane');
+    //     gr32rByte.classList.remove(`byte_bp${bp}`);
+        
+    //     // remove/add binary representation
+    //     let binSpan = gr32rByte.querySelector(".byteBin");
+    //     binSpan.classList.remove(`byteBinOneByteWide`);
+        
+    //     // fade in/out the offset prefix
+    //     let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
+    //     prefix.style.opacity = 0;
+          
+    //   }
+
+    //   // this.panelContent.classList.remove("panel_content_bitplane1");
+    //   // this.panelContent.classList.add("panel_content_bitplane16");
+      
+    //   // panel.style.gridTemplateColumns = "2fr 16fr 0fr";
+    //   // hexContent.style.gridTemplateRows = `repeat(${g32l.length},5ch)`;
+    //   hexOffsetHeaderLabels.style.opacity = 1;
+    //   hexBaseLabels.style.opacity = 0;
+      
+    //   break;
+
+    // case "byte1":
+      
+    //   // expand/collapse height of this tile (g32l, g32rr, and g32s)
+    //   g32tile.style.height = "100%";
+
+    //   // this.panelContent.classList.remove("panel_content_bitplane16");
+    //   // this.panelContent.classList.add("panel_content_bitplane1");
+
+    //   // panel.style.gridTemplateColumns = "2fr 4fr 25fr";
+    //   // hexContent.style.gridTemplateRows = `repeat(${g32l.length},100%)`;
+    //   hexOffsetHeaderLabels.style.opacity = 0;
+    //   hexBaseLabels.style.opacity = 1;
+
+    //   this.panelContent.style.gridTemplateColumns = "2fr 4fr 25fr";
+
+    //   // for grid elements, get the custom grid-template-rows and columns
+    //   var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
+    //   for (var gr32r of g32rs){
+
+    //     // get the cell-specific grid-template rows and columns info:
+    //     let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
+    //     gr32r.style.gridTemplateColumns = gcr[0];
+    //     gr32r.style.gridTemplateRows = gcr[1];
+
+    //     // change the coloring of the byte
+    //     let gr32rByte = gr32r.querySelector(".byte");
+    //     let bp = gr32rByte.getAttribute('data-bitplane');
+    //     gr32rByte.classList.add(`byte_bp${bp}`);
+
+    //     // remove/add binary representation
+    //     let binSpan = gr32rByte.querySelector(".byteBin");
+    //     binSpan.classList.add(`byteBinOneByteWide`);
+
+    //     // fade in/out the offset prefix
+    //     let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
+    //     prefix.style.opacity = 1;              
+        
+    //   }
+      
+    //   break;
+    // }
+
+  // console.log(g32);
+  // hc.height = "100%";
+
+ 
+  this.panelContent.setAttribute("data-mode", newMode);
+
+
+  }
+  animate1to16(){
+
+  }
+
   propagateSource(){
     // this propagates the update of a source (or addition) out to dependent panels
     console.log(`propagateSource: ${this.kind}`);
@@ -2437,7 +2744,10 @@ class Panel {
           // download setup
           if (!this.downloadButton){
             let downloadFileName = this.links[0].source.file.name.replace(".bin","_Decompressed.bin");
-            this.generateDownloadButton( this.source.data, downloadFileName, "Download Decompressed Graphics File (.bin)");
+            this.generateDownloadButton( 
+              this.panelContent.querySelector(".bitplane_header"), 
+              this.source.data, downloadFileName, 
+              "Download Decompressed Graphics File (.bin)");
           }
         }
 
@@ -2536,7 +2846,7 @@ function fileInput(e, ui, panel){
 
     // the hex viewer div
     //HACK: assumes there is only one hexViewercontent per panel...
-    let hexContent = panel.inner.querySelectorAll(" .hex_content")[0];
+    let hexContent = panel.panelContent.querySelector(" .hex_content");
     // console.log(panel.name+" hexContent");
     // console.log(hexContent);
 
@@ -2656,15 +2966,15 @@ function changeByteWidth(panel, overrideMode=null){
 }
 
 function updateBitplaneSeek(panelNode, panel, change, override=false ){
-  let texts = panelNode.querySelectorAll(".panel_header > .seekButtons > a");
+  let texts = panelNode.querySelectorAll(".panel_content > .bitplane_header > .seekButtons > a");
   // first update the total number
 
   
-  console.log( texts );
+  // console.log( texts );
 
-  console.log(panelNode);
-  console.log(panel);
-  console.log(change);
+  // console.log(panelNode);
+  // console.log(panel);
+  // console.log(change);
   
 
   if (panel.source){
@@ -2748,26 +3058,39 @@ class UImodel {
         // }
 
         if (panel.byteWidthButton){
-          panel.inner.querySelectorAll(".panel_header > .byteWidthButton")[0].addEventListener("click",
-              (event) => {changeByteWidth(event.target.parentNode.parentNode)});
+          // panel.inner.querySelectorAll(".panel_header > .byteWidthButton")[0].addEventListener("click",
+          //     (event) => {changeByteWidth(event.target.parentNode.parentNode)});
+          console.log("ADDED EVENT LISTENER");
+          panel.inner.querySelector(".panel_content > .bitplane_header > .byteWidthButton").addEventListener("click",
+              (event) => {
+                console.log(event);
+                // changeByteWidth(event.target.parentNode.parentNode);
+                panel.animate16to1();
+              });
         }
         if (panel.seekTileUpButton){
-          panel.inner.querySelector(".panel_header > div > .seekTileUpButton").addEventListener("click",
+          // panel.inner.querySelector(".panel_header > div > .seekTileUpButton").addEventListener("click",
+          //   (event) => { 
+          //     updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, +1)
+          //   }
+          // );
+          console.log("ADDED EVENT LISTENER");
+          panel.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileUpButton").addEventListener("click",
             (event) => { 
-              // this.generateHexHTML(this.source.data, OFFSET_HERE, event.target.parentNode.parentNode.getAttribute("data-mode"));
-              
-
-              // console.log( event.target.parentNode.parentNode.querySelectorAll("a") );
               console.log(event);
-
               updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, +1)
             }
           );
         }
         if (panel.seekTileDownButton){
-          panel.inner.querySelector(".panel_header > div > .seekTileDownButton").addEventListener("click",
+          // panel.inner.querySelector(".panel_header > div > .seekTileDownButton").addEventListener("click",
+          //   (event) => { 
+          //     updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, -1)
+          //   }
+          // );
+          console.log("ADDED EVENT LISTENER");
+          panel.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileDownButton").addEventListener("click",
             (event) => { 
-              // this.generateHexHTML(this.source.data, OFFSET_HERE, target.parentNode.parentNode.getAttribute("data-mode"));
               console.log(event);
               updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, -1)
             }
@@ -2776,7 +3099,7 @@ class UImodel {
 
 
         if (panel.fileInputs[0]){
-          panel.inner.querySelectorAll(".panel_header > .fileInput")[0].onchange = (e) => fileInput(e, this, panel);
+          panel.inner.querySelectorAll(".panel_content > .fileInput")[0].onchange = (e) => fileInput(e, this, panel);
         }
 
         // also see if we need to link any panels:
