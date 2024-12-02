@@ -111,18 +111,22 @@ button{
 }
 /* draggable version... */
 .panel_outer{
+    --edge: 10px;
     position: absolute;
     display: grid;
-    grid-template-columns: 0.5em auto 0.5em;
-    grid-template-rows: 0.5em auto 0.5em;
+    /* grid-template-columns: 0.5em auto 0.5em;
+    grid-template-rows: 0.5em auto 0.5em; */
+    grid-template-columns: var(--edge) auto var(--edge);
+    grid-template-rows: var(--edge) auto var(--edge);
     background: none;
-    /* border: 1px solid red; */
+    /* border: 1px solid blue; */
     border-radius: 7px;
     overflow: hidden;
     overflow-x: visible;
     overflow: visible;
     justify-content: center;  
     /* overflow-y: scroll; */
+    width: max-content;
 }
 
 .panel_edge{
@@ -644,7 +648,7 @@ end of animation classes
 .text_content{
   width: 100%;
   height: 100%;
-  height: 20em;
+  /* height: 20em; */
   overflow-y:scroll;
   font-family:Arial, Helvetica, sans-serif;
   padding: 1ch;
@@ -1893,12 +1897,18 @@ class Panel {
     // set up the dragging "grid"
     for (let i=1; i<4; i++){
       for (let j=1; j<4; j++){
+        var edge;
         if ( !( (i==2) && (j==2) ) ){
-          let edge = this.outer.appendChild( document.createElement("div") );
+          edge = this.outer.appendChild( document.createElement("div") );
           edge.classList.add("panel_edge");
           edge.style.gridRow = `${i} / ${i+1}`;
           edge.style.gridColumn = `${j} / ${j+1}`;
           edge.title = `row ${i} / col ${j}`;
+        }
+        if ( (i==3) && (j==3) ){
+          edge.style.cursor = "se-resize";
+          console.log(edge);
+          this.assignResize(this, edge);
         }
       }
     }
@@ -2199,8 +2209,9 @@ class Panel {
     let top = `${ (rowStart-1)*height/28 }px`;
     this.outer.style.top = top;
 
-    this.outer.style.width = `${ (columnEnd-columnStart)*width/32 }px`;
-    // this.outer.style.height = `${ (rowEnd-rowStart)*height/28 }px`;
+    this.inner.style.width = `${ (columnEnd-columnStart)*width/32 }px`;
+    // this.inner.style.minHeight = `max-content`;
+    // this.inner.style.height = `${ (rowEnd-rowStart)*height/28 }px`;
 
     console.log(`${this.name} - width: ${width}; left: ${left}; height: ${height}; top: ${top}`);
 
@@ -2233,7 +2244,7 @@ class Panel {
       pos3 = event.clientX;
       pos4 = event.clientY;
       element.style.left = `${element.offsetLeft - pos1}px`;
-      element.style.top = `${element.offsetTop - pos2}px`;
+      element.style.top = `${Math.max(element.offsetTop - pos2, 0)}px`;
 
     }
 
@@ -2265,6 +2276,55 @@ class Panel {
       }
     );
     this.outer.style.zIndex = count; // put this at the end / on top
+
+  }
+  assignResize(panel, edge){
+    // currently just the bottom right ("southeast") corner.
+    var element = panel.inner;
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    var startWidth, startHeight, startX, startY, bbox;
+
+    edge.addEventListener("mousedown", (event) => { 
+      event = event || window.event;
+      event.preventDefault();
+
+      startX = event.clientX;
+      startY = event.clientY;
+
+      bbox = element.getBoundingClientRect();
+
+      startWidth = bbox.width;
+      startHeight = bbox.height;
+
+      document.onmouseup = resizeClose;
+      document.onmousemove = resizeMove;
+      
+      // panel.sortZ();
+
+    });
+
+    function resizeMove(event){
+      event = event || window.event;
+      event.preventDefault();
+      
+      let w = `${Math.max(startWidth + event.clientX - startX, 10)}px`;
+      let h = `${Math.max(startHeight + event.clientY - startY, 10)}px`;
+      element.style.width = w;
+      element.style.height = h;
+      console.log(w+" "+h);
+
+    }
+
+
+    function resizeClose(event){
+      document.onmouseup = null;
+      document.onmousemove = null;
+      console.log("Resize ended.");
+
+    }
+
+    
+
 
   }
 
