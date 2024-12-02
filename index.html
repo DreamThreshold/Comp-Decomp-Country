@@ -76,6 +76,7 @@ button{
 }
 
 #panelgrid{
+    position: relative;
     display: grid;
     width: 100%;
     height: 100%;
@@ -91,6 +92,7 @@ button{
     z-index: -7;
 }
 
+/* grid version... */
 .panel_outer{
     /* grid-column-start: auto;
     grid-column-end: 8; */
@@ -107,6 +109,25 @@ button{
 
     /* overflow-y: scroll; */
 }
+/* draggable version... */
+.panel_outer{
+    position: absolute;
+    display: grid;
+    grid-template-columns: 0.5em auto 0.5em;
+    grid-template-rows: 0.5em auto 0.5em;
+    background: none;
+    /* border: 1px solid red; */
+    border-radius: 7px;
+    overflow: hidden;
+    overflow-x: visible;
+    overflow: visible;
+    justify-content: center;  
+    /* overflow-y: scroll; */
+}
+
+.panel_edge{
+  /* background-color: rgba(255,0,0,0.5); */
+}
 
 /* Global classes used by all panels */
 
@@ -120,6 +141,8 @@ button{
     overflow: hidden;
     align-items: stretch;
     display: grid;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
     grid-template-rows: 3em 1.5em 1fr;
     grid-template-rows: 3em auto;
     
@@ -138,6 +161,8 @@ button{
     /* justify-content: space-between; */
     align-items: center;
     grid-area: 1 / 1 / 2 / -1;
+    overflow: hidden;
+    cursor: move;
     /* transition:  var(--bitplaneViewerTransition); */
 }
 
@@ -538,10 +563,10 @@ classes for bitplane animation
 
 }
 .byte_by16RowEven{
-  background-color: rgba(86, 86, 86, 0.5);
+  background-color: rgba(86, 86, 86, 0.35);
 }
 .byte_by16RowOdd{
-  background-color: rgba(0,0,0,0.5); 
+  background-color: rgba(0,0,0,0.35); 
 }
 /* here we would have all 64 .byte_valueXX classes...? */
 .byte_bp0{
@@ -619,6 +644,7 @@ end of animation classes
 .text_content{
   width: 100%;
   height: 100%;
+  height: 20em;
   overflow-y:scroll;
   font-family:Arial, Helvetica, sans-serif;
   padding: 1ch;
@@ -1864,6 +1890,20 @@ class Panel {
 
     this.outer.appendChild(this.inner);
 
+    // set up the dragging "grid"
+    for (let i=1; i<4; i++){
+      for (let j=1; j<4; j++){
+        if ( !( (i==2) && (j==2) ) ){
+          let edge = this.outer.appendChild( document.createElement("div") );
+          edge.classList.add("panel_edge");
+          edge.style.gridRow = `${i} / ${i+1}`;
+          edge.style.gridColumn = `${j} / ${j+1}`;
+          edge.title = `row ${i} / col ${j}`;
+        }
+      }
+    }
+
+
     this.name = name;
     this.nameValid = this.name.replace(/\s/g, ""); // should make a valid html id
     this.kind = kind;
@@ -1882,14 +1922,13 @@ class Panel {
     this.index = this.ui.panels.length;
     console.log(`panel  ${this.name} should be index ${this.index}`);
 
+    // HEADER
     // create a header 
     this.inner.appendChild(document.createElement("div") );
     this.panelHeader = this.inner.children[this.inner.children.length-1];
     this.panelHeader.id = this.name+"_header";
     this.panelHeader.className = "panel_header";
     
-    
-
     // add the title
     this.title = document.createElement("div");
     this.title.innerHTML += this.name;
@@ -1907,7 +1946,7 @@ class Panel {
     this.collapse.innerHTML += "˄";
     this.collapse = this.panelHeader.appendChild(this.collapse);
 
-    
+    // CONTENT
     // create the content
     this.inner.appendChild(document.createElement("div") );
     this.panelContent = this.inner.children[this.inner.children.length-1];
@@ -2148,9 +2187,87 @@ class Panel {
     this.fileBin = null;
 
     // Set the CSS:
-    this.updateCSS();
+    // old method, for grid
+    // this.updateCSS();
+
+    // new method, absolute/draggable reflow
+    let width = document.body.querySelector(".main").clientWidth;
+    let left = `${ (columnStart-1)*width/32 }px`;
+    this.outer.style.left = left;
+
+    let height = document.body.querySelector(".main").clientHeight;
+    let top = `${ (rowStart-1)*height/28 }px`;
+    this.outer.style.top = top;
+
+    this.outer.style.width = `${ (columnEnd-columnStart)*width/32 }px`;
+    // this.outer.style.height = `${ (rowEnd-rowStart)*height/28 }px`;
+
+    console.log(`${this.name} - width: ${width}; left: ${left}; height: ${height}; top: ${top}`);
+
+    this.outer.style.zIndex = this.index;
+
+    this.assignDrag(this);
 
   }
+  assignDrag(panel){
+    var element = panel.outer;
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+    this.panelHeader.addEventListener("mousedown", (event) => { 
+      event = event || window.event;
+      event.preventDefault();
+      pos3 = event.clientX;
+      pos4 = event.clientY;
+      document.onmouseup = dragClose;
+      document.onmousemove = dragMove;
+      
+      panel.sortZ();
+
+    });
+
+    function dragMove(event){
+      event = event || window.event;
+      event.preventDefault();
+      pos1 = pos3 - event.clientX;
+      pos2 = pos4 - event.clientY;
+      pos3 = event.clientX;
+      pos4 = event.clientY;
+      element.style.left = `${element.offsetLeft - pos1}px`;
+      element.style.top = `${element.offsetTop - pos2}px`;
+
+    }
+
+
+    function dragClose(event){
+      document.onmouseup = null;
+      document.onmousemove = null;
+      console.log("Drag ended.");
+
+    }
+
+    
+
+
+  }
+  sortZ(){
+
+    var panelsZ = this.ui.panels.sort( 
+      (a,b) => a.outer.style.zIndex - b.outer.style.zIndex 
+    );
+    var count = 1;
+    // Assumes all Panel.index values are unique...
+    panelsZ.forEach( 
+      (d,i) => {
+        if ( d.index != this.index ){
+          d.outer.style.zIndex = count;
+          count++;
+        }
+      }
+    );
+    this.outer.style.zIndex = count; // put this at the end / on top
+
+  }
+
   updateBox(rowStartDelta, rowEndDelta, columnStartDelta, columnEndDelta, widthDelta=0, heightDelta=0){
     this.rowStart += rowStartDelta;
     this.rowEnd += rowEndDelta;
@@ -2166,6 +2283,7 @@ class Panel {
     this.outer.style.gridColumnEnd = this.columnEnd;
 
   }
+
   toOneByteWide(){
     // NOTE: needs fine-tuning; can't get the animations to synchronize for some weird reason.
     let ps = document.getElementsByClassName("panel_inner");
