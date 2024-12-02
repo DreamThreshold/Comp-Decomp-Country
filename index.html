@@ -93,22 +93,18 @@ button{
 }
 
 /* grid version... */
-.panel_outer{
-    /* grid-column-start: auto;
-    grid-column-end: 8; */
+/* .panel_outer{
     display: flex;
     grid-row-start: 1;
     grid-row-end: 14;
     background: none;
-    /* border: 1px solid red; */
     border-radius: 7px;
     overflow: hidden;
     overflow-x: visible;
     overflow: visible;
     justify-content: center;
 
-    /* overflow-y: scroll; */
-}
+} */
 /* draggable version... */
 .panel_outer{
     --edge: 10px;
@@ -119,18 +115,18 @@ button{
     grid-template-columns: var(--edge) auto var(--edge);
     grid-template-rows: var(--edge) auto var(--edge);
     background: none;
-    /* border: 1px solid blue; */
+    border: 1px solid blue;
     border-radius: 7px;
     overflow: hidden;
     overflow-x: visible;
     overflow: visible;
     justify-content: center;  
     /* overflow-y: scroll; */
-    width: max-content;
+    /* max-height: 20em; */
 }
 
 .panel_edge{
-  /* background-color: rgba(255,0,0,0.5); */
+  background-color: rgba(255,0,0,0.5);
 }
 
 /* Global classes used by all panels */
@@ -148,11 +144,25 @@ button{
     grid-column: 1 / -1;
     grid-row: 1 / -1;
     grid-template-rows: 3em 1.5em 1fr;
-    grid-template-rows: 3em auto;
+    grid-template-rows: 3em 1fr;
     
     /* grid-template-columns: 2fr 16fr 0fr;
     transition:  var(--bitplaneViewerTransition); */
     box-shadow: 1em 1em black;
+    transition: grid-template-rows 2s ease;
+    height: minmax(max-content, 20em);
+}
+.panel_inner_collapsed{
+  
+  grid-template-rows: 3em 0fr;
+}
+
+.collapser{
+  transition: 2s ease;
+  cursor:pointer;
+}
+.collapser_collapsed{
+  transform: rotateX(180deg);
 }
 
 
@@ -178,6 +188,8 @@ button{
   grid-column: 1 / -1;
   grid-row: 2 / 3;
   overflow-y: auto; /* allows scrolling */
+  /* height: min(max-content, 48em); */
+  max-height: 50em; /* helps prevent long panels from being ridiculously long */
 }
 
 .panel_header_title{
@@ -246,6 +258,7 @@ button{
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
+  width: 6.25%; /* works ok */
 }
 /* for actual <canvas> element */
 .tile_item{
@@ -269,6 +282,7 @@ button{
   aspect-ratio: 1 / 1;
   image-rendering: pixelated;
   border: 1px solid rgba(0,255,0,0.5);
+  width: 25%; /* works ok */
 
 }
 
@@ -284,7 +298,7 @@ button{
   flex-direction: row;
   flex-wrap: wrap;
   width: 100%;
-  width: 20em;
+  /* width: 20em; */
   overflow-y: scroll;
   align-content: stretch;
   place-content: stretch;
@@ -297,7 +311,7 @@ button{
   background-color: rgba(0,0,0,0);
   
   box-sizing: border-box;
-  width: 2ch;
+  /* width: 2ch; */
 }
 /* when we select this palette */
 .color_item_selected{
@@ -648,7 +662,7 @@ end of animation classes
 .text_content{
   width: 100%;
   height: 100%;
-  /* height: 20em; */
+  max-height: 15em;
   overflow-y:scroll;
   font-family:Arial, Helvetica, sans-serif;
   padding: 1ch;
@@ -1954,7 +1968,15 @@ class Panel {
     // add the collapse button
     this.collapse = document.createElement("div");
     this.collapse.innerHTML += "˄";
+    this.collapse.classList.add("collapser");
     this.collapse = this.panelHeader.appendChild(this.collapse);
+    this.collapse.addEventListener("click", (event) => { 
+        this.inner.classList.toggle("panel_inner_collapsed");
+        event.target.classList.toggle("collapser_collapsed");
+        // console.log(event);
+      }
+    );
+
 
     // CONTENT
     // create the content
@@ -2210,8 +2232,10 @@ class Panel {
     this.outer.style.top = top;
 
     this.inner.style.width = `${ (columnEnd-columnStart)*width/32 }px`;
+    let bbox = this.inner.getBoundingClientRect();
     // this.inner.style.minHeight = `max-content`;
-    // this.inner.style.height = `${ (rowEnd-rowStart)*height/28 }px`;
+
+    // if (bbox.height > (rowEnd-rowStart)*height/28) this.inner.style.height = `${ (rowEnd-rowStart)*height/28 }px`;
 
     console.log(`${this.name} - width: ${width}; left: ${left}; height: ${height}; top: ${top}`);
 
@@ -2220,6 +2244,7 @@ class Panel {
     this.assignDrag(this);
 
   }
+
   assignDrag(panel){
     var element = panel.outer;
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -2260,6 +2285,7 @@ class Panel {
 
 
   }
+
   sortZ(){
 
     var panelsZ = this.ui.panels.sort( 
@@ -2278,6 +2304,7 @@ class Panel {
     this.outer.style.zIndex = count; // put this at the end / on top
 
   }
+
   assignResize(panel, edge){
     // currently just the bottom right ("southeast") corner.
     var element = panel.inner;
@@ -2311,7 +2338,7 @@ class Panel {
       let h = `${Math.max(startHeight + event.clientY - startY, 10)}px`;
       element.style.width = w;
       element.style.height = h;
-      console.log(w+" "+h);
+      // console.log(w+" "+h);
 
     }
 
@@ -2577,17 +2604,56 @@ class Panel {
   generateTilesetHTML(input = null){
     let tilesetContent = this.panelContent.querySelector(".tileset_content");
     tilesetContent.innerHTML = ""; //clear all content first
+    tilesetContent.style.maxHeight = "15em";
     // console.log("this.inner");
     // console.log(this.inner);
     // console.log("tileset content");
     // console.log(tilesetContent);
+    var count = 1;
     for (let tile of input){
       
       var wrapper = document.createElement("div");
       // canvas.id = "canvas";
       wrapper = tilesetContent.appendChild(wrapper);
       wrapper.className = "tile_wrapper";
+      let title = `Tile ${count}\n(Click to view bitplanes)`;
+      wrapper.title = title;
+      if (count==1){
+        console.log(title);
+        console.log(wrapper);
+      }
+      wrapper.setAttribute("data-tile-index", count);
+
+      // add event listener
+      wrapper.addEventListener("click", (event) => { 
+
+        let clickedTile = event.target;
+        console.log(clickedTile);
+        let parent = clickedTile.parentNode;
+        console.log(parent);
+        
+        
+
+        
+        // update the bitplane viewer if it's available
+        //HACK: assumes index 0 is the bitplane viewer
+        if (this.links[0].source){
+          // this.nexts[0].generateHexHTML( this.nexts[0].source.data);
+          // A wrapper that prevents jumping to 1st tile
+          // last argument, override, will ensure the svg is updated.
+          updateBitplaneSeek(this.links[0].inner, this.links[0], 0, 
+            parent.getAttribute("data-tile-index")*1 )
+        }
+        // this is where we could run a little css wobble animation to 
+        // highlight this tile's presence within metatiles...?
+        // if (this.nexts[0].source){
+          
+        // }
+        
+      });
+
       display( [tile],  wrapper, this.palette, 2 ) ;
+      count++;
     }
   }
 
@@ -3161,15 +3227,18 @@ function updateBitplaneSeek(panelNode, panel, change, override=false ){
     texts[3].innerHTML = totalNumber;
     //
     let oldVal = (1*texts[1].innerHTML);
-    let newVal =  oldVal+change;
+
+    let newVal =  (typeof(override)=='number' ) ? override : (oldVal+change);
+
+    // min max/ clamp the range:
     if (newVal>totalNumber) newVal = totalNumber;
     if (newVal<1) newVal = 1;
 
 
     // if we have a valid change:
-    if ( (newVal != oldVal) || override ){
+    if ( (newVal != oldVal) || (override!=false) ){
       texts[1].innerHTML = newVal;
-
+      console.log(`Updating bitplane seek to ${newVal}`)
       // let offset = 
       panel.generateHexHTML(panel.source.data, (newVal-1)*32, panelNode.getAttribute("data-mode")=='byte16')
     }
