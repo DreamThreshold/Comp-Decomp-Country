@@ -139,26 +139,32 @@ button{
     border-radius: 7px;
     justify-self: center;
     overflow: hidden;
-    align-items: stretch;
-    display: grid;
     grid-column: 1 / -1;
     grid-row: 1 / -1;
+    
+    /* display: grid;
+    align-items: stretch;
     grid-template-rows: 3em 1.5em 1fr;
-    grid-template-rows: 3em 1fr;
+    grid-template-rows: 3em 1fr; */
     
     /* grid-template-columns: 2fr 16fr 0fr;
     transition:  var(--bitplaneViewerTransition); */
     box-shadow: 1em 1em black;
     transition: grid-template-rows 2s ease;
-    height: minmax(max-content, 20em);
+    /* height: minmax(max-content, 20em); */
+    /* max-height: 800px; */
+    height: max-content;
 }
-.panel_inner_collapsed{
-  
-  grid-template-rows: 3em 0fr;
-}
+/* .panel_inner::after{
+  background-color: yellow;
+  margin-left: 20px;
+  width: 500px;
+  height: 300px;
+  display: block;
+} */
+
 
 .collapser{
-  transition: 2s ease;
   cursor:pointer;
 }
 .collapser_collapsed{
@@ -188,15 +194,15 @@ button{
   grid-column: 1 / -1;
   grid-row: 2 / 3;
   overflow-y: auto; /* allows scrolling */
-  /* height: min(max-content, 48em); */
-  max-height: 50em; /* helps prevent long panels from being ridiculously long */
+  
 }
 
 .panel_header_title{
   
   margin:1ch;
   margin-right: 2ch;
-  font-size: 1.2em;;
+  font-size: 1em;;
+  font-family:Arial, Helvetica, sans-serif;
 }
 
 
@@ -234,7 +240,7 @@ button{
   flex-direction: row;
   flex-wrap: wrap;
   width: 100%;;
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
   /* align-content: stretch; */
   scroll-snap-type: both proximity;
 }
@@ -259,6 +265,7 @@ button{
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
   width: 6.25%; /* works ok */
+  width: 25%;
 }
 /* for actual <canvas> element */
 .tile_item{
@@ -299,7 +306,7 @@ button{
   flex-wrap: wrap;
   width: 100%;
   /* width: 20em; */
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
   align-content: stretch;
   place-content: stretch;
   scroll-snap-type: both proximity;
@@ -624,12 +631,12 @@ classes for bitplane animation
 
 /* panel_content goes here */
 .panel_content_b16{
-  transition: 1s ease-in-out 0s;
+  transition: grid-template-rows 1s ease-in-out 0s, grid-template-columns  1s ease-in-out 0s;
   grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
   grid-template-columns: 2fr 16fr 0fr;
 }
 .panel_content_b1{
-  transition: 1s ease-in-out 7s;
+  transition: grid-template-rows 1s ease-in-out 7s, grid-template-columns 1s ease-in-out 7s;
   grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
   grid-template-columns: 2fr 4fr 25fr;
 }
@@ -642,7 +649,12 @@ end of animation classes
 
 
 
-
+.g32_plain{
+  display:grid;
+  grid-template-columns: 2fr repeat(16, 1fr) 0fr; 
+  grid-template-rows: 2em 2em;
+  height: 4em;
+}
 
 
 
@@ -657,13 +669,14 @@ end of animation classes
 .panel_inner_text{
   grid-template-rows: 3em 1fr;
   grid-template-columns: 1fr;
-
+  max-height: 100px;
 }
 .text_content{
   width: 100%;
   height: 100%;
-  max-height: 15em;
-  overflow-y:scroll;
+  /* max-height: 15em; */
+  /* height: 20em;  */
+  /* overflow-y:scroll; */
   font-family:Arial, Helvetica, sans-serif;
   padding: 1ch;
   
@@ -914,6 +927,7 @@ class View {
                             <g id="elements_${this.name}"></g>
                           </svg>`;
     this.svg = document.getElementById(`svg_${this.name}`);
+    console.log(`elements_${this.name}`);
     this.svgGroup = document.getElementById(`elements_${this.name}`);
     
     // Now make SVG strings for each element:
@@ -968,6 +982,7 @@ class View {
       evt.preventDefault();
       evt.stopPropagation();
       this.point && (this.angleh = this.point.angleh+(evt.x - this.point.x)/this.anglehs) + (this.anglev = this.point.anglev-(evt.y - this.point.y)/this.anglevs); 
+      // console.log("svg View mouse move");
     });
 
     // for scrolling to zoom:
@@ -983,16 +998,23 @@ class View {
       }
     });
 
-    // resizing (will be called on initialization)
-    // eventwrap('resize', e => this.svg.setAttribute('viewBox',
-    //   `0 0 ${this.width=innerWidth} ${this.height=innerHeight}`));
-    // dispatchEvent( new Event('resize'));
+    // resizing the parent element. 
+    //TODO: make more performant. There's currently a sort of debounce,
+    // but there should just be an alternative to this.renderREcts()
+    //  that just moves the current positions instead of re-rendering 3d
+    this.debounceResize = false;
+    this.resizeObs = new ResizeObserver(
+      evt => {
+        if (!this.debounceResize){
+          this.renderRects();
+          // console.log("svg View parentNode resized: just rendered.");
+          this.debounceResize = true;
+          setTimeout( () => {this.debounceResize = false;}, 200)
+        }
+      }
+    ).observe(this.svg.parentNode);
 
-    // eventwrap('resize', e => this.svg.setAttribute('viewBox',
-    //   `0 0 ${this.width=500} ${this.height=970}`));
-    eventwrap('resize', evt => this.renderRects());
-    window.addEventListener( 'resize', evt => this.renderRects());
-    dispatchEvent( new Event('resize'));
+
 
     // Also set a timeout, so we can have animatinos play:
     // (not used here yet)
@@ -1970,10 +1992,25 @@ class Panel {
     this.collapse.innerHTML += "˄";
     this.collapse.classList.add("collapser");
     this.collapse = this.panelHeader.appendChild(this.collapse);
+    var collapseTime = 2000; // only source of collapse timing, to prevent redundancy
+    this.collapse.style.transition = `height ${collapseTime/1000}s ease 0s`;
+    // Event listener for collapsing the panelContent
     this.collapse.addEventListener("click", (event) => { 
-        this.inner.classList.toggle("panel_inner_collapsed");
+        
+        // handle the css for transition animation
         event.target.classList.toggle("collapser_collapsed");
-        // console.log(event);
+        this.panelContent.classList.add("panel_content_collapsing_expanding");
+        this.panelContent.style.transition = `height ${collapseTime/1000}s ease 0s`;
+        setTimeout( () => {this.panelContent.style.transition = ``;}, collapseTime );
+        
+        // set the actual new height
+        if (this.inner.getAttribute("data-collapsed")=="true"){
+          this.panelContent.style.height = this.inner.getAttribute("data-user-height")+"px";
+          this.inner.setAttribute("data-collapsed", "false");
+        } else {
+          this.panelContent.style.height = "0px";
+          this.inner.setAttribute("data-collapsed", "true");
+        }
       }
     );
 
@@ -2222,22 +2259,49 @@ class Panel {
     // old method, for grid
     // this.updateCSS();
 
-    // new method, absolute/draggable reflow
-    let width = document.body.querySelector(".main").clientWidth;
-    let left = `${ (columnStart-1)*width/32 }px`;
+    // new method, absolute/draggable 
+
+    // position the outer
+    let pageWidth = document.body.querySelector(".main").clientWidth;
+    let left = `${ (columnStart-1)*pageWidth/32 }px`;
     this.outer.style.left = left;
 
-    let height = document.body.querySelector(".main").clientHeight;
-    let top = `${ (rowStart-1)*height/28 }px`;
+    let pageHeight = document.body.querySelector(".main").clientHeight;
+    let top = `${ (rowStart-1)*pageHeight/28 }px`;
     this.outer.style.top = top;
 
-    this.inner.style.width = `${ (columnEnd-columnStart)*width/32 }px`;
+    // set widths and height
+    this.inner.style.width = `${ (columnEnd-columnStart)*pageWidth/32 }px`;
     let bbox = this.inner.getBoundingClientRect();
+
+
     // this.inner.style.minHeight = `max-content`;
 
     // if (bbox.height > (rowEnd-rowStart)*height/28) this.inner.style.height = `${ (rowEnd-rowStart)*height/28 }px`;
+    let headerHeight = this.panelHeader.getBoundingClientRect().height;
 
-    console.log(`${this.name} - width: ${width}; left: ${left}; height: ${height}; top: ${top}`);
+    // Calculate the height of this panel such that it does not exceed page height,
+    // but tries to fit everything to the tallest of 
+    // its allocated "grid" space, OR its content
+    let startHeightGrid = (rowEnd-rowStart)*pageHeight/28 ;
+    let startHeightFitAllContent = this.panelContent.getBoundingClientRect().height + headerHeight;
+    var startHeight;
+    // But if there's a panel with a lot of content to start with, we'll assume it's meant to scroll
+    // (text, for example)
+    if (startHeightFitAllContent > pageHeight) startHeight = startHeightGrid;
+    else startHeight = Math.min( Math.max(startHeightGrid, startHeightFitAllContent), pageHeight*0.9 );
+
+    // save this for later, so we can collapse to 0, 
+    // but later expand back to the previous height
+    this.inner.setAttribute("data-user-height", startHeight);
+    // this.inner.setAttribute("data-collapsed", false);
+    // now actually assign the calculated height to the panelContent
+    // (the inner and outer should resize to accomodate, bc of max-content)
+    let contentHeightCalculated = startHeight - headerHeight;
+    this.panelContent.style.height = `${contentHeightCalculated}px`;
+
+    // console.log(`${this.name}\npageHeight: ${pageHeight}; startHeightGrid: ${startHeightGrid}; startHeightFitAllContent: ${startHeightFitAllContent}; startHeight: ${startHeight}; `);
+    // console.log(`${contentHeightCalculated}px`);
 
     this.outer.style.zIndex = this.index;
 
@@ -2246,43 +2310,37 @@ class Panel {
   }
 
   assignDrag(panel){
+    // Drag the panel around by grabbing its header
     var element = panel.outer;
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    var deltaX = 0, deltaY = 0, startX = 0, startY = 0;
 
     this.panelHeader.addEventListener("mousedown", (event) => { 
       event = event || window.event;
       event.preventDefault();
-      pos3 = event.clientX;
-      pos4 = event.clientY;
+      startX = event.clientX;
+      startY = event.clientY;
       document.onmouseup = dragClose;
       document.onmousemove = dragMove;
       
       panel.sortZ();
-
     });
 
     function dragMove(event){
       event = event || window.event;
       event.preventDefault();
-      pos1 = pos3 - event.clientX;
-      pos2 = pos4 - event.clientY;
-      pos3 = event.clientX;
-      pos4 = event.clientY;
-      element.style.left = `${element.offsetLeft - pos1}px`;
-      element.style.top = `${Math.max(element.offsetTop - pos2, 0)}px`;
+      deltaX = startX - event.clientX;
+      deltaY = startY - event.clientY;
+      startX = event.clientX;
+      startY = event.clientY;
+      element.style.left = `${element.offsetLeft - deltaX}px`;
+      element.style.top = `${Math.max(element.offsetTop - deltaY, 0)}px`;
 
     }
-
 
     function dragClose(event){
       document.onmouseup = null;
       document.onmousemove = null;
-      console.log("Drag ended.");
-
     }
-
-    
-
 
   }
 
@@ -2308,8 +2366,9 @@ class Panel {
   assignResize(panel, edge){
     // currently just the bottom right ("southeast") corner.
     var element = panel.inner;
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    var startWidth, startHeight, startX, startY, bbox;
+    
+    var startWidth, startHeight, startX, startY, bbox, cbox;
+    var content, header, headerHeight, collapsed;
 
     edge.addEventListener("mousedown", (event) => { 
       event = event || window.event;
@@ -2319,14 +2378,21 @@ class Panel {
       startY = event.clientY;
 
       bbox = element.getBoundingClientRect();
+      // cbox = element.querySelector(".panel_content").getBoundingClientRect();
+
+      header = element.querySelector(".panel_header");
+      content = element.querySelector(".panel_content")
+      headerHeight = header.getBoundingClientRect().height;
+      collapsed = this.inner.getAttribute("data-collapsed")=="true";
 
       startWidth = bbox.width;
+      // startHeight = cbox.height;
       startHeight = bbox.height;
 
       document.onmouseup = resizeClose;
       document.onmousemove = resizeMove;
       
-      // panel.sortZ();
+      panel.sortZ();
 
     });
 
@@ -2334,10 +2400,18 @@ class Panel {
       event = event || window.event;
       event.preventDefault();
       
-      let w = `${Math.max(startWidth + event.clientX - startX, 10)}px`;
-      let h = `${Math.max(startHeight + event.clientY - startY, 10)}px`;
-      element.style.width = w;
-      element.style.height = h;
+      let w = Math.max(startWidth + event.clientX - startX, 20) ;
+      element.style.width = w+"px";
+      // element.style.maxHeight = Math.max(h, element.style.maxHeight.split("px")[0]*1)+"px";
+      
+      // element.style.height = h;
+      if (!collapsed) {
+        let h = Math.max(startHeight + event.clientY - startY, headerHeight) ;
+        element.setAttribute("data-user-height", h);
+        content.style.height = `${h - headerHeight}px`;
+      }
+      // console.log( content.style.height );
+
       // console.log(w+" "+h);
 
     }
@@ -2347,7 +2421,9 @@ class Panel {
       document.onmouseup = null;
       document.onmousemove = null;
       console.log("Resize ended.");
-
+      console.log(element.querySelector(".panel_content"));
+      console.log(element.querySelector(".panel_header").style.height);
+      console.log(headerHeight);
     }
 
     
@@ -2384,44 +2460,47 @@ class Panel {
     }
   }
 
-  generateHexHTML(input = null, offset=0, mode16=null){
+  generateHexHTML(input = null, offset=0, mode=null, length=32, replace=[]){
     // does main work for generating hex editor-style view and bp viewer ui
     // console.log(input);
-    // debug: random bytes:
+    var mode16;
+
     var rbytes = [];
     if (input){
+      // if we have an input, use it
       rbytes = input;
     }
     else{
+      // if we don't  have an input, generate random data (mainly for debug)
       let nbytes = 128;
       // let rbytes = Array.from(Array(nbytes).keys()).map(d => Math.round(Math.random()*255) );
       rbytes = Array.from(Array(nbytes).keys());
-
     }
+
+    // Get indices of our bytes, and if we have an offset, 
+    // grab only those bytes and indices at the offset
     let indices = Array.from( Array(rbytes.length).keys());
     if (offset!=null){
       // we will look only at these 32 bytes.
-      rbytes = rbytes.slice(offset, offset+32);
-      indices = indices.slice(offset, offset+32);
+      rbytes = rbytes.slice(offset, offset+length);
+      indices = indices.slice(offset, offset+length);
     }
-    if (mode16==null){
+    
+    // parse the data mode to generate
+    if ( (mode==null) || (mode=="plain")){
       mode16 = this.panelContent.getAttribute("data-mode")=='byte16';
     }
     var m = mode16?"_b16":"_b1"; // shorthand to be used later
 
     console.log(`${this.name}: Generating hex html for data with ${rbytes.length} bytes...`);
 
-    // let rbytesHex = rbytes.map(d => hex(d,2));
+    // generate hexadecimal and binary strings for each byte
     let rbytesHex = [];
     let rbytesBin = [];
     for (let i=0; i<rbytes.length;i++){
       rbytesHex.push(hex(rbytes[i],2));
       rbytesBin.push(binar(rbytes[i],8,4));
     }
-    // let rbytesBin = rbytes.map(d => binar(d));
-    // console.log(rbytes);
-    // console.log(rbytesHex);
-
 
     let sbytes = ``;
     let g32l = ``; //
@@ -2430,153 +2509,248 @@ class Panel {
     let tw = 32; // total byte width possible...
     let th = 32; // total height (usually just 32 anyway )
     let rows = 1 + (bw<tw); // for normal width
-    let ntiles = 0; // will track how many (unnecessary?)
+    let tileCount = 0; // will track how many (unnecessary?)
+    var g32elem;
+    var g32selem;
 
     // parent div for following g32 elements
     var hexContent = this.inner.querySelector(" .panel_content > .hex_content");
     hexContent.innerHTML = ''; // clear it first
     // hexContent.style.gridTemplateRows = `repeat(${Math.ceil(rbytes.length/32)}, auto)`;
 
-    for (let i=0; i< rbytes.length; i++){
+    // loop through all bytes.
+    // note that each "tile", or 32 bytes, is contained in a class "g32" div,
+    // made up of three columns:
+    //
+    //  g32l                  g32rr                 g32s
+    //  (left-side offsets)   (actual bytes data)   (svg bitplane; initially hidden)
+    //
+    if ( !(mode=="plain")){
+      for (let i=0; i< rbytes.length; i++){
 
-        let j = i%th;
-        // normal width:
-        let row = 1*(j>=bw); // 0 or 1
-        let col = j%bw; // 0 to bw
-        let gtcn = `${col}fr 1fr ${bw-col-1}fr`;
-        let gtrn = `${row}fr 1fr ${rows-(row+1)}fr`;
-        // console.log(gtrn);
-        // console.log(gtcn);
+          let j = i%th;
+          // Mode 16: normal, 16-byte width:
+          let row = 1*(j>=bw); // 0 or 1
+          let col = j%bw; // 0 to bw
+          let gtcn = `${col}fr 1fr ${bw-col-1}fr`;
+          let gtrn = `${row}fr 1fr ${rows-(row+1)}fr`;
 
-        //TODO: mode 32...
+          //TODO: mode 32...
 
-        row = 1*(j>=tw); // 0 or 1
-        col = j%tw; // 0 to bw
-        let gtcnn = `${col}fr 1fr ${tw-col-1}fr`;
-        let gtrnn = `${row}fr 1fr ${rows-(row+1)}fr`;
+          row = 1*(j>=tw); // 0 or 1
+          col = j%tw; // 0 to bw
+          let gtcnn = `${col}fr 1fr ${tw-col-1}fr`;
+          let gtrnn = `${row}fr 1fr ${rows-(row+1)}fr`;
 
-        // 1-byte-wide:
-        let gtc1 = `0fr 1fr 0fr`;
-        let gtr1 = `${j}fr 1fr ${th-j-1}fr`;
+          // Mode 1: 1-byte-wide:
+          let gtc1 = `0fr 1fr 0fr`;
+          let gtr1 = `${j}fr 1fr ${th-j-1}fr`;
 
-        //TODO: better method? Find bitplane
-        let bp = (((i>>4)%2)*2)+(i%2);
-        let row16Odd = (i>>4)%2;
+          //TODO: better method? Find bitplane
+          let bp = (((i>>4)%2)*2)+(i%2);
+          let row16Odd = (i>>4)%2;
 
-        g32r += `\
-        <div class="g32r g32r${m}"
-          data-mode-byte32="${gtcnn};${gtrnn}"
-          data-mode-byte16="${gtcn};${gtrn}"
-          data-mode-byte1="${gtc1};${gtr1}"
-          style="grid-template-columns:${mode16?gtcn:gtc1};grid-template-rows:${mode16?gtrn:gtr1};">
-          <div class="byte byte${m} byte_byCell${i%2?'Odd':'Even'} byte_by16Row${row16Odd?'Odd':'Even'} byte_value${rbytesHex[i]} byte_panel${this.index}_index${i} ${mode16?'':('byte_bp'+bp+'')}" 
-           data-bitplane="${bp}" >
-              <div class="byteBin byteBin${m}">${rbytesBin[i]}&#8239;</div>
-              <div class="byteHex">${rbytesHex[i]}</div>
-              <div class="byteOffsetPrefix byteOffsetPrefix${m}" >&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
-          </div>
-        </div>`;
-        //NOTE:  for byteOffsetPrefix, direction is rtl, 
-        // so it overflows to the left, so its text contents are backwards.
+          // for this byte, create the complicated wrapper-infested html
+          // This is so we can have nice animations later, transitioning from 
+          // 16-bytes-wide to 1-byte-wide and vice versa
+          //NOTE:  for byteOffsetPrefix, direction is rtl, 
+          // so it overflows to the left, so its text contents are backwards.
+          g32r += `\
+          <div class="g32r g32r${m}"
+            data-mode-byte32="${gtcnn};${gtrnn}"
+            data-mode-byte16="${gtcn};${gtrn}"
+            data-mode-byte1="${gtc1};${gtr1}"
+            style="grid-template-columns:${mode16?gtcn:gtc1};grid-template-rows:${mode16?gtrn:gtr1};">
+            <div class="byte byte${m} byte_byCell${i%2?'Odd':'Even'} byte_by16Row${row16Odd?'Odd':'Even'} byte_value${rbytesHex[i]} byte_panel${this.index}_index${i} ${mode16?'':('byte_bp'+bp+'')}" 
+            data-bitplane="${bp}" >
+                <div class="byteBin byteBin${m}">${rbytesBin[i]}&#8239;</div>
+                <div class="byteHex">${rbytesHex[i]}</div>
+                <div class="byteOffsetPrefix byteOffsetPrefix${m}" >&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
+            </div>
+          </div>`;
 
+          // if this is the start of 16 bytes, add the offset:
+          if ( (i%16)==0){
+              g32l+=`<div class="offset">${hex(indices[i],6)}</div>`;
 
-        // if this is the start of 16 bytes, add the offset:
-        if ( (i%16)==0){
-            g32l+=`<div class="offset">${hex(indices[i],6)}</div>`;
+          }
+          // if we're 1 before the end of the 32-batch, or at the overall end, close up this group:
+          if (  ((i+1)%32 == 0) || (i == (rbytes.length-1)) ){
+              // wrapper g32
+              if (replace[tileCount]){ // if we're replacing content in a pre-existing g32
+                g32elem = replace[tileCount];
+              } else { // creating a new g32
+                g32elem = document.createElement('div');
+                g32elem.className = "g32";
+                g32elem.classList.add("g32"+m);
+                // assign the tile index (1-based, not 0-based)
+                g32elem.setAttribute("data-tile-index", 1+Math.floor( (offset+i)/32 ) );
+                hexContent.appendChild(g32elem);
+              }
 
-        }
-        // if we're 1 before the end of the 32-batch, or at the overall end, close up this group:
-        if (  ((i+1)%32 == 0) || (i == (rbytes.length-1)) ){
-            // wrapper g32
-            let g32elem = document.createElement('div');
+              // g32l 
+              let g32lelem = document.createElement('div');
+              g32lelem.className = "g32l";
+              g32lelem.innerHTML = `${g32l}`;
+              g32elem.appendChild(g32lelem);
+
+              // g32rr (<=32)
+              let g32rrelem = document.createElement('div');
+              g32rrelem.className = "g32rr";
+              g32rrelem.innerHTML = `${g32r}`;
+              g32elem.appendChild(g32rrelem);
+
+              // create the g32s, currently empty but will later contain an svg, if bitplane
+              g32selem = document.createElement('div');
+              g32selem.className = "g32s";
+              g32selem.id=`${this.nameValid}_g32s_${tileCount}`;
+              g32elem.appendChild(g32selem); // comment these out for debugging (slow af)
+
+              if ( !(mode16)){
+                
+                var tileIndex0Based = Math.floor( (offset+i)/32 );
+                var offsetbp = tileIndex0Based*32;
+                console.log(`Creating bitplane with data ${offsetbp}, ${offsetbp+32}`);
+                console.log(g32selem);
+                this.generateBitplaneView( 
+                  g32selem, 
+                  this.source.data.slice(offsetbp, offsetbp+32), 
+                  tileIndex0Based);
+
+              }
+
+              // increment and reset for next group of 32 bytes
+              tileCount++;
+              g32l = ``;
+              g32r = ``;
+          }
+
+      }
+    } else{
+      // plain mode, still 16 bytes wide, 
+      // but much more basic for (hopefully) better performance
+      var tileRowCount = 1;
+      for (let i=0; i< Math.min(32*6,rbytes.length); i++){
+
+      let j = i%th;
+      // Mode 16: normal, 16-byte width:
+      let row = 1*(j>=bw); // 0 or 1
+      let col = j%bw; // 0 to bw
+      let gtcn = `${col}fr 1fr ${bw-col-1}fr`;
+      let gtrn = `${row}fr 1fr ${rows-(row+1)}fr`;
+
+      //TODO: mode 32...
+
+      // row = 1*(j>=tw); // 0 or 1
+      // col = j%tw; // 0 to bw
+      // let gtcnn = `${col}fr 1fr ${tw-col-1}fr`;
+      // let gtrnn = `${row}fr 1fr ${rows-(row+1)}fr`;
+
+      // Mode 1: 1-byte-wide:
+      let gtc1 = `0fr 1fr 0fr`;
+      let gtr1 = `${j}fr 1fr ${th-j-1}fr`;
+
+      //TODO: better method? Find bitplane
+      let bp = (((i>>4)%2)*2)+(i%2);
+      let row16Odd = (i>>4)%2;
+
+      // for this byte, create the complicated wrapper-infested html
+      // This is so we can have nice animations later, transitioning from 
+      // 16-bytes-wide to 1-byte-wide and vice versa
+      //NOTE:  for byteOffsetPrefix, direction is rtl, 
+      // so it overflows to the left, so its text contents are backwards.
+      g32r += `\
+      <div class="byte byte${m} byte_by16Row${row16Odd?'Odd':'Even'}" 
+        data-bitplane="${bp}" style="grid-column: ${col+2}; grid-row: ${row+1};"><a></a><div class="byteHex" style="width:100%;direction:ltr;">${rbytesHex[i]}</div><a></a></div>`;
+
+      // if this is the start of 16 bytes, add the offset:
+      if ( (i%16)==0){
+          g32l+=`<div class="offset" style="grid-column: 1 / 1; grid-row: ${tileRowCount};">${hex(indices[i],6)}</div>`;
+          tileRowCount++;
+
+      }
+      // if we're 1 before the end of the 32-batch, or at the overall end, close up this group:
+      if (  ((i+1)%32 == 0) || (i == (rbytes.length-1)) ){
+          // wrapper g32
+          if (replace[tileCount]){ // if we're replacing content in a pre-existing g32
+            g32elem = replace[tileCount];
+          } else { // creating a new g32
+            g32elem = document.createElement('div');
             g32elem.className = "g32";
             g32elem.classList.add("g32"+m);
+            g32elem.classList.add("g32_plain");
+            // assign the tile index (1-based, not 0-based)
+            g32elem.setAttribute("data-tile-index", 1+Math.floor( (offset+i)/32 ) );
+            g32elem.innerHTML = `${g32l}${g32r}`;
             hexContent.appendChild(g32elem);
+          }
 
-            // g32l 
-            let g32lelem = document.createElement('div');
-            g32lelem.className = "g32l";
-            g32lelem.innerHTML = `${g32l}`;
-            g32elem.appendChild(g32lelem);
+          // g32elem.appendChild(g32selem); // comment these out for debugging (slow af)
 
-            // g32rr (<=32)
-            let g32rrelem = document.createElement('div');
-            g32rrelem.className = "g32rr";
-            g32rrelem.innerHTML = `${g32r}`;
-            g32elem.appendChild(g32rrelem);
-
-            // create the g32s, currently empty but will later contain an svg, if bitplane
-            let g32selem = document.createElement('div');
-            g32selem.className = "g32s";
-            g32selem.id=`${this.nameValid}_g32s_${ntiles}`;
-            // Now append these to the parent element
-              //
-            g32elem.appendChild(g32selem); // comment these out for debugging (slow af)
-
-            // increment and reset for next group of 32 bytes
-            ntiles++;
-            g32l = ``;
-            g32r = ``;
-        }
-
-    }
-
-    var totaltiles = ntiles*1;
-    // Now add in the bitplane viewer SVGs:
-    // if ( false ){
-
-    // get previous info, if any, to carry over to next tile's bitplane View
-    let anglev = -0.78;
-    let angleh = -0.36;
-    let observation = 0.5;
-    if (this.bpsvgs){
-      anglev = this.bpsvgs[0].anglev;
-      angleh = this.bpsvgs[0].angleh;
-      observation = this.bpsvgs[0].observation;
-    }
-
-    if (this.kind == "bitplaneViewer"){
-      this.bpsvgs = [];
-      ntiles=0;
-
-      //HACK: limit to first 6 for performance:
-      // (shouldn't be that high anyway)
-      for (let i=0; i< Math.min(6*32, rbytes.length); i+=32){
-
-      // for (let i=0; i< rbytes.length; i+=32){
-        console.log(`Making svg ${ntiles} of ${totaltiles}.`);
-        // let g32sp = hexContent.querySelector(`#g32s_${ntiles}`);
-        let str = `${this.nameValid}_g32s_${ntiles}`;
-        // console.log(str);
-        let g32sp = document.getElementById(str);
-        // console.log(hexContent);
-        // console.log(g32sp);
-        // console.log(this.palette);
-        this.bpsvgs.push(
-          makeBitplaneSVG(
-            g32sp, 
-            "bpsvg_"+ntiles,
-            rbytes.slice(i, i+32),
-            angleh,
-            anglev,
-            observation,
-            this.palette
-          )
-        );
-        ntiles++;
-
-        //HACK: weird way to do it; checks for palette source and loads it if needed
-        // if (this.links[1].source){
-
-        //   g32sp
-        // }
-
+          // increment and reset for next group of 32 bytes
+          tileCount++;
+          g32l = ``;
+          g32r = ``;
+          tileRowCount = 1;
+      }
 
       }
     }
 
     
 
+    // // Now add in the bitplane viewer SVGs:
+
+    // var totaltiles = tileCount*1;
+    
+    // if (this.kind == "bitplaneViewer"){
+    //   this.bpsvgs = []; // clear previous 
+    //   ntiles=0;
+
+    //   //HACK: limit to first 6 for performance:
+    //   // (shouldn't be that high anyway)
+    //   for (let i=0; i< Math.min(6*32, rbytes.length); i+=32){
+
+    //     console.log(`Making svg ${ntiles} of ${totaltiles}.`);
+        
+    //     ntiles++;
+
+    //   }
+    // }
+
+    
+
+  }
+
+  generateBitplaneView(parent, data, tileIndex){
+
+    // get previous info, if any, to carry over to next tile's bitplane View
+    let anglev = -0.78;    //
+    let angleh = -0.36;    //
+    let observation = 0.5; // good defaults
+    if (this.bpsvgs){
+      anglev = this.bpsvgs[0].anglev;
+      angleh = this.bpsvgs[0].angleh;
+      observation = this.bpsvgs[0].observation;
+    }
+    this.bpsvgs = []; // clear previous 
+
+    // let str = `${this.nameValid}_g32s_${ntiles}`;
+    // let parent = document.getElementById(str); // parent element to which to append svg
+
+    // let data = rbytes.slice(i, i+32);
+
+    this.bpsvgs.push(
+      makeBitplaneSVG(
+        parent, 
+        "bpsvg_"+tileIndex,
+        data,
+        angleh,
+        anglev,
+        observation,
+        this.palette
+      )
+    );
   }
 
   generateDownloadButton(parent, data, fileName, title, label="Download"){
@@ -2631,16 +2805,16 @@ class Panel {
         console.log(clickedTile);
         let parent = clickedTile.parentNode;
         console.log(parent);
-        
-        
 
-        
         // update the bitplane viewer if it's available
         //HACK: assumes index 0 is the bitplane viewer
         if (this.links[0].source){
           // this.nexts[0].generateHexHTML( this.nexts[0].source.data);
           // A wrapper that prevents jumping to 1st tile
           // last argument, override, will ensure the svg is updated.
+          
+          console.log(`this.links[0]: `);
+          console.log(this.links[0]);
           updateBitplaneSeek(this.links[0].inner, this.links[0], 0, 
             parent.getAttribute("data-tile-index")*1 )
         }
@@ -2652,7 +2826,7 @@ class Panel {
         
       });
 
-      display( [tile],  wrapper, this.palette, 2 ) ;
+      display( [tile],  wrapper, this.palette, 1 ) ;
       count++;
     }
   }
@@ -2789,36 +2963,31 @@ class Panel {
   }
 
   animate16to1(overrideMode=null,tile=null){
-  // var panel = e.target.parentNode.parentNode;
 
-  // console.log(panel);
+    var hexOffsetHeaderLabels = this.panelContent.querySelector(".hex_offset_header > .hex_offset_labels");
+    var hexBaseLabels = this.panelContent.querySelector(".hex_offset_header > .hex_base_labels");
+    var hexContent = this.panelContent.querySelector(".hex_content");
+    // console.log(overrideMode);
+    // console.log(tile);
+    
+    if (tile==null){
+      var g32tile = hexContent.querySelector(".g32");
+      console.log(g32tile);
+    }
+    else{
+      var g32tile = tile;
+    }
 
-  // panel.style.gridTemplateColumns = newMode=="byte1"?"2fr 4fr 14fr":"2fr 16fr 0fr";
+    var oldMode = this.panelContent.getAttribute("data-mode");
+    var newMode = "";
+    if (overrideMode){
+      newMode = overrideMode;
+    }
+    else{
+      newMode = oldMode=="byte16"?"byte1":"byte16"; // simplified: toggle
+    }
 
-  var hexOffsetHeaderLabels = this.panelContent.querySelector(".hex_offset_header > .hex_offset_labels");
-  var hexBaseLabels = this.panelContent.querySelector(".hex_offset_header > .hex_base_labels");
-  var hexContent = this.panelContent.querySelector(".hex_content");
-  // console.log(overrideMode);
-  // console.log(tile);
-  
-  if (tile==null){
-    var g32tile = hexContent.querySelector(".g32");
-    console.log(g32tile);
-  }
-  else{
-    var g32tile = tile;
-  }
-
-  var oldMode = this.panelContent.getAttribute("data-mode");
-  var newMode = "";
-  if (overrideMode){
-    newMode = overrideMode;
-  }
-  else{
-    newMode = oldMode=="byte16"?"byte1":"byte16"; // simplified: toggle
-  }
-
-  // animation "steps" labeled according to order when going byte16 -> byte1
+    // animation "steps" labeled according to order when going byte16 -> byte1
 
     // expand/collapse height of this tile (g32l, g32rr, and g32s)
     g32tile.classList.toggle("g32_b16");               // 0
@@ -2837,7 +3006,8 @@ class Panel {
     this.panelContent.classList.toggle("panel_content_b1");
 
     // for grid elements, get the custom grid-template-rows and columns
-    var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
+    // var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
+    var g32rs = g32tile.querySelectorAll(".g32rr > .g32r");
     for (var gr32r of g32rs){
 
       // get the cell-specific grid-template rows and columns info:
@@ -2867,101 +3037,32 @@ class Panel {
       
     }
 
+    // if we are going to 1-bit-wide mode, create the svg
+    var tileIndex0Based = (1*g32tile.getAttribute("data-tile-index")) - 1;
+    var offset = tileIndex0Based*32;
 
-    // case "byte16": 
+    switch(newMode){
+      case "byte16": 
 
-    //   // expand/collapse height of this tile (g32l, g32rr, and g32s)
-    //   g32tile.style.height = "auto";
-        
-    //   this.panelContent.style.gridTemplateColumns = "2fr 16fr 0fr";
-        
-    //   // for grid elements, get the custom grid-template-rows and columns
-    //   var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
-    //   for (var gr32r of g32rs){
+        break;
 
-    //     // get the cell-specific grid-template rows and columns info:
-    //     let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
-    //     gr32r.style.gridTemplateColumns = gcr[0];
-    //     gr32r.style.gridTemplateRows = gcr[1];
-
-    //     // change the coloring of the byte
-    //     let gr32rByte = gr32r.querySelector(".byte");
-    //     let bp = gr32rByte.getAttribute('data-bitplane');
-    //     gr32rByte.classList.remove(`byte_bp${bp}`);
-        
-    //     // remove/add binary representation
-    //     let binSpan = gr32rByte.querySelector(".byteBin");
-    //     binSpan.classList.remove(`byteBinOneByteWide`);
-        
-    //     // fade in/out the offset prefix
-    //     let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
-    //     prefix.style.opacity = 0;
-          
-    //   }
-
-    //   // this.panelContent.classList.remove("panel_content_bitplane1");
-    //   // this.panelContent.classList.add("panel_content_bitplane16");
-      
-    //   // panel.style.gridTemplateColumns = "2fr 16fr 0fr";
-    //   // hexContent.style.gridTemplateRows = `repeat(${g32l.length},5ch)`;
-    //   hexOffsetHeaderLabels.style.opacity = 1;
-    //   hexBaseLabels.style.opacity = 0;
-      
-    //   break;
-
-    // case "byte1":
-      
-    //   // expand/collapse height of this tile (g32l, g32rr, and g32s)
-    //   g32tile.style.height = "100%";
-
-    //   // this.panelContent.classList.remove("panel_content_bitplane16");
-    //   // this.panelContent.classList.add("panel_content_bitplane1");
-
-    //   // panel.style.gridTemplateColumns = "2fr 4fr 25fr";
-    //   // hexContent.style.gridTemplateRows = `repeat(${g32l.length},100%)`;
-    //   hexOffsetHeaderLabels.style.opacity = 0;
-    //   hexBaseLabels.style.opacity = 1;
-
-    //   this.panelContent.style.gridTemplateColumns = "2fr 4fr 25fr";
-
-    //   // for grid elements, get the custom grid-template-rows and columns
-    //   var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
-    //   for (var gr32r of g32rs){
-
-    //     // get the cell-specific grid-template rows and columns info:
-    //     let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
-    //     gr32r.style.gridTemplateColumns = gcr[0];
-    //     gr32r.style.gridTemplateRows = gcr[1];
-
-    //     // change the coloring of the byte
-    //     let gr32rByte = gr32r.querySelector(".byte");
-    //     let bp = gr32rByte.getAttribute('data-bitplane');
-    //     gr32rByte.classList.add(`byte_bp${bp}`);
-
-    //     // remove/add binary representation
-    //     let binSpan = gr32rByte.querySelector(".byteBin");
-    //     binSpan.classList.add(`byteBinOneByteWide`);
-
-    //     // fade in/out the offset prefix
-    //     let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
-    //     prefix.style.opacity = 1;              
-        
-    //   }
-      
-    //   break;
-    // }
-
-  // console.log(g32);
-  // hc.height = "100%";
+      case "byte1":
+        this.generateBitplaneView( 
+          g32tile.querySelector(".g32s"), 
+          this.source.data.slice(offset, offset+32), 
+          tileIndex0Based);
+        break;
+    }
 
  
   this.panelContent.setAttribute("data-mode", newMode);
 
 
   }
-  animate1to16(){
+  // generateBitplaneView(parent, data, tileIndex)
+  // animate1to16(){
 
-  }
+  // }
 
   propagateSource(){
     // this propagates the update of a source (or addition) out to dependent panels
@@ -2982,8 +3083,8 @@ class Panel {
               panel: this,
               from: this.links[0]
           };
-          updateBitplaneSeek(this.inner, this, 0 );
-          this.generateHexHTML( this.source.data);
+          // updateBitplaneSeek(this.inner, this, 0 );
+          this.generateHexHTML( this.source.data, 0, "plain", this.source.data.length);
 
           // download setup
           if (!this.downloadButton){
@@ -3240,7 +3341,8 @@ function updateBitplaneSeek(panelNode, panel, change, override=false ){
       texts[1].innerHTML = newVal;
       console.log(`Updating bitplane seek to ${newVal}`)
       // let offset = 
-      panel.generateHexHTML(panel.source.data, (newVal-1)*32, panelNode.getAttribute("data-mode")=='byte16')
+      panel.generateHexHTML(panel.source.data, (newVal-1)*32 );
+    
     }
   }
 }
