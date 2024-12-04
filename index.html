@@ -194,6 +194,7 @@ button{
   grid-column: 1 / -1;
   grid-row: 2 / 3;
   overflow-y: auto; /* allows scrolling */
+  overflow-x: hidden;
   
 }
 
@@ -407,34 +408,80 @@ button{
 
 .g32l{
     scroll-snap-align: start;
-    display: grid;
+    /* display: grid; */
     grid-column: 1 / 2;
-    grid-template-columns: subgrid;
+    grid-row: 1;
+    /* grid-template-columns: subgrid;
     grid-auto-flow: row;
     align-items: start;
-    justify-items: center;
+    justify-items: center; */
+  min-width:fit-content;
+    position: relative;
 }
 
-.g32rr{
+.g32r{
     scroll-snap-align: start;
-    display: grid;
+    /* display: grid; */
     grid-column: 2 / 3;
-    grid-template-columns: subgrid;
-    grid-template-rows: 1fr;
-    grid-auto-flow: row;
-    pointer-events: none;
-    min-width: 0;
+    grid-row: 1;
+    /* grid-template-columns: subgrid; */
+    /* grid-auto-flow: row; */
+    /* align-items: start; */
+    /* justify-items: center; */
+  min-width:fit-content;
+    position: relative;
 }
+.g32_item{
+  position:absolute;
+  transform-origin: center;
+  transform: translate(-50%,-50%);
+}
+.g32l_offset_sometimes{}
+.g32l_offset_sometimes_b16{opacity:0;}
+.g32l_offset_sometimes_b1{opacity:1;}
 
 .g32b{
+    scroll-snap-align: start;
+    /* display: grid; */
+    grid-column: 3 / 4;
+    grid-row: 1;
+    /* grid-template-columns: subgrid; */
+    /* grid-auto-flow: row; */
+    /* align-items: start; */
+    /* justify-items: center; */
+    overflow: hidden;
+    position: relative;
+}
+
+.g32bg{
+  display: grid;
+  grid-column: 1 / 4;
+  grid-row: 1;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(32, 1fr);
+  grid-auto-flow: row;
+}
+.g32bg_row{
+  width: 100%;
+  height:100%;
+}
+.g32bg_b16{
+  opacity:0;
+}
+.g32bg_b1{
+  opacity:1;
+}
+  
+/* .g32b{
   display: grid;
   grid-column: 3 / 4;
   grid-template-rows: repeat(32, 1fr);
   grid-template-columns: 1fr;
   grid-template-columns: subgrid;
-  overflow: visible;
+  overflow: hidden;
   min-height: 0;
-}
+  align-items: center;
+} */
 
 .g32s{
     grid-column: -1;
@@ -443,7 +490,15 @@ button{
     /* overflow: visible; */
     /* keep this; somehow prevents weird unnecessary scrollbar: */
     /* content-visibility: auto;  */
+    /* margin-left: -1ch; */
 }
+.g32s_b16{
+  opacity:0;
+}
+.g32s_b1{
+  opacity:1;
+}
+
 
 
 
@@ -571,6 +626,10 @@ classes for bitplane animation
 
 
 /* 1 */
+.hex_header_offset_label{
+  /* width:0; */
+  overflow: hidden;
+}
 .hex_header_offset_label_b16{
   opacity: 1;
 }
@@ -580,16 +639,6 @@ classes for bitplane animation
 
 
 /* 2 */
-.g32r{
-  /* NOTE: the grid-template row/col is custom to each cell and not shown here */
-  display: grid;
-  grid-area: 1 / 2 / 1 / 2;
-  place-items: stretch;
-  pointer-events: none;
-  
-  min-width: 0;
-  /* transition: var(--bitplaneViewerTransition); */
-}
 .g32r_b16{
 
 }
@@ -621,11 +670,11 @@ classes for bitplane animation
 }
 .panel_content_intermediate{
   grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
-  grid-template-columns: 2fr 8fr 8fr 0fr;
+  grid-template-columns: 3fr 1fr 3fr 0fr;
 }
 .panel_content_b1{
   grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
-  grid-template-columns: 2fr 2fr 2fr 6fr;
+  grid-template-columns: 3fr 1fr 3fr 10fr;
 }
 /* also 4 */
 .hex_header_base_label_b16{
@@ -663,15 +712,8 @@ classes for bitplane animation
 .byte{
   grid-area: 2 / 2 / 3 / 3;
   display: grid;
-  grid-template-columns: 1fr; /*NOTE: backwards because rtl*/
-  grid-template-columns: 1fr;
-  grid-auto-flow: column;
-  /* direction: rtl; */
-  justify-content: center;
-  place-items: stretch;
-  align-items: center;
-  text-align: center;
-  transition: var(--bitplaneViewerTransition2);
+  
+
 }
 .byte_b16{
 
@@ -686,39 +728,54 @@ classes for bitplane animation
   background-color: rgba(0,0,0,0.35); 
 }
 /* here we would have all 64 .byte_valueXX classes...? */
-.byte_bp0{
+.fg_bp0{
   --bg: 0;
-  /* --fg: 127; */
   --fg: 255;
-  background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
+  /* background-color: rgb(  var(--bg), var(--bg), var(--bg)  ); */
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 1fr;
 }
-.byte_bp1{
+.fg_bp1{
   --bg: 85;
-  /* --fg: 212; */
+  --fg: 255;
+  /* background-color: rgb(  var(--bg), var(--bg), var(--bg)  ); */
+  color: rgb(  var(--fg), var(--fg), var(--fg) );
+}
+.fg_bp2{
+  --bg: 170;
+  --fg: 0;
+  /* background-color: rgb(  var(--bg), var(--bg), var(--bg)  ); */
+  color: rgb(  var(--fg), var(--fg), var(--fg) );
+}
+.fg_bp3{
+  --bg: 255;
+  --fg: 0;
+  /* background-color: rgb(  var(--bg), var(--bg), var(--bg)  ); */
+  color: rgb(  var(--fg), var(--fg), var(--fg) );
+}
+.bg_bp0{
+  --bg: 0;
   --fg: 255;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 1fr;
 }
-.byte_bp2{
+.bg_bp1{
+  --bg: 85;
+  --fg: 255;
+  background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
+  color: rgb(  var(--fg), var(--fg), var(--fg) );
+}
+.bg_bp2{
   --bg: 170;
-  /* --fg: 42; */
   --fg: 0;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 1fr;
 }
-.byte_bp3{
+.bg_bp3{
   --bg: 255;
-  /* --fg: 127; */
   --fg: 0;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 1fr;
 }
-
 
 
 /* 
@@ -750,6 +807,139 @@ ul{
   margin-left: 4ch;
 }
 
+
+
+/*
+Generated ...
+*/
+.g32rb_item_0_b16{top:25%;left:3.125%;}
+.g32rb_item_0_b1{top:1.5625%;left:50%;}
+.g32l_item_0_b16{top:25%;left:50%;}
+.g32l_item_0_b1{top:1.5625%;left:50%;}
+.g32rb_item_1_b16{top:25%;left:9.375%;}
+.g32rb_item_1_b1{top:4.6875%;left:50%;}
+.g32l_item_1_b16{top:25%;left:50%;}
+.g32l_item_1_b1{top:4.6875%;left:50%;}
+.g32rb_item_2_b16{top:25%;left:15.625%;}
+.g32rb_item_2_b1{top:7.8125%;left:50%;}
+.g32l_item_2_b16{top:25%;left:50%;}
+.g32l_item_2_b1{top:7.8125%;left:50%;}
+.g32rb_item_3_b16{top:25%;left:21.875%;}
+.g32rb_item_3_b1{top:10.9375%;left:50%;}
+.g32l_item_3_b16{top:25%;left:50%;}
+.g32l_item_3_b1{top:10.9375%;left:50%;}
+.g32rb_item_4_b16{top:25%;left:28.125%;}
+.g32rb_item_4_b1{top:14.0625%;left:50%;}
+.g32l_item_4_b16{top:25%;left:50%;}
+.g32l_item_4_b1{top:14.0625%;left:50%;}
+.g32rb_item_5_b16{top:25%;left:34.375%;}
+.g32rb_item_5_b1{top:17.1875%;left:50%;}
+.g32l_item_5_b16{top:25%;left:50%;}
+.g32l_item_5_b1{top:17.1875%;left:50%;}
+.g32rb_item_6_b16{top:25%;left:40.625%;}
+.g32rb_item_6_b1{top:20.3125%;left:50%;}
+.g32l_item_6_b16{top:25%;left:50%;}
+.g32l_item_6_b1{top:20.3125%;left:50%;}
+.g32rb_item_7_b16{top:25%;left:46.875%;}
+.g32rb_item_7_b1{top:23.4375%;left:50%;}
+.g32l_item_7_b16{top:25%;left:50%;}
+.g32l_item_7_b1{top:23.4375%;left:50%;}
+.g32rb_item_8_b16{top:25%;left:53.125%;}
+.g32rb_item_8_b1{top:26.5625%;left:50%;}
+.g32l_item_8_b16{top:25%;left:50%;}
+.g32l_item_8_b1{top:26.5625%;left:50%;}
+.g32rb_item_9_b16{top:25%;left:59.375%;}
+.g32rb_item_9_b1{top:29.6875%;left:50%;}
+.g32l_item_9_b16{top:25%;left:50%;}
+.g32l_item_9_b1{top:29.6875%;left:50%;}
+.g32rb_item_10_b16{top:25%;left:65.625%;}
+.g32rb_item_10_b1{top:32.8125%;left:50%;}
+.g32l_item_10_b16{top:25%;left:50%;}
+.g32l_item_10_b1{top:32.8125%;left:50%;}
+.g32rb_item_11_b16{top:25%;left:71.875%;}
+.g32rb_item_11_b1{top:35.9375%;left:50%;}
+.g32l_item_11_b16{top:25%;left:50%;}
+.g32l_item_11_b1{top:35.9375%;left:50%;}
+.g32rb_item_12_b16{top:25%;left:78.125%;}
+.g32rb_item_12_b1{top:39.0625%;left:50%;}
+.g32l_item_12_b16{top:25%;left:50%;}
+.g32l_item_12_b1{top:39.0625%;left:50%;}
+.g32rb_item_13_b16{top:25%;left:84.375%;}
+.g32rb_item_13_b1{top:42.1875%;left:50%;}
+.g32l_item_13_b16{top:25%;left:50%;}
+.g32l_item_13_b1{top:42.1875%;left:50%;}
+.g32rb_item_14_b16{top:25%;left:90.625%;}
+.g32rb_item_14_b1{top:45.3125%;left:50%;}
+.g32l_item_14_b16{top:25%;left:50%;}
+.g32l_item_14_b1{top:45.3125%;left:50%;}
+.g32rb_item_15_b16{top:25%;left:96.875%;}
+.g32rb_item_15_b1{top:48.4375%;left:50%;}
+.g32l_item_15_b16{top:25%;left:50%;}
+.g32l_item_15_b1{top:48.4375%;left:50%;}
+.g32rb_item_16_b16{top:75%;left:3.125%;}
+.g32rb_item_16_b1{top:51.5625%;left:50%;}
+.g32l_item_16_b16{top:75%;left:50%;}
+.g32l_item_16_b1{top:51.5625%;left:50%;}
+.g32rb_item_17_b16{top:75%;left:9.375%;}
+.g32rb_item_17_b1{top:54.6875%;left:50%;}
+.g32l_item_17_b16{top:75%;left:50%;}
+.g32l_item_17_b1{top:54.6875%;left:50%;}
+.g32rb_item_18_b16{top:75%;left:15.625%;}
+.g32rb_item_18_b1{top:57.8125%;left:50%;}
+.g32l_item_18_b16{top:75%;left:50%;}
+.g32l_item_18_b1{top:57.8125%;left:50%;}
+.g32rb_item_19_b16{top:75%;left:21.875%;}
+.g32rb_item_19_b1{top:60.9375%;left:50%;}
+.g32l_item_19_b16{top:75%;left:50%;}
+.g32l_item_19_b1{top:60.9375%;left:50%;}
+.g32rb_item_20_b16{top:75%;left:28.125%;}
+.g32rb_item_20_b1{top:64.0625%;left:50%;}
+.g32l_item_20_b16{top:75%;left:50%;}
+.g32l_item_20_b1{top:64.0625%;left:50%;}
+.g32rb_item_21_b16{top:75%;left:34.375%;}
+.g32rb_item_21_b1{top:67.1875%;left:50%;}
+.g32l_item_21_b16{top:75%;left:50%;}
+.g32l_item_21_b1{top:67.1875%;left:50%;}
+.g32rb_item_22_b16{top:75%;left:40.625%;}
+.g32rb_item_22_b1{top:70.3125%;left:50%;}
+.g32l_item_22_b16{top:75%;left:50%;}
+.g32l_item_22_b1{top:70.3125%;left:50%;}
+.g32rb_item_23_b16{top:75%;left:46.875%;}
+.g32rb_item_23_b1{top:73.4375%;left:50%;}
+.g32l_item_23_b16{top:75%;left:50%;}
+.g32l_item_23_b1{top:73.4375%;left:50%;}
+.g32rb_item_24_b16{top:75%;left:53.125%;}
+.g32rb_item_24_b1{top:76.5625%;left:50%;}
+.g32l_item_24_b16{top:75%;left:50%;}
+.g32l_item_24_b1{top:76.5625%;left:50%;}
+.g32rb_item_25_b16{top:75%;left:59.375%;}
+.g32rb_item_25_b1{top:79.6875%;left:50%;}
+.g32l_item_25_b16{top:75%;left:50%;}
+.g32l_item_25_b1{top:79.6875%;left:50%;}
+.g32rb_item_26_b16{top:75%;left:65.625%;}
+.g32rb_item_26_b1{top:82.8125%;left:50%;}
+.g32l_item_26_b16{top:75%;left:50%;}
+.g32l_item_26_b1{top:82.8125%;left:50%;}
+.g32rb_item_27_b16{top:75%;left:71.875%;}
+.g32rb_item_27_b1{top:85.9375%;left:50%;}
+.g32l_item_27_b16{top:75%;left:50%;}
+.g32l_item_27_b1{top:85.9375%;left:50%;}
+.g32rb_item_28_b16{top:75%;left:78.125%;}
+.g32rb_item_28_b1{top:89.0625%;left:50%;}
+.g32l_item_28_b16{top:75%;left:50%;}
+.g32l_item_28_b1{top:89.0625%;left:50%;}
+.g32rb_item_29_b16{top:75%;left:84.375%;}
+.g32rb_item_29_b1{top:92.1875%;left:50%;}
+.g32l_item_29_b16{top:75%;left:50%;}
+.g32l_item_29_b1{top:92.1875%;left:50%;}
+.g32rb_item_30_b16{top:75%;left:90.625%;}
+.g32rb_item_30_b1{top:95.3125%;left:50%;}
+.g32l_item_30_b16{top:75%;left:50%;}
+.g32l_item_30_b1{top:95.3125%;left:50%;}
+.g32rb_item_31_b16{top:75%;left:96.875%;}
+.g32rb_item_31_b1{top:98.4375%;left:50%;}
+.g32l_item_31_b16{top:75%;left:50%;}
+.g32l_item_31_b1{top:98.4375%;left:50%;}
 
 </style>
 <script>
@@ -2582,6 +2772,7 @@ class Panel {
     let tileCount = 0; // will track how many (unnecessary?)
     var g32elem;
     var g32selem;
+    var classGen = ``;
 
     // parent div for following g32 elements
     var hexContent = this.inner.querySelector(" .panel_content > .hex_content");
@@ -2597,6 +2788,7 @@ class Panel {
     //                                               \  initially hidden   /
     if ( !(mode=="plain")){
       for (let i=0; i< rbytes.length; i++){
+          let ii = i%32;
 
           let j = i%th;
           // Mode 16: normal, 16-byte width:
@@ -2604,6 +2796,7 @@ class Panel {
           let col = j%bw; // 0 to bw
           let gtcn = `${col}fr 1fr ${bw-col-1}fr`;
           let gtrn = `${row}fr 1fr ${rows-(row+1)}fr`;
+          let left = 
 
           //TODO: mode 32...
 
@@ -2619,32 +2812,76 @@ class Panel {
           //TODO: better method? Find bitplane
           let bp = (((i>>4)%2)*2)+(i%2);
           let row16Odd = (i>>4)%2;
+        
+          // // //
+          let left16 = 100*((0.5+ii)%16)/16;
+          let left1 = 50;
+          let top16 = 25+(50*Math.floor(ii/16));
+          let top1 = 100*(0.5+ii)/32;
+          let classGens = [
+            `.g32rb_item_${ii}_b16{top:${top16}%;left:${left16}%;}`,
+            `.g32rb_item_${ii}_b1{top:${top1}%;left:${left1}%;}`,
+            `.g32l_item_${ii}_b16{top:${top16}%;left:50%;}`,
+            `.g32l_item_${ii}_b1{top:${top1}%;left:50%;}\n`
+          ] ;
+          classGen+=classGens.join(`\n`);
 
-          // for this byte, create the complicated wrapper-infested html
-          // This is so we can have nice animations later, transitioning from 
-          // 16-bytes-wide to 1-byte-wide and vice versa
-          //NOTE:  for byteOffsetPrefix, direction is rtl, 
-          // so it overflows to the left, so its text contents are backwards.
+          let offsetType = ((i%16)==0)?'always':'sometimes';
+          let fgType = mode16?'':('fg_bp'+bp);
+
+          g32l+=`<div 
+           data-bitplane="${bp}" 
+          data-gridclass="g32l_item_${ii}" 
+          class="g32_item g32_item${m} ${fgType} g32l_offset_${offsetType} g32l_offset_${offsetType}${m} g32l_item_${ii}${m}" 
+           >${hex(indices[i],6)}</div>`;
+
           g32r += `\
-          <div class="g32r g32r${m}"
-            data-mode-byte32="${gtcnn};${gtrnn}"
-            data-mode-byte16="${gtcn};${gtrn}"
-            data-mode-byte1="${gtc1};${gtr1}"
-            style="grid-template-columns:${mode16?gtcn:gtc1};grid-template-rows:${mode16?gtrn:gtr1};">
-            <div class="byte byte${m} byte_byCell${i%2?'Odd':'Even'} byte_by16Row${row16Odd?'Odd':'Even'} byte_value${rbytesHex[i]} byte_panel${this.index}_index${i} ${mode16?'':('byte_bp'+bp+'')}" 
-            data-bitplane="${bp}" >
-                <div class="byteHex">${rbytesHex[i]}</div>
-            </div>
-          </div>`;
-          //<div class="byteOffsetPrefix byteOffsetPrefix${m}" >&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
+          <div 
+           data-bitplane="${bp}" 
+          data-gridclass="g32rb_item_${ii}" 
+          class="g32_item g32_item${m} ${fgType} g32rb_item_${ii}${m}" 
+           >${rbytesHex[i]}</div>
+          `;
+          
+          g32b += `\
+          <div 
+           data-bitplane="${bp}" 
+           data-gridclass="g32rb_item_${ii}" 
+          class="g32_item g32_item${m} ${fgType} g32rb_item_${ii}${m}" 
+           >${rbytesBin[i]}</div>
+          `;
 
-          g32b += `<div class="byteBin byteBin${m}" data-bitplane="${bp}" >${rbytesBin[i]}</div>`;
+          // g32l+=`<div 
+          //  data-bitplane="${bp}" 
+          // data-left-byte16="50%" 
+          // data-left-byte1="50%" 
+          // data-top-byte16="${top16}%" 
+          // data-top-byte1="${top1}%" 
+          // class="g32_item g32_item${m} ${mode16?'':('fg_bp'+bp)} g32l_offset_${((i%16)==0)?'always':'sometimes'} g32l_offset_${((i%16)==0)?'always':'sometimes'}${m}" 
+          // style="top:${mode16?top16:top1}%;left:50%;">${hex(indices[i],6)}</div>`;
 
-          // if this is the start of 16 bytes, add the offset:
-          if ( (i%16)==0){
-              g32l+=`<div class="offset">${hex(indices[i],6)}</div>`;
-
-          }
+          // g32r += `\
+          // <div 
+          //  data-bitplane="${bp}" 
+          // data-left-byte16="${left16}%" 
+          // data-left-byte1="50%" 
+          // data-top-byte16="${top16}%" 
+          // data-top-byte1="${top1}%" 
+          // class="g32_item g32_item${m} ${mode16?'':('fg_bp'+bp)}" 
+          // style=" top:${mode16?top16:top1}%;left:${mode16?left16:left1}%;">${rbytesHex[i]}</div>
+          // `;
+          
+          // g32b += `\
+          // <div 
+          //  data-bitplane="${bp}" 
+          // data-left-byte16="${left16}%" 
+          // data-left-byte1="50%" 
+          // data-top-byte16="${top16}%" 
+          // data-top-byte1="${top1}%" 
+          // class="g32_item g32_item${m} ${mode16?'':('fg_bp'+bp)}" 
+          // style=" top:${mode16?top16:top1}%;left:${mode16?left16:left1}%;">${rbytesBin[i]}</div>
+          // `;
+          
           // if we're 1 before the end of the 32-batch, or at the overall end, close up this group:
           if (  ((i+1)%32 == 0) || (i == (rbytes.length-1)) ){
               // wrapper g32
@@ -2659,19 +2896,30 @@ class Panel {
                 hexContent.appendChild(g32elem);
               }
 
+              // g32bg (background)
+              let g32bgelem = document.createElement('div');
+              g32bgelem.className = "g32bg";
+              g32bgelem.classList.add("g32bg"+m);
+              
+              g32bgelem.innerHTML = Array.from(Array(32).keys()).map(
+                (ii)=>`<div class="g32bg_row bg_${Math.floor(ii/16)?(ii%2?"bp3":"bp2"):(ii%2?"bp1":"bp0")}"></div>`
+              ).join("");
+              g32elem.appendChild(g32bgelem);
+
+
               // g32l 
               let g32lelem = document.createElement('div');
               g32lelem.className = "g32l";
               g32lelem.innerHTML = `${g32l}`;
               g32elem.appendChild(g32lelem);
 
-              // g32rr (<=32)
+              // g32r
               let g32rrelem = document.createElement('div');
-              g32rrelem.className = "g32rr";
+              g32rrelem.className = "g32r";
               g32rrelem.innerHTML = `${g32r}`;
               g32elem.appendChild(g32rrelem);
 
-              // g32rr (<=32)
+              // g32b
               let g32belem = document.createElement('div');
               g32belem.className = "g32b";
               g32belem.innerHTML = `${g32b}`;
@@ -2680,6 +2928,7 @@ class Panel {
               // create the g32s, currently empty but will later contain an svg, if bitplane
               g32selem = document.createElement('div');
               g32selem.className = "g32s";
+              g32selem.classList.add("g32s"+m);
               g32selem.id=`${this.nameValid}_g32s_${tileCount}`;
               g32elem.appendChild(g32selem); // comment these out for debugging (slow af)
 
@@ -2702,7 +2951,9 @@ class Panel {
               g32r = ``;
           }
 
+
       }
+      // console.log(classGen); // only for initial generation
     } else{
       // plain mode, still 16 bytes wide, 
       // but much more basic for (hopefully) better performance
@@ -3066,7 +3317,7 @@ class Panel {
       elapsed: 0,   // set to final element's delay for "backwards" order
       direction: 1, // set -1 for "backwards" order
       series: true, // set to false before running parallel animations    
-      timingFunction: 'ease-in-out',  
+      timingFunction: 'ease',  
       tic: function (duration, delay){
         if (!duration) duration = this.duration;
         if (!delay) delay = this.elapsed;
@@ -3077,17 +3328,34 @@ class Panel {
         if (!timingFunction) timingFunction = this.timingFunction;
         if (!delay) delay = this.elapsed; // usually won't specify anyway
         
+        let trans = `${duration}s ${timingFunction} ${delay}s`;
+        console.log(toggleClasses[0]+":   "+trans);
 
         for (let element of elements){
-          // Directly assign a transition
-          element.style.transition = `${duration}s ${timingFunction} ${delay}s`;
+
+          // // Directly assign a transition
+          // element.style.transition = trans;
+          // // Assign a timeout for the transition to be removed
+          // setTimeout( () => {
+          //   element.style.transition = ``;
+          //   // console.log((delay+duration)+"s:  "+toggleClasses[0]+"");
+          // }, ((delay+duration)*1000)-5 );
+          // // toggle the classes
+          // toggleClasses.forEach( (d)=> element.classList.toggle(d) );
+
+          
           // Assign a timeout for the transition to be removed
           setTimeout( () => {
-            element.style.transition = ``;
-            console.log((delay+duration)+"s:  "+toggleClasses[0]+"");
-          }, (delay+duration)*1000 );
-          // toggle the classes
-          toggleClasses.forEach( (d)=> element.classList.toggle(d) );
+            // Directly assign a transition
+            element.style.transition = trans;
+            // toggle the classes
+            toggleClasses.forEach( (d)=> element.classList.toggle(d) );
+
+            setTimeout( () => element.style.transition = ``, ((delay+duration)*1000)-5 );
+          
+          }, ((delay)*1000) );
+          
+
         }
         // increase the elapsed count
         if (this.series) this.tic(duration, delay);
@@ -3096,63 +3364,14 @@ class Panel {
 
     // // animation "steps" labeled according to order when going byte16 -> byte1
 
-    // // expand/collapse height of this tile (g32l, g32rr, and g32s)
-    // g32tile.classList.toggle("g32_b16");               // 0
-    // g32tile.classList.toggle("g32_b1");
-
-    // // offset labels 0-F
-    // headerOffsets.classList.toggle("hex_offset_labels_b16"); // 1
-    // headerOffsets.classList.toggle("hex_offset_labels_b1");
-
-    // // base labels, "hex" and "binary"
-    // headerBases.classList.toggle("hex_base_labels_b16");      // 4
-    // headerBases.classList.toggle("hex_base_labels_b1");
-
-    // // widen/shrink the data columns
-    // this.panelContent.classList.toggle("panel_content_b16");      // 6
-    // this.panelContent.classList.toggle("panel_content_b1");
-
-    // // for grid elements, get the custom grid-template-rows and columns
-    // // var g32rs = hexContent.querySelectorAll(".g32 > .g32rr > .g32r");
-    // var g32rs = g32tile.querySelectorAll(".g32rr > .g32r");
-    // for (var gr32r of g32rs){
-
-    //   // get the cell-specific grid-template rows and columns info:
-    //   gr32r.classList.toggle("g32r_b16");                   // 2
-    //   gr32r.classList.toggle("g32r_b1");
-    //   let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
-    //   gr32r.style.gridTemplateColumns = gcr[0];
-    //   gr32r.style.gridTemplateRows = gcr[1];
-
-    //   // change the coloring of the byte
-    //   let gr32rByte = gr32r.querySelector(".byte");
-    //   gr32rByte.classList.toggle("byte_b16");             // 5
-    //   gr32rByte.classList.toggle("byte_b1");
-    //   let bp = gr32rByte.getAttribute('data-bitplane');
-    //   // gr32rByte.classList.add(`byte_bp${bp}`);
-    //   gr32rByte.classList.toggle(`byte_bp${bp}`);
-
-    //   // remove/add binary representation
-    //   let binSpan = gr32rByte.querySelector(".byteBin");
-    //   binSpan.classList.toggle("byteBin_b16");            // 4
-    //   binSpan.classList.toggle("byteBin_b1");
-
-    //   // fade in/out the offset prefix
-    //   let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
-    //   prefix.classList.toggle("byteOffsetPrefix_b16");        // 3
-    //   prefix.classList.toggle("byteOffsetPrefix_b1");        
-      
-    // }
-
-    
-
     switch(newMode){
       case "byte16": 
       
         // animation order settings ("backwards" order)
-        var numTics = 7;
+        var numTics = 5;
         ani.duration = this.tic;
         ani.elapsed = (numTics-1) * ani.duration;
+        ani.elapsed = 6;
         ani.direction = -1;
         break;
 
@@ -3173,67 +3392,51 @@ class Panel {
     }
 
     // animation "steps" labeled according to order when going byte16 -> byte1
+    ani.series = false;
 
     // 0  expand/collapse height of this tile (g32l, g32rr, and g32s)  
-    ani.mate( [g32tile], ["g32_b16","g32_b1"] ); 
-
-    // 1  offset labels 0-F
-    ani.mate(  this.panelContent.querySelectorAll(".hex_header > div > .hex_header_offset_label"),
-     ["hex_header_offset_label_b16","hex_header_offset_label_b1"] );     
-
+    ani.mate( [g32tile], ["g32_b16","g32_b1"], 0.5 ); 
+    ani.tic(0.5);
+    
     // parallel animations 
     // (some require custom parsing for each, so we turn of ani.series)
+    
 
-    // 2  for grid elements, get the custom grid-template-rows and columns animation change
-    ani.series = false;
-    g32tile.querySelectorAll(".g32rr > .g32r").forEach( d => {
-      // perform transition
-      ani.mate( [d], ["g32r_b16","g32r_b1"]);
-      // get grid col and row css
-      let gcr = d.getAttribute(`data-mode-${newMode}`).split(";");
-      d.style.gridTemplateColumns = gcr[0];
-      d.style.gridTemplateRows = gcr[1];
-    });
-    ani.tic(); ani.series = true;
+    // 1  hide/show offset labels 0-F
+    ani.mate(  this.panelContent.querySelectorAll(".hex_header > div > .hex_header_offset_label"), ["hex_header_offset_label_b16","hex_header_offset_label_b1"], 2.5 ); 
+    // 1  reposition the g32_items
+    g32tile.querySelectorAll("div > .g32_item").forEach( d => ani.mate( [d], ["g32_item_b16","g32_item_b1",...["_b16","_b1"].map(e=>d.getAttribute(`data-gridclass`)+e)], 2.5)  );
 
-    // 3  fade in/out the offset prefix
-    ani.series = false;
-    ani.mate( g32tile.querySelectorAll(".g32rr > .g32r > .byte > .byteOffsetPrefix"), ["byteOffsetPrefix_b16", "byteOffsetPrefix_b1"]);
-    // ani.mate( [headerBases], ["hex_base_labels_b16","hex_base_labels_b1"] );
-    // ani.mate( g32tile.querySelectorAll(".g32rr > .g32r > .byte > .byteBin"), ["byteBin_b16", "byteBin_b1"]);
-    ani.tic(); ani.series = true;
-    // ani.tic();
+    // 2  fade in/out the extra offsets
+    ani.mate( g32tile.querySelectorAll(".g32l > .g32l_offset_sometimes"), ["g32l_offset_sometimes_b16", "g32l_offset_sometimes_b1"], 2.5);
 
-    // 4  remove/add binary representation  [ parallel w/ below ]
-    ani.series = false;
-    ani.mate( [this.panelContent], ["panel_content_b16","panel_content_intermediate"] ); 
-    // 4  base labels, "hex" and "binary"   [ parallel w/ above ]
+    // 3  base labels, "hex" and "binary"   [ parallel w/ above ]
     ani.mate( 
-      this.panelContent.querySelectorAll(".hex_header > div > .hex_header_base_label"),
-       ["hex_header_base_label_b16","hex_header_base_label_b1"] );
-    // 4  base labels, "hex" and "binary"   [ parallel w/ above ]
-    ani.mate( 
-      g32tile.querySelectorAll(".g32b > .byteBin"),
-       ["byteBin_b16","byteBin_b1"] );
-    ani.tic(); ani.series = true;
+    this.panelContent.querySelectorAll(".hex_header > div > .hex_header_base_label"), ["hex_header_base_label_b16","hex_header_base_label_b1"], 2.5 );
+    ani.tic(2.5);
 
-    // 5  change the coloring of the byte
-    ani.series = false;
-    g32tile.querySelectorAll(".g32rr > .g32r > .byte").forEach( 
-      d => ani.mate( 
-        [d], ["byte_b16","byte_b1",`byte_bp${d.getAttribute('data-bitplane')}`]
-      ) 
-    ); 
-    g32tile.querySelectorAll(".g32b .byteBin").forEach( 
-      d => ani.mate( 
-        [d], ["byte_b16","byte_b1",`byte_bp${d.getAttribute('data-bitplane')}`]
-      ) 
-    );
-    ani.tic(); ani.series = true;
+    
 
-    // 6  widen/shrink the data columns
-    ani.mate( [this.panelContent], ["panel_content_intermediate","panel_content_b1"] ); 
- 
+    // // 3  expand/collapse the g32b (binary representation) column  [ parallel w/ below ]
+    // ani.mate( [this.panelContent], ["panel_content_b16","panel_content_intermediate"], 2 ); 
+    // ani.tic(2); 
+
+
+    // 5  expand/collapse the g32s (svg) column
+    // ani.mate( [this.panelContent], ["panel_content_intermediate","panel_content_b1"], 1 ); 
+    ani.mate( [this.panelContent], ["panel_content_b16","panel_content_b1"], 1.5 ); 
+    ani.tic(1.5); 
+
+    // 4  change the coloring of the byte
+    // foreground
+    g32tile.querySelectorAll("div > .g32_item").forEach(d => ani.mate( [d], [`fg_bp${d.getAttribute('data-bitplane')}`], 1.5 )  ); 
+    // background
+    ani.mate( g32tile.querySelectorAll(".g32bg"), ["g32bg_b16","g32bg_b1"], 1.5 );
+    ani.tic(1.5); 
+
+    // show/hide the svg
+    ani.mate( g32tile.querySelectorAll(".g32s"), ["g32s_b16","g32s_b1"], 1.5 );
+    ani.tic(1.5); 
 
     this.panelContent.setAttribute("data-mode", newMode);
 
