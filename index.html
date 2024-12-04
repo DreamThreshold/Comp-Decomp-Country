@@ -364,16 +364,12 @@ button{
     /* grid-template-columns: 2fr 16fr; */
 }
 /* labels across the top header:  */
-.hex_offset_offset{
+.hex_header_offset{
   display: grid;
   place-items: stretch;
   grid-row: 1 / 2;
 
 }
-.hex_offset_label{
-/* transition: var(--bitplaneViewerTransition2); */
-}
-
 
 .hex_content{
     
@@ -400,6 +396,15 @@ button{
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+
+.g32_plain{
+  display:grid;
+  grid-template-columns: 2fr repeat(16, 1fr) 0fr 0fr; 
+  grid-template-rows: 2em 2em;
+  height: 4em;
+}
+
 .g32l{
     scroll-snap-align: start;
     display: grid;
@@ -408,9 +413,7 @@ button{
     grid-auto-flow: row;
     align-items: start;
     justify-items: center;
-    
 }
-
 
 .g32rr{
     scroll-snap-align: start;
@@ -420,14 +423,35 @@ button{
     grid-template-rows: 1fr;
     grid-auto-flow: row;
     pointer-events: none;
+    min-width: 0;
+}
+
+.g32b{
+  display: grid;
+  grid-column: 3 / 4;
+  grid-template-rows: repeat(32, 1fr);
+  grid-template-columns: 1fr;
+  grid-template-columns: subgrid;
+  overflow: visible;
+  min-height: 0;
 }
 
 .g32s{
-    grid-column: 3 / 4;
+    grid-column: -1;
     grid-template-columns: subgrid;
-    overflow: visible;
-    content-visibility: auto; /* keep this; somehow prevents weird unnecessary scrollbar */
-    /* transition: var(--bitplaneViewerTransition); */
+    overflow: hidden;
+    /* overflow: visible; */
+    /* keep this; somehow prevents weird unnecessary scrollbar: */
+    /* content-visibility: auto;  */
+}
+
+
+
+.bpsvg{
+  height:100%;
+  /* width: 100%; */
+  overflow: visible;
+  /* width: 0; */
 }
 
 
@@ -444,90 +468,42 @@ button{
 
 
 
-
-/* 
-
-classes for bitplane animation 
-(in order of expanding from 16-wide to 1-wide) 
-
-*/
-
-
-.g32{
-  display: grid;
-  grid-template-columns: subgrid;
-  grid-column: 1 / -1;
-  grid-template-rows: 1fr;
-  /* transition: var(--bitplaneViewerTransition); */
-}
-.g32_b16{
-
-  height: 4em;
-}
-.g32_b1{
-
-  height: 100%;
-}
-
-.hex_offset_labels{
+.hex_header_labels_left{
   display: grid;
   place-items: stretch;
   grid-row: 1 / 2;  
   grid-column: 2 / 3;
   grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: 1fr;
   place-self: stretch;
   opacity: 1;
   /* transition: var(--bitplaneViewerTransition2) */
 }
-.hex_offset_labels_b16{
 
-  opacity: 1;
-}
-.hex_offset_labels_b1{
 
-  opacity: 0;
-}
-
-.g32r{
-  /* NOTE: the grid-template row/col is custom to each cell and not shown here */
+.hex_header_labels_right{
   display: grid;
-  grid-area: 1 / 2 / 1 / 2;
   place-items: stretch;
-  pointer-events: none;
-  /* transition: var(--bitplaneViewerTransition); */
+  grid-row: 1 / 2;    
+  grid-column: 3 / 4;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  place-self: stretch;
+  min-width: 0;
+  overflow: hidden;
+
 }
-.g32r_b16{
+/* .hex_header_labels_right_b16{
 
-
-}
-.g32r_b1{
-
-  
-}
-
-
-.byteOffsetPrefix{
-  direction: rtl; /* doing weird stuff so it overflows to the left */
-  color: white;
+  width: 0%;
   opacity: 0;
-  width: 0;
-  /* transition: var(--bitplaneViewerTransition2); */
 }
-.byteOffsetPrefix_b16{
+.hex_header_labels_right_b1{
 
-  opacity: 0;
-
-}
-.byteOffsetPrefix_b1{
-
+  width: 100%;
   opacity: 1;
-}
-
-
-
-/* following two classes should change at the same time */
-
-
+} */
+/*
 .hex_base_labels{
   display: grid;
   place-items: stretch;
@@ -535,20 +511,22 @@ classes for bitplane animation
   grid-column: 2 / 3;
   grid-template-columns:2fr 4fr;
   place-self: stretch;
-  /* width: 0%; */
+  
   opacity: 0;
-  /* transition: var(--bitplaneViewerTransition2) */
+ 
 }
-.hex_base_labels_b16{
+.hex_header_base_label_b16{
 
   width: 0%;
   opacity: 0;
 }
-.hex_base_labels_b1{
+.hex_header_base_label_b1{
 
   width: 100%;
   opacity: 1;
 }
+*/
+/*
 
 .byteBin{
   direction: ltr;
@@ -557,37 +535,148 @@ classes for bitplane animation
   text-align: right;
   width: 0%;
   overflow: hidden;
-  /* transition: var(--bitplaneViewerTransition2); */
 }
 .byteBin_b16{
-
   width: 0%;
   opacity: 0;
 }
 .byteBin_b1{
-
   width: 100%;
   opacity: 1;
 }
 
+*/
+
+/* 
+
+classes for bitplane animation 
+(in order of expanding from 16-wide to 1-wide) 
+
+*/
+
+/* 0 */
+.g32{
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-rows: 1fr;
+}
+.g32_b16{
+  grid-template-columns: subgrid;
+  height: 4em;
+}
+.g32_b1{
+  grid-template-columns: subgrid;
+  height: 100%;
+}
+
+
+/* 1 */
+.hex_header_offset_label_b16{
+  opacity: 1;
+}
+.hex_header_offset_label_b1{
+  opacity: 0;
+}
+
+
+/* 2 */
+.g32r{
+  /* NOTE: the grid-template row/col is custom to each cell and not shown here */
+  display: grid;
+  grid-area: 1 / 2 / 1 / 2;
+  place-items: stretch;
+  pointer-events: none;
+  
+  min-width: 0;
+  /* transition: var(--bitplaneViewerTransition); */
+}
+.g32r_b16{
+
+}
+.g32r_b1{
+
+}
+
+/* 3 */
+.byteOffsetPrefix{
+  direction: rtl; /* doing weird stuff so it overflows to the left */
+  color: white;
+  opacity: 0;
+  width: 0;
+  /* transition: var(--bitplaneViewerTransition2); */
+}
+.byteOffsetPrefix_b16{
+  opacity: 0;
+}
+.byteOffsetPrefix_b1{
+  opacity: 1;
+}
+
+
+/* 4    and   6  */
+/* panel_content goes here */
+.panel_content_b16{
+  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
+  grid-template-columns: 2fr 16fr 0fr 0fr;
+}
+.panel_content_intermediate{
+  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
+  grid-template-columns: 2fr 8fr 8fr 0fr;
+}
+.panel_content_b1{
+  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
+  grid-template-columns: 2fr 2fr 2fr 6fr;
+}
+/* also 4 */
+.hex_header_base_label_b16{
+  /* width: 0%; */
+  opacity: 0;
+}
+.hex_header_base_label_b1{
+  /* width: 100%; */
+  opacity: 1;
+}
+/* also 4 */
+.byteBin{
+  /* direction: ltr;
+  opacity: 0;
+  align-items: center;
+  text-align: right;
+  width: 0%;
+  overflow: hidden; */
+  min-width: 0; 
+  min-height: 0;
+}
+.byteBin_b16{
+  opacity: 0;
+  width: 0%;
+  /* width: 0;
+  height: 0;
+  overflow: hidden; */
+}
+.byteBin_b1{
+  width: 100%;
+  opacity: 1;
+}
+
+/* 5 */
 .byte{
   grid-area: 2 / 2 / 3 / 3;
   display: grid;
-  grid-template-columns: 0fr 1fr; /*NOTE: backwards because rtl*/
+  grid-template-columns: 1fr; /*NOTE: backwards because rtl*/
+  grid-template-columns: 1fr;
   grid-auto-flow: column;
-  direction: rtl;
+  /* direction: rtl; */
   justify-content: center;
-  place-items: center;
-  align-items: start;
+  place-items: stretch;
+  align-items: center;
   text-align: center;
   transition: var(--bitplaneViewerTransition2);
 }
 .byte_b16{
 
-
 }
 .byte_b1{
-
 
 }
 .byte_by16RowEven{
@@ -603,7 +692,7 @@ classes for bitplane animation
   --fg: 255;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 4fr 2fr;
+  grid-template-columns: 1fr;
 }
 .byte_bp1{
   --bg: 85;
@@ -611,7 +700,7 @@ classes for bitplane animation
   --fg: 255;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 4fr 2fr;
+  grid-template-columns: 1fr;
 }
 .byte_bp2{
   --bg: 170;
@@ -619,7 +708,7 @@ classes for bitplane animation
   --fg: 0;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 4fr 2fr;
+  grid-template-columns: 1fr;
 }
 .byte_bp3{
   --bg: 255;
@@ -627,24 +716,9 @@ classes for bitplane animation
   --fg: 0;
   background-color: rgb(  var(--bg), var(--bg), var(--bg)  );
   color: rgb(  var(--fg), var(--fg), var(--fg) );
-  grid-template-columns: 4fr 2fr;
+  grid-template-columns: 1fr;
 }
 
-
-
-/* panel_content goes here */
-.panel_content_b16{
-
-  
-  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
-  grid-template-columns: 2fr 16fr 0fr;
-}
-.panel_content_b1{
-
-  
-  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
-  grid-template-columns: 2fr 4fr 25fr;
-}
 
 
 /* 
@@ -653,23 +727,6 @@ end of animation classes
 
 
 
-
-.g32_plain{
-  display:grid;
-  grid-template-columns: 2fr repeat(16, 1fr) 0fr; 
-  grid-template-rows: 2em 2em;
-  height: 4em;
-}
-
-
-
-
-.bpsvg{
-  height:100%;
-  /* width: 100%; */
-  overflow: visible;
-  /* width: 0; */
-}
 
 .panel_inner_text{
   grid-template-rows: 3em 1fr;
@@ -2194,14 +2251,19 @@ class Panel {
             // style="height: calc(100% - ${headerHeight}px);"
             //TODO: this is duplicated throughout code, should make modular
             // also, should only show hex offset header if the hex file is loaded and in view?
+            let m = "_b16";
+            let offsets0tof = Array.from( Array(16).keys() ).map(
+              (d,i) => `<a class="hex_header_offset_label hex_header_offset_label${m}" style="grid-column: ${1+i};  grid-row: 1;">${hex(d,1)}</a>`
+            ).join('');
             let offsetsTop = `\
-              <div class="hex_offset_offset"><a>OFFSET</a></div>
-              <div class="hex_offset_labels hex_offset_labels_b16">${Array.from( Array(16).keys() ).map(
-                    d => `<a class="hex_offset_label">${hex(d,1)}</a>`).join('')}</div>
-                    <div class="hex_base_labels hex_base_labels_b16">
-                      <a class="hex_offset_label">Hex</a>
-                      <a class="hex_offset_label">Binary</a>
-                    </div>`;
+              <div class="hex_header_offset"><a>OFFSET</a></div>
+              <div class="hex_header_labels_left hex_header_labels_left${m}">
+                ${offsets0tof}
+                <a class="hex_header_base_label hex_header_base_label${m}" style="grid-column: 1 / -1;  grid-row: 1;">Hex</a>
+              </div>
+              <div class="hex_header_labels_right  hex_header_labels_right${m}">
+                <a class="hex_header_base_label hex_header_base_label${m}" style="grid-column: 1 / -1;  grid-row: 1;">Binary</a>
+              </div>`;
 
             ////////////////
             
@@ -2511,7 +2573,8 @@ class Panel {
 
     let sbytes = ``;
     let g32l = ``; //
-    let g32r = ``; // running strings
+    let g32r = ``; // 
+    let g32b = ``; // running strings
     let bw = 16; // byte width...
     let tw = 32; // total byte width possible...
     let th = 32; // total height (usually just 32 anyway )
@@ -2529,9 +2592,9 @@ class Panel {
     // note that each "tile", or 32 bytes, is contained in a class "g32" div,
     // made up of three columns:
     //
-    //  g32l                  g32rr                 g32s
-    //  (left-side offsets)   (actual bytes data)   (svg bitplane; initially hidden)
-    //
+    //  g32l                  g32rr                 g32b       g32s
+    //  (left-side offsets)   (actual bytes data)   (binary)   (svg bitplane)
+    //                                               \  initially hidden   /
     if ( !(mode=="plain")){
       for (let i=0; i< rbytes.length; i++){
 
@@ -2570,11 +2633,12 @@ class Panel {
             style="grid-template-columns:${mode16?gtcn:gtc1};grid-template-rows:${mode16?gtrn:gtr1};">
             <div class="byte byte${m} byte_byCell${i%2?'Odd':'Even'} byte_by16Row${row16Odd?'Odd':'Even'} byte_value${rbytesHex[i]} byte_panel${this.index}_index${i} ${mode16?'':('byte_bp'+bp+'')}" 
             data-bitplane="${bp}" >
-                <div class="byteBin byteBin${m}">${rbytesBin[i]}&#8239;</div>
                 <div class="byteHex">${rbytesHex[i]}</div>
-                <div class="byteOffsetPrefix byteOffsetPrefix${m}" >&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
             </div>
           </div>`;
+          //<div class="byteOffsetPrefix byteOffsetPrefix${m}" >&#8239;${( (i%16)==0)?'':hex(indices[i],6).slice(-2)+'....'}</div>
+
+          g32b += `<div class="byteBin byteBin${m}" data-bitplane="${bp}" >${rbytesBin[i]}</div>`;
 
           // if this is the start of 16 bytes, add the offset:
           if ( (i%16)==0){
@@ -2606,6 +2670,12 @@ class Panel {
               g32rrelem.className = "g32rr";
               g32rrelem.innerHTML = `${g32r}`;
               g32elem.appendChild(g32rrelem);
+
+              // g32rr (<=32)
+              let g32belem = document.createElement('div');
+              g32belem.className = "g32b";
+              g32belem.innerHTML = `${g32b}`;
+              g32elem.appendChild(g32belem);
 
               // create the g32s, currently empty but will later contain an svg, if bitplane
               g32selem = document.createElement('div');
@@ -2668,7 +2738,7 @@ class Panel {
       // so it overflows to the left, so its text contents are backwards.
       g32r += `\
       <div class="byte byte${m} byte_by16Row${row16Odd?'Odd':'Even'}" 
-        data-bitplane="${bp}" style="grid-column: ${col+2}; grid-row: ${row+1};"><a></a><div class="byteHex" style="width:100%;direction:ltr;">${rbytesHex[i]}</div><a></a></div>`;
+        data-bitplane="${bp}" style="grid-column: ${col+2}; grid-row: ${row+1};"><div class="byteHex" style="width:100%;direction:ltr;">${rbytesHex[i]}</div></div>`;
 
       // if this is the start of 16 bytes, add the offset:
       if ( (i%16)==0){
@@ -2683,8 +2753,7 @@ class Panel {
             g32elem = replace[tileCount];
           } else { // creating a new g32
             g32elem = document.createElement('div');
-            g32elem.className = "g32";
-            g32elem.classList.add("g32"+m);
+            g32elem.classList.add("g32");
             g32elem.classList.add("g32_plain");
             // assign the tile index (1-based, not 0-based)
             g32elem.setAttribute("data-tile-index", 1+Math.floor( (offset+i)/32 ) );
@@ -2971,10 +3040,8 @@ class Panel {
 
   animate16to1(overrideMode=null,tile=null){
 
-    if (!this.tic) this.tic = 0.5; // in s
+    if (!this.tic) this.tic = 1.5; // in s
 
-    var headerOffsets = this.panelContent.querySelector(".hex_header > .hex_offset_labels");
-    var headerBases = this.panelContent.querySelector(".hex_header > .hex_base_labels");
     var hexContent = this.panelContent.querySelector(".hex_content");
     
     if (tile==null){
@@ -2994,16 +3061,6 @@ class Panel {
       newMode = oldMode=="byte16"?"byte1":"byte16"; // simplified: toggle
     }
 
-    // function k(element, toggleClasses, duration, timingFunction, delay){
-    //   // Directly assign a transition
-    //   element.style.transition = `${duration}s ${timingFunction} ${delay}s`;
-    //   // Assign a timeout for the transition to be removed
-    //   setTimeout( () => element.style.transition = ``, delay+duration );
-    //   // toggle the classes
-    //   // element.classList.toggle(classPrefix+"_b16");
-    //   // element.classList.toggle(classPrefix+"_b1");
-    //   toggleClasses.forEach( (d)=> element.classList.toggle(d) );
-    // }
     var ani = {
       duration: 1,
       elapsed: 0,   // set to final element's delay for "backwards" order
@@ -3094,14 +3151,14 @@ class Panel {
       
         // animation order settings ("backwards" order)
         var numTics = 7;
-        ani.duration = 0.5;
+        ani.duration = this.tic;
         ani.elapsed = (numTics-1) * ani.duration;
         ani.direction = -1;
         break;
 
       case "byte1":
         // "forwards" order
-        ani.duration = 0.5;
+        ani.duration = this.tic;
         ani.elapsed = 0;
         ani.direction = 1;
 
@@ -3121,7 +3178,8 @@ class Panel {
     ani.mate( [g32tile], ["g32_b16","g32_b1"] ); 
 
     // 1  offset labels 0-F
-    ani.mate( [headerOffsets], ["hex_offset_labels_b16","hex_offset_labels_b1"] );     
+    ani.mate(  this.panelContent.querySelectorAll(".hex_header > div > .hex_header_offset_label"),
+     ["hex_header_offset_label_b16","hex_header_offset_label_b1"] );     
 
     // parallel animations 
     // (some require custom parsing for each, so we turn of ani.series)
@@ -3148,11 +3206,15 @@ class Panel {
 
     // 4  remove/add binary representation  [ parallel w/ below ]
     ani.series = false;
-    ani.mate( g32tile.querySelectorAll(".g32rr > .g32r > .byte > .byteBin"), ["byteBin_b16", "byteBin_b1"]);
-    // ani.tic();
+    ani.mate( [this.panelContent], ["panel_content_b16","panel_content_intermediate"] ); 
     // 4  base labels, "hex" and "binary"   [ parallel w/ above ]
-    ani.mate( [headerBases], ["hex_base_labels_b16","hex_base_labels_b1"] );
-    // ani.tic(); 
+    ani.mate( 
+      this.panelContent.querySelectorAll(".hex_header > div > .hex_header_base_label"),
+       ["hex_header_base_label_b16","hex_header_base_label_b1"] );
+    // 4  base labels, "hex" and "binary"   [ parallel w/ above ]
+    ani.mate( 
+      g32tile.querySelectorAll(".g32b > .byteBin"),
+       ["byteBin_b16","byteBin_b1"] );
     ani.tic(); ani.series = true;
 
     // 5  change the coloring of the byte
@@ -3161,11 +3223,16 @@ class Panel {
       d => ani.mate( 
         [d], ["byte_b16","byte_b1",`byte_bp${d.getAttribute('data-bitplane')}`]
       ) 
+    ); 
+    g32tile.querySelectorAll(".g32b .byteBin").forEach( 
+      d => ani.mate( 
+        [d], ["byte_b16","byte_b1",`byte_bp${d.getAttribute('data-bitplane')}`]
+      ) 
     );
     ani.tic(); ani.series = true;
 
     // 6  widen/shrink the data columns
-    ani.mate( [this.panelContent], ["panel_content_b16","panel_content_b1"] ); 
+    ani.mate( [this.panelContent], ["panel_content_intermediate","panel_content_b1"] ); 
  
 
     this.panelContent.setAttribute("data-mode", newMode);
