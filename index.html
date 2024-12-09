@@ -999,6 +999,87 @@ Generated ...
 .g32l_item_31_b16{top:75%;left:50%;}
 .g32l_item_31_b1{top:98.4375%;left:50%;}
 
+
+/* NEW simplified hex viewer classes */
+.hex_panel_content{
+  grid-template-rows: 1.5em 1fr;
+  grid-template-columns: 2fr repeat(16, 1fr) 0fr;
+}
+.hex_panel_content_32wide{
+  grid-template-columns: 2fr repeat(16, 1fr) 0fr repeat(16, 1fr) 0fr;
+}
+.hex_header_new{
+  display: grid;
+  grid-template-columns: subgrid;
+  /* grid-template-rows: subgrid;   */
+  grid-column: 1 / -1;
+  font-weight: 900;
+
+}
+.hex_new_top_labels{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  grid-template-rows: 100%;
+  grid-column: 2 / -2;
+  overflow: hidden; 
+  user-select: none;
+
+}
+.hex_g4096{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  height: max-content;
+}
+.hex_g256{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  /* This doesn't work very well, makes columns weird */
+  /* content-visibility: auto; */
+  
+  height: max-content;
+}
+.hex_g32{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  
+  height: max-content;
+}
+.hex_g32l{
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-column: 1;
+}
+.hex_g32lr{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -2;
+}
+
+.hex_g32r{
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 2 / -2;
+}
+.hex_byte{
+  place-self: center;  
+  height: 2em;
+  align-content: center;
+}
+.new_offset{
+  place-self: center;
+  min-width: 0;
+  user-select: none;
+}
+.new_offet_middle{
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+}
+
 </style>
 <script>
 
@@ -2565,14 +2646,19 @@ class Panel {
             //TODO: this is duplicated throughout code, should make modular
             // also, should only show hex offset header if the hex file is loaded and in view?
             m = "_b16";
-            let offsets0tof = Array.from( Array(16).keys() ).map(
-              (d,i) => `<a class="hex_header_offset_label hex_header_offset_label${m}" style="grid-column: ${1+i};  grid-row: 1;">${hex(d,1)}</a>`
+            // let offsets0tof = Array.from( Array(32).keys() ).map(
+            //   (d,i) => `${(i==16)?'<a style="grid-column: '+(1+i)+';  grid-row: 1;"></a>':''}<a class="hex_header_offset_label hex_header_offset_label${m}" style="grid-column: ${(i>>4)+1+i};  grid-row: 1;">${hex(d,2)}</a>`
+            // ).join('');
+
+            
+            let offsets0tof = Array.from( Array(32).keys() ).map(
+              (d,i) => `${(i==16)?'<a style=""></a>':''}<a class="hex_header_offset_label hex_header_offset_label${m}" style="">${hex(d,2)}</a>`
             ).join('');
+
             offsetsTop = `\
               <div class="hex_header_offset"><a>OFFSET</a></div>
-              <div class="hex_header_labels_left hex_header_labels_left${m}">
-                ${offsets0tof}
-              </div>`;
+              <div class="hex_new_top_labels">
+              ${offsets0tof}</div>`;
 
             setTimeout(()=>{
               // add scroll tracker to hexContent
@@ -2588,7 +2674,7 @@ class Panel {
             ////////////////
             
             this.panelContent.innerHTML +=
-                `<div class="hex_header">${offsetsTop}</div>
+                `<div class="hex_header_new">${offsetsTop}</div>
                 <div class="hex_content"
                  style=""></div>`;
 
@@ -2602,9 +2688,31 @@ class Panel {
                 //     </div>
                 // </div>`;
                   
-            this.panelContent.classList.add("panel_content_b16");
+            this.panelContent.classList.add("hex_panel_content");
 
-            break;
+            // Add a byte-width change button to settings:
+            setTimeout( ()=>{
+              let downloadButton = document.createElement("button");
+              downloadButton.className = "downloadButtons";
+              downloadButton.innerHTML = "Change Number of Columns";
+              downloadButton.title = "Change Number of Columns (16/32)";
+              downloadButton.style.height = "2em";
+              this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( downloadButton );
+
+              this.byteWidthButton.addEventListener("click", (event) => { 
+                this.panelContent.classList.toggle("hex_panel_content_32wide");
+              });
+              console.log("byte width button added...");
+            }, 
+            2100
+          );
+
+          //TODO: settings for adjusting "line-spacing":
+          // use:
+          // let newLineHeight = "4em";
+          // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
+
+          break;
 
         case "paletteViewer":
           this.inner.classList.add("panel_inner_palette");
@@ -2926,7 +3034,95 @@ class Panel {
     }
   }
 
-  generateHexHTML(input = null, offset=0, mode=null, length=32, replace=[]){
+  generateHexHTML(input = null, offset=null, length=4096){
+    
+    
+    // Get indices of our bytes, and if we have an offset, 
+    // grab only those bytes and indices at the offset
+    var data, offsets;
+    offsets = Array.from( Array(input.length).keys()); //TODO: make this work for offsets...?
+    if (offset!=null){
+      data = input.slice(offset, Math.min(offset+length, input.length));
+      offsets = offsets.slice(offset, Math.min(offset+length, offsets.length)).map(d=>d+offset);
+    } else{
+      data = input;
+    }
+    
+
+
+    // generate hexadecimal and binary strings for each byte
+    let bytesHex = [];
+    let bytesBin = [];
+    for (let i=0; i<data.length;i++){
+      bytesHex.push(hex(data[i],2));
+      bytesBin.push(binar(data[i],8,4));
+    }
+
+    // parent div for following g32 elements
+    var hexContent = this.inner.querySelector(" .panel_content > .hex_content");
+
+    var count = 0;
+    var html = ``;
+
+    for (let g4096=0; g4096 < Math.ceil(data.length/4096); g4096++){
+      html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g4096" style="grid-row:${1+(offsets[count]/4096)};">`;
+
+      for (let g256=0; g256 < 256; g256++){
+        html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g256">`;
+
+        for (let g32=0; g32 < 8; g32++){
+
+          // separate g321 and g32r version:
+          //
+          // html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
+          // // Create g32 left (offsets) column, adding secon row if needed
+          // html+= `<div class="hex_g32l"><div class="new_offset">${hex(Math.floor(offsets[count]),6)}</div>`;
+          // if ( count+16 < data.length ) html+=`<div class="new_offset">${hex(Math.floor(offsets[count+16]),6)}</div>`;
+          // html+= `</div>`; 
+          // // begin g32 right (data) column
+          // html+= `<div class="hex_g32r">`;
+
+          // for (let i=0; i < 32; i++){
+          //   html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte">${bytesHex[count]}</div>`;
+          //   count++;
+          //   if ( count >= data.length ) break;
+          // }
+          // html+=`</div></div>`;
+
+          
+          // un-separated g32 l and r version:
+          //
+          html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
+          html+=`<div class="hex_g32lr">`;
+          
+          for (let i=0; i < 32; i++){
+            if ( i==0 ) html+= `<div class="new_offset">${hex(Math.floor(offsets[count]),6)}</div>`;
+            if ( i==16 ) html+= `<div class="new_offset new_offet_middle hex_cell">${hex(Math.floor(offsets[count]),6)}</div>`;
+            html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte hex_cell">${bytesHex[count]}</div>`;
+            count++;
+            if ( count >= data.length ) break;
+          }
+          html+=`</div>`;
+          html+=`</div>`;
+
+          if ( count >= data.length ) break;
+        }
+        html+=`</div>`;
+        if ( count >= data.length ) break;
+      }
+      html+=`</div>`;
+    }
+
+    console.log(html);
+    hexContent.innerHTML += html;
+    
+
+
+  }
+
+
+    
+  generateBitplaneHTML(input = null, offset=0, mode=null, length=32, replace=[]){
     // does main work for generating hex editor-style view and bp viewer ui
     // console.log(input);
     var mode16;
@@ -3169,8 +3365,6 @@ replace].forEach(d=>console.log(d));
   }
 
   }
-
-    
 
   generateBitplaneView(parent, data, tileIndex){
 
@@ -3650,9 +3844,9 @@ replace].forEach(d=>console.log(d));
               from: this.links[0]
           };
           // updateBitplaneSeek(this.inner, this, 0 );
-          // this.generateHexHTML( this.source.data, 0, "plain", this.source.data.length);
+          // this.generateHexHTML( this.source.data, 0, this.source.data.length );
           // Truncated version for performance
-          this.generateHexHTML( this.source.data.slice(0,32*20), 0, "plain", 32*20);
+          this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
 
           // download setup
           if (!this.downloadButton){
@@ -3678,7 +3872,7 @@ replace].forEach(d=>console.log(d));
               from: this.links[0]
           };
           // updateBitplaneSeek(this.inner, this, 0 );
-          this.generateHexHTML( this.source.data.slice(0,32), 0, "byte1", 32);
+          this.generateBitplaneHTML( this.source.data.slice(0,32), 0, "byte1", 32);
 
           // download setup
           if (!this.downloadButton){
