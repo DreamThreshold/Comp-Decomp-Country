@@ -200,7 +200,7 @@ button{
   z-index: 10;
   opacity: 1;
   height: max-content;
-  pointer-events: default;
+  pointer-events: all;
 }
 
 .panel_menu_button{
@@ -244,13 +244,22 @@ button{
   overflow-y: auto; /* allows scrolling */
   overflow-x: hidden;
 }
-
+/* for when the menu is open */
+.panel_content_disabled{
+  /* pointer-events: none; */
+  filter:blur(3px);
+}
 .panel_header_title{
   
   margin:1ch;
   margin-right: 2ch;
   font-size: 1em;;
   font-family:Arial, Helvetica, sans-serif;
+  /* note: using nowrap and overflow:hidden so the title doesn't
+    wrap and increase the height of the header,
+    which causes issues with maximizing panels. */
+  text-wrap-mode: nowrap;
+  overflow: hidden;
 }
 
 
@@ -2297,6 +2306,7 @@ class Panel {
     this.collapse = this.panelHeader.appendChild(this.collapse);
     var collapseTime = 2000; // only source of collapse timing, to prevent redundancy
     this.collapse.style.transition = `height ${collapseTime/1000}s ease 0s`;
+
     // Event listener for collapsing the panelContent
     this.collapse.addEventListener("click", (event) => { 
         
@@ -2305,11 +2315,13 @@ class Panel {
         this.panelContent.classList.add("panel_content_collapsing_expanding");
         this.panelContent.style.transition = `height ${collapseTime/1000}s ease 0s`;
         setTimeout( () => {this.panelContent.style.transition = ``;}, collapseTime );
+
+        let headerHeight = this.panelHeader.getBoundingClientRect().height;
         
         // set the actual new height
         if (this.inner.getAttribute("data-collapsed")=="true"){
           this.menu.style.height = "max-content";
-          this.panelContent.style.height = this.inner.getAttribute("data-user-height")+"px";
+          this.panelContent.style.height = (this.inner.getAttribute("data-user-height")-headerHeight)+"px";
           this.inner.setAttribute("data-collapsed", "false");
         } else {
           this.menu.style.height = "0px";
@@ -2346,6 +2358,7 @@ class Panel {
             event.target.classList.toggle("panel_menu_button_opened");
             // change menu appearance (show it)
             this.inner.querySelector(".panel_menu").classList.toggle("panel_menu_opened");
+            this.inner.querySelector(".panel_content").classList.toggle("panel_content_disabled");
             
           }
         );
@@ -2539,7 +2552,9 @@ class Panel {
             this.panelContent.innerHTML +=
                 `<div class="hex_header">${offsetsTop}</div>
                 <div class="hex_content"
-                 style="grid-template-rows: 1fr;"></div>`;
+                 style="grid-template-rows: 100%;"></div>`;
+                 //NOTE: need this grid-template-rows: 100%;  so that bp viewer doesn't 
+                 // overflow/scroll for wide aspect ratios.
 
             this.panelContent.setAttribute("data-mode","byte1");
 
@@ -3199,9 +3214,11 @@ replace].forEach(d=>console.log(d));
         this.downloadButton = this.inner.querySelector(".panel_menu").appendChild( downloadButton );
 
         this.downloadButton.addEventListener("click", (event) => { 
-
+          console.log("download button clicked. url object:");
           const dataBlob = new Blob( [data], {type: "application/octet-stream"});
           let urlObject = URL.createObjectURL( dataBlob );
+
+          console.log(urlObject);
 
           let a = document.createElement("a");
           a.download = fileName;
@@ -3210,6 +3227,7 @@ replace].forEach(d=>console.log(d));
           a.click();
           setTimeout( () => URL.revokeObjectURL( urlObject ) );
         });
+        console.log("download button added...");
       }, 
       2100
     );
