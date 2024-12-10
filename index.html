@@ -27,8 +27,11 @@
 
 body{
 
-  background: rgb(30,50,30);
-  color: rgb(59, 172, 98);
+  background: rgb(40,20,40);
+  /*background: linear-gradient(#aaaa11, #aa11aa); */
+  
+  /* background: linear-gradient(yellow, magenta); */
+  /* color: rgb(59, 172, 98); */
   color: rgb(255,255,255);
   font-family: monospace;
   overflow: hidden;
@@ -50,8 +53,8 @@ h4{
 a{text-align: center;}
 g{overflow: visible}
 button{
-  margin: 1ch;
-  padding: 3px;
+  /* margin: 1ch;
+  padding: 3px; */
   /* 
   background-color: rgb(50,50,50); */
 }
@@ -70,7 +73,7 @@ button{
 #navbar{
     height: 2em;
     width: 100%;
-    background-color: gray;
+    background-color: black;
     display: flex;
     flex-shrink: 0;
     overflow: hidden;
@@ -136,7 +139,7 @@ button{
 
     /* background-color: rgba(7, 7, 80, 0.5); */
     /* border: 2px solid black; */
-    background-color:rgb(41, 8, 8);
+    background-color:rgb(32, 9, 9);
     border-radius: 7px;
     justify-self: center;
     overflow: hidden;
@@ -170,9 +173,11 @@ button{
 
 .collapser{
   cursor:pointer;
+  text-align: center;
 }
 .collapser_collapsed{
   transform: rotateX(180deg);
+  transition: transform 1s ease 0s;;
 }
 
 .panel_menu{
@@ -180,14 +185,16 @@ button{
   grid-row: 2;
   grid-column: 1;
   z-index: 1;
-  background-color: blue;
+  background-color: rgba(12, 12, 59, 0.8);
   display: flex;
   /* margin and padding cause weird overflow issues...? */
   /* margin-top: 2em;
   margin-bottom: 2em; */
   overflow-y: auto;
   font-family: Arial, Helvetica, sans-serif;
-
+  display: flex;
+  flex-direction: column;
+  
 
   /* initial, unopened */
   z-index: -1;
@@ -205,19 +212,20 @@ button{
 
 .panel_menu_button{
   cursor:pointer;
+  text-align: center;
 
 }
 .panel_menu_button_opened{
   /* border-left: 2px solid white;
   border-top: 2px solid white; */
   border-radius: 6px 6px 0px 0px;
-  background-color: blue;
+  background-color: rgba(12, 12, 59, 0.8);
   
 }
 
 .panel_header{
     /* height: 2em; */
-    background-color: rgb(10, 30, 10);
+    /* background-color: rgb(5, 20, 5); */
     display: grid;
     grid-template-columns: auto 3ch 3ch;
     /* flex-direction: row; */
@@ -247,7 +255,7 @@ button{
 /* for when the menu is open */
 .panel_content_disabled{
   /* pointer-events: none; */
-  filter:blur(3px);
+  filter:blur(1px);
 }
 .panel_header_title{
   
@@ -268,7 +276,7 @@ button{
 
 .bitplane_header{
     /* height: 2em; */
-    background-color: rgb(20, 40, 20);
+    /* background-color: rgb(20, 40, 20); */
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -346,8 +354,11 @@ button{
   aspect-ratio: 1 / 1;
   image-rendering: pixelated;
   border: 1px solid rgba(0,255,0,0.5);
-  width: 25%; /* works ok */
+  
 
+}
+.metatile_wrapper_viewer{
+  width: 25%; /* works ok */
 }
 
 .panel_inner_palette{
@@ -400,7 +411,7 @@ button{
 .seekTileDownButton{}
 
 .hex_header{
-    background-color: rgb(20, 40, 20);
+    /* background-color: rgb(20, 40, 20); */
     display: grid;
     /* grid-template-columns: 2fr repeat(16, 1fr);
     grid-area: 2 / 1 / 3 / -1; */
@@ -415,7 +426,7 @@ button{
     because windows adds the weird scrollbar */
     overflow:auto;
     scrollbar-gutter: stable;
-    place-items: stretch;
+    place-items: center;
 
     /* for 1-byte-wide: */
     /* grid-template-columns: 2fr 16fr; */
@@ -452,7 +463,8 @@ button{
   
     overflow-y: auto;
     overflow-x: hidden;
-    transition: grid-template-rows 1s ease;
+
+    /* transition: grid-template-rows 1s ease; */
 }
 
 
@@ -582,12 +594,12 @@ button{
 
 .hex_header_labels_left{
   display: grid;
-  place-items: stretch;
+  /* place-items: stretch; */
   grid-row: 1 / 2;  
   grid-column: 2 / 3;
   grid-template-columns: repeat(16, 1fr);
   grid-template-rows: 1fr;
-  place-self: stretch;
+  /* place-self: stretch; */
   opacity: 1;
   /* transition: var(--bitplaneViewerTransition2) */
 }
@@ -595,12 +607,12 @@ button{
 
 .hex_header_labels_right{
   display: grid;
-  place-items: stretch;
+  /* place-items: stretch; */
   grid-row: 1 / 2;    
   grid-column: 3 / 4;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
-  place-self: stretch;
+  /* place-self: stretch; */
   min-width: 0;
   overflow: hidden;
 
@@ -731,8 +743,8 @@ classes for bitplane animation
   grid-template-columns: 3fr 1fr 3fr 0fr;
 }
 .panel_content_b1{
-  grid-template-rows: 3em 1.5em 1fr; /* this attr is the only one custom to bitplane viewer */
-  grid-template-columns: 7ch 1fr 3fr 10fr;
+  grid-template-rows: 2em 1fr; /* this attr is the only one custom to bitplane viewer */
+  grid-template-columns: 3fr 1fr 3fr 10fr;
 }
 /* also 4 */
 .hex_header_base_label_b16{
@@ -1036,6 +1048,7 @@ Generated ...
   display: grid;
   grid-template-columns: subgrid;
   grid-column: 1 / -1;
+  height: 512em;
   /* This doesn't work very well, makes columns weird */
   /* content-visibility: auto; */
   
@@ -1064,19 +1077,24 @@ Generated ...
   grid-template-columns: subgrid;
   grid-column: 2 / -2;
 }
-.hex_byte{
-  place-self: center;  
+.hex_cell{
+  /* place-self: center;   */
   height: 2em;
-  align-content: center;
+  align-content: center; 
+  text-align: center; 
+
+}
+.hex_byte{
+  /* place-self: center;  
+  height: 2em;
+  align-content: center; */
 }
 .new_offset{
-  place-self: center;
   min-width: 0;
   user-select: none;
 }
 .new_offet_middle{
   width: 100%;
-  text-align: center;
   overflow: hidden;
 }
 
@@ -2211,7 +2229,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
 
   <svg width="100vw" height="100vh" style="position:absolute;">
     <!-- oooh banana -->
-    <pattern id="polka-dot" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+    <pattern id="bananas" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
       
       <path d="M 31.320569 9.8309245
       L 30.413647 10.09189
@@ -2241,10 +2259,10 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
       C 85.906652 85.636035 90.697948 80.594464 90.179508 72.063302
       C 89.743731 64.892352 84.150936 63.079354 84.150936 63.079354
       L 81.320618 59.830973
-      z" stroke="none" fill="rgb(50,50,30)" ></path>
+      z" stroke="none" fill="rgb(40,40,20)" ></path>
     </pattern>
       
-    <rect x="0" y="0" width="100vw" height="100vh" fill="url(#polka-dot)"></rect>
+    <rect x="0" y="0" width="100vw" height="100vh" fill="url(#bananas)"></rect>
   
   </svg>
 
@@ -2323,6 +2341,9 @@ class Panel {
 
     this.outer.appendChild(this.inner);
 
+
+    this.settings = {};
+
     // set up the dragging "grid"
     for (let i=1; i<4; i++){
       for (let j=1; j<4; j++){
@@ -2391,6 +2412,9 @@ class Panel {
     // Event listener for collapsing the panelContent
     this.collapse.addEventListener("click", (event) => { 
         
+      // only if panel is not maximixed
+      if ( this.inner.getAttribute("data-maximized")=="false" ) { 
+        
         // handle the css for transition animation
         event.target.classList.toggle("collapser_collapsed");
         this.panelContent.classList.add("panel_content_collapsing_expanding");
@@ -2409,8 +2433,9 @@ class Panel {
           this.panelContent.style.height = "0px";
           this.inner.setAttribute("data-collapsed", "true");
         }
+
       }
-    );
+    });
 
 
     // CONTENT
@@ -2574,50 +2599,51 @@ class Panel {
             // this.seekTileUpButton.append(">");
             // this.seekTileUpButton.className = "seekTileUpButton";
 
-            let seekButtons = document.createElement("div");
-            seekButtons.className = "seekButtons";
-            seekButtons.innerHTML = `<button class="seekTileDownButton">&lt;</button><a>Tile&nbsp;</a><a>1</a><a>&nbsp;of&nbsp;</a><a>...</a><button class="seekTileUpButton">&gt;</button>`;
-            this.seekButtons = bph.appendChild(seekButtons);
+            // let seekButtons = document.createElement("div");
+            // seekButtons.className = "seekButtons";
+            // seekButtons.innerHTML = `<button class="seekTileDownButton">&lt;</button><a>Tile&nbsp;</a><a>1</a><a>&nbsp;of&nbsp;</a><a>...</a><button class="seekTileUpButton">&gt;</button>`;
+            // this.seekButtons = bph.appendChild(seekButtons);
 
             // this.seekTileDownButton = this.seekButtons.appendChild(this.seekTileDownButton);
             // [ seek0, seek1, seek2, seek3 ].forEach(d => this.seekButtons.appendChild(d));
             // this.seekTileUpButton = this.seekButtons.appendChild(this.seekTileUpButton);
 
             
-            this.bitplaneHeader = this.panelContent.appendChild( bph );
-            console.log("bitplane header .children[last]:");
-            console.log(this.bitplaneHeader);
+            // this.bitplaneHeader = this.panelContent.appendChild( bph );
+
+            // console.log("bitplane header .children[last]:");
+            // console.log(this.bitplaneHeader);
             this.inner.classList.add("panel_inner_bitplane");
             this.panelContent.classList.add("panel_content_b1");
             
             //HACK
             setTimeout(()=>{
 
-              // this.inner.querySelector(".panel_content > .bitplane_header > .byteWidthButton").addEventListener("click",
+              // this.inner.querySelector(".panel_content > .hex_header > .byteWidthButton").addEventListener("click",
               //   (event) => {
               //     console.log(event);
               //     // changeByteWidth(event.target.parentNode.parentNode);
               //     this.animate16to1();
               //   });
 
-              this.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileUpButton").addEventListener("click",
+              this.inner.querySelector(".panel_content > .hex_header > .seekButtons > .seekTileUpButton").addEventListener("click",
                 (event) => { 
                   console.log(event);
                   updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, this, +1)
                 }
               );
 
-              this.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileDownButton").addEventListener("click",
+              this.inner.querySelector(".panel_content > .hex_header > .seekButtons > .seekTileDownButton").addEventListener("click",
                 (event) => { 
                   console.log(event);
                   updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, this, -1)
                 }
 
               );
-              console.log("buttons nodes");
-              console.log(this.inner.querySelector(".panel_content > .bitplane_header > .byteWidthButton"));
-              console.log(this.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileUpButton"));
-            }, 2000);
+              // console.log("buttons nodes");
+              // console.log(this.inner.querySelector(".panel_content > .hex_header > .byteWidthButton"));
+              // console.log(this.inner.querySelector(".panel_content > .hex_header > .seekButtons > .seekTileUpButton"));
+            }, 1000);
 
             m = "_b1";
 
@@ -2628,6 +2654,9 @@ class Panel {
               </div>
               <div class="hex_header_labels_right  hex_header_labels_right${m}">
                 <a class="hex_header_base_label hex_header_base_label${m}" style="grid-column: 1 / -1;  grid-row: 1;">Binary</a>
+              </div>
+              <div class="seekButtons">
+                <button class="seekTileDownButton">&lt;</button>&nbsp;<a>Tile</a>&nbsp;<a id="currentTile">1</a>&nbsp;<a>o</a>f&nbsp;<a id="totalTiles">...</a>&nbsp;<button class="seekTileUpButton">&gt;</button>
               </div>`;
 
             this.panelContent.innerHTML +=
@@ -2660,6 +2689,9 @@ class Panel {
               <div class="hex_new_top_labels">
               ${offsets0tof}</div>`;
 
+            this.scrollGroup = 0; // currently-viewed g256 group
+            this.scrolling = false;
+            this.groupSize = 256*3;
             setTimeout(()=>{
               // add scroll tracker to hexContent
               this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
@@ -2667,6 +2699,14 @@ class Panel {
                   // console.log("scroll");
                   // console.log(event);
                   // console.log(this.inner.querySelector(".panel_content > .hex_content").scrollTop);
+
+                  // scroll updating, with some debouncing.
+                  if (!this.scrolling){
+                    this.scrolling = true;
+                    this.hexScroll();
+                    setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+                    setTimeout( this.scrolling = false, 100);
+                  }
                 });
             }, 2000);
 
@@ -2690,7 +2730,11 @@ class Panel {
                   
             this.panelContent.classList.add("hex_panel_content");
 
+            // Add details about Line Height to settings:
+            this.settings['Line Height'] = {value:2};
+
             // Add a byte-width change button to settings:
+            this.settings['Number of Columns'] = {value:16};
             setTimeout( ()=>{
               let downloadButton = document.createElement("button");
               downloadButton.className = "downloadButtons";
@@ -2698,9 +2742,15 @@ class Panel {
               downloadButton.title = "Change Number of Columns (16/32)";
               downloadButton.style.height = "2em";
               this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( downloadButton );
+              this.settings['Number of Columns'].html = [this.byteWidthButton];
 
               this.byteWidthButton.addEventListener("click", (event) => { 
                 this.panelContent.classList.toggle("hex_panel_content_32wide");
+                // toggle within settings for refering to elsewhere
+                this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
+                // Update line/group/row heights:
+                this.updateLines(); 
+
               });
               console.log("byte width button added...");
             }, 
@@ -3034,18 +3084,19 @@ class Panel {
     }
   }
 
-  generateHexHTML(input = null, offset=null, length=4096){
+  generateHexHTML(input = null, offset=null, length=256){
     
-    
+    //NOTE: currentl must pass in entire data and offsets to get accurate osset-based class names/ids.
     // Get indices of our bytes, and if we have an offset, 
     // grab only those bytes and indices at the offset
     var data, offsets;
     offsets = Array.from( Array(input.length).keys()); //TODO: make this work for offsets...?
     if (offset!=null){
       data = input.slice(offset, Math.min(offset+length, input.length));
-      offsets = offsets.slice(offset, Math.min(offset+length, offsets.length)).map(d=>d+offset);
+      offsets = offsets.slice(offset, Math.min(offset+length, offsets.length));
     } else{
       data = input;
+      offset = 0;
     }
     
 
@@ -3064,56 +3115,60 @@ class Panel {
     var count = 0;
     var html = ``;
 
-    for (let g4096=0; g4096 < Math.ceil(data.length/4096); g4096++){
-      html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g4096" style="grid-row:${1+(offsets[count]/4096)};">`;
+    // for (let g4096=0; g4096 < Math.ceil(data.length/4096); g4096++){
+    //   html+=`<div id="g4096_${g4096}" class="hex_g4096" style="grid-row:${1+(offsets[count]/4096)};">`;
 
-      for (let g256=0; g256 < 256; g256++){
-        html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g256">`;
+    // for (let j=0; j < data.length; j++){
+      // html+=`<div id="g4096_${g4096}" class="hex_g4096" style="grid-row:${1+(offsets[count]/4096)};">`;
 
-        for (let g32=0; g32 < 8; g32++){
+    let groupSize = this.groupSize;
+    for (let group = Math.floor(offsets[0]/groupSize); ; group++){
+      html+=`<div id="group_${group}" class="hex_g256" style="grid-row:${1+group};">`;
+      // console.log(`within generateHexHTML, creating group ${group} ( ${offsets[0]} // ${groupSize})`);
+      for (let g32=0; g32 < groupSize/32; g32++){
 
-          // separate g321 and g32r version:
-          //
-          // html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
-          // // Create g32 left (offsets) column, adding secon row if needed
-          // html+= `<div class="hex_g32l"><div class="new_offset">${hex(Math.floor(offsets[count]),6)}</div>`;
-          // if ( count+16 < data.length ) html+=`<div class="new_offset">${hex(Math.floor(offsets[count+16]),6)}</div>`;
-          // html+= `</div>`; 
-          // // begin g32 right (data) column
-          // html+= `<div class="hex_g32r">`;
+        // separate g321 and g32r version:
+        //
+        // html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
+        // // Create g32 left (offsets) column, adding secon row if needed
+        // html+= `<div class="hex_g32l"><div class="new_offset">${hex(Math.floor(offsets[count]),6)}</div>`;
+        // if ( count+16 < data.length ) html+=`<div class="new_offset">${hex(Math.floor(offsets[count+16]),6)}</div>`;
+        // html+= `</div>`; 
+        // // begin g32 right (data) column
+        // html+= `<div class="hex_g32r">`;
 
-          // for (let i=0; i < 32; i++){
-          //   html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte">${bytesHex[count]}</div>`;
-          //   count++;
-          //   if ( count >= data.length ) break;
-          // }
-          // html+=`</div></div>`;
+        // for (let i=0; i < 32; i++){
+        //   html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte">${bytesHex[count]}</div>`;
+        //   count++;
+        //   if ( count >= data.length ) break;
+        // }
+        // html+=`</div></div>`;
 
-          
-          // un-separated g32 l and r version:
-          //
-          html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
-          html+=`<div class="hex_g32lr">`;
-          
-          for (let i=0; i < 32; i++){
-            if ( i==0 ) html+= `<div class="new_offset">${hex(Math.floor(offsets[count]),6)}</div>`;
-            if ( i==16 ) html+= `<div class="new_offset new_offet_middle hex_cell">${hex(Math.floor(offsets[count]),6)}</div>`;
-            html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte hex_cell">${bytesHex[count]}</div>`;
-            count++;
-            if ( count >= data.length ) break;
-          }
-          html+=`</div>`;
-          html+=`</div>`;
-
+        
+        // un-separated g32 l and r version:
+        //
+        html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
+        html+=`<div class="hex_g32lr">`;
+        
+        for (let i=0; i < 32; i++){
+          if ( i==0 ) html+= `<div class="new_offset hex_cell">${hex(Math.floor(offsets[count]),6)}</div>`;
+          if ( i==16 ) html+= `<div class="new_offset new_offet_middle hex_cell">${hex(Math.floor(offsets[count]),6)}</div>`;
+          html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte hex_cell">${bytesHex[count]}</div>`;
+          count++;
           if ( count >= data.length ) break;
         }
         html+=`</div>`;
+        html+=`</div>`;
+
         if ( count >= data.length ) break;
       }
       html+=`</div>`;
+      if ( count >= data.length ) break;
     }
+      // html+=`</div>`;
+    // }
 
-    console.log(html);
+    // console.log(html);
     hexContent.innerHTML += html;
     
 
@@ -3429,6 +3484,62 @@ replace].forEach(d=>console.log(d));
 
   }
 
+  updateLines(){
+    let hc = this.inner.querySelector(".panel_content > .hex_content");
+
+    let numberOfGroups = Math.ceil( this.source.data.length / this.groupSize );
+    let groupHeight = this.settings['Line Height'].value * this.groupSize / this.settings['Number of Columns'].value ;
+    let gtr = `repeat(${numberOfGroups}, ${ groupHeight}em)`;
+
+    hc.style.gridTemplateRows = gtr;
+    let cells = Array.from( hc.querySelectorAll("div > div > div > .hex_cell"));
+    // console.log(cells);
+    cells.forEach( d => d.style.height = this.settings['Line Height'].value +"em");
+  }
+
+  generateLineSpacingRange(){
+    
+    let id = this.nameValid+'_'+('Line Height'.replace(/\s/g, ""));
+
+    // overall text label html:
+    this.lineSpacingDescription = document.createElement("a");
+    this.lineSpacingDescription.innerHTML = 'Line Height' ;
+    this.lineSpacingDescription = this.inner.querySelector(".panel_menu").appendChild( this.lineSpacingDescription );
+
+    // "range" slider html:
+    this.lineSpacingInput = document.createElement("input");
+    this.lineSpacingInput.id = id;
+    this.lineSpacingInput.type = "range";
+    this.lineSpacingInput.min = "1";
+    this.lineSpacingInput.max = "4";
+    this.lineSpacingInput.step = "0.25";
+    this.lineSpacingInput.value = this.settings['Line Height'].value;
+    this.lineSpacingInput = this.inner.querySelector(".panel_menu").appendChild( this.lineSpacingInput );
+
+    // indicator text html:
+    this.lineSpacingLabel = document.createElement("label");
+    this.lineSpacingLabel.for = id;
+    this.lineSpacingLabel.innerHTML = this.settings['Line Height'].value;
+    this.lineSpacingLabel = this.inner.querySelector(".panel_menu").appendChild( this.lineSpacingLabel );
+
+
+    this.settings['Line Height'].html = [this.lineSpacingDescription, this.lineSpacingInput, this.lineSpacingLabel]
+    
+    
+    this.lineSpacingInput.addEventListener("input", (event) => {
+      console.log(event);
+      this.settings['Line Height'].value = event.target.value;
+      // update indicator 
+      // event.target.label.innerHTML = this.settings['Line Height'].value;
+      this.settings['Line Height'].html[2].innerHTML = this.settings['Line Height'].value;
+      //
+      this.updateLines(); 
+
+    });
+
+    
+  }
+
   generateTilesetHTML(input = null){
     let tilesetContent = this.panelContent.querySelector(".tileset_content");
     tilesetContent.innerHTML = ""; //clear all content first
@@ -3467,12 +3578,12 @@ replace].forEach(d=>console.log(d));
           // A wrapper that prevents jumping to 1st tile
           // last argument, override, will ensure the svg is updated.
           
-          console.log(`this.links[0]: `);
-          console.log(this.links[0]);
-          // updateBitplaneSeek(this.links[0].inner, this.links[0], 0, 
-          //   parent.getAttribute("data-tile-index")*1 )
+          console.log(`this.links[2]: `);
+          console.log(this.links[2]);
+          updateBitplaneSeek(this.links[2].inner, this.links[2], 0, 
+            parent.getAttribute("data-tile-index")*1 )
           this.selectedTile = parent.getAttribute("data-tile-index")*1;
-          this.links[0].scrollToTile( this.selectedTile );
+          // this.links[0].scrollToTile( this.selectedTile );
           
         }
         // this is where we could run a little css wobble animation to 
@@ -3496,6 +3607,7 @@ replace].forEach(d=>console.log(d));
 
       let metatileWrapper = tilesetContent.appendChild( document.createElement("div"));
       metatileWrapper.className = "metatile_wrapper";
+      metatileWrapper.classList.add("metatile_wrapper_viewer");
 
       for (let st of mt) {
         let pidx = st.paletteIndex*16;
@@ -3599,15 +3711,16 @@ replace].forEach(d=>console.log(d));
         this.nexts.forEach( d => d.palette = this.palette);
         
         // update the bitplane viewer if it's available
-        //HACK: assumes index 0 is the bitplane viewer
-        if (this.nexts[0].source){
+        //HACK: assumes nexts index 1 is the bitplane viewer
+        if (this.nexts[1].source){
           // this.nexts[0].generateHexHTML( this.nexts[0].source.data);
           // A wrapper that prevents jumping to 1st tile
           // last argument, override, will ensure the svg is updated.
-          updateBitplaneSeek(this.nexts[0].inner, this.nexts[0], 0, true )
+          updateBitplaneSeek(this.nexts[1].inner, this.nexts[1], 0, true )
         }
-        if (this.nexts[1].source){
-          this.nexts[1].generateTilesetHTML( this.nexts[1].source.data);
+        // update tileset view
+        if (this.nexts[2].source){
+          this.nexts[2].generateTilesetHTML( this.nexts[2].source.data);
           // A wrapper that prevents jumping to 1st tile
           // last argument, override, will ensure the svg is updated.
           // updateBitplaneSeek(this.nexts[0].inner, this.nexts[0], 0, true )
@@ -3643,6 +3756,79 @@ replace].forEach(d=>console.log(d));
 
     // replace old one:
     // this.generateHexHTML(this.source.data, (oldIndex-1)*32, "plain", 32, [oldTile]);
+  }
+
+  hexScroll(){
+
+    let gnum = this.groupSize;
+    let totalGroups = Math.ceil(this.source.data.length/gnum);
+    let oldGroup = this.scrollGroup*1;
+
+    let headersHeight = this.inner.querySelector(".panel_header").getBoundingClientRect().height + this.inner.querySelector(".hex_header_new").getBoundingClientRect().height;
+
+    let groupElementSelector = `.panel_content > .hex_content > #group_${this.scrollGroup}`;
+    // console.log(groupElementSelector);
+    let groupElement = this.inner.querySelector(groupElementSelector);
+    let groupHeight = groupElement.getBoundingClientRect().height;
+    let groupTop = groupElement.offsetTop - headersHeight;
+    // let groupTop = groupElement.getBoundingClientRect().top;
+    let groupBottom = groupHeight + groupTop;
+    let windowHeight = this.inner.querySelector(".panel_content > .hex_content").getBoundingClientRect().height;
+    let windowScrollTop = this.inner.querySelector(".panel_content > .hex_content").scrollTop;
+    let windowScroll = windowScrollTop + (windowHeight/2); // use middle
+    
+    // if we're outside the current group, find which one we're in.
+    // Assumes all groups are the same height.
+    if ( ( windowScrollTop > groupBottom ) || ( windowScrollTop < groupTop ) ) {
+
+      // New group based on scroll position, limited to possible groups' range,
+      // because sometimes the scroll position seems to jump impossibly past the end,
+      this.scrollGroup = Math.min(Math.max(Math.floor(windowScrollTop/groupHeight),0),totalGroups-1); 
+      
+      // If there was a change:
+      let added = [], removed = [];
+
+      // now that we have the new group, 
+      // check that all groups within a 3-tall window of it are present, if within possible range.
+      for (let g=this.scrollGroup-1; g<this.scrollGroup+2; g++){
+        // if it's even within range:
+        if ( (g>-1) && (g<totalGroups) ){
+          // if it doesn't yet exist, create it:
+          var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
+          if ( !current ){
+            this.generateHexHTML( this.source.data, g*gnum, gnum);
+            // console.log(`added group ${g} of ${totalGroups}.`);
+            added.push(g);
+          }
+        }
+      }
+
+      // remove previous.
+      for (let g = oldGroup-1; g <= oldGroup+1; g++){
+        // if it's even within possible range:
+        if ( ( g >= 0 ) && ( g < totalGroups ) ){
+          // if it exists, and isn't within the new group's range, remove it:
+          var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
+          var outOfRange = (g < (this.scrollGroup-1)) || (g > (this.scrollGroup+1)); 
+          // if (outOfRange) console.log(`group ${g} is out of range of group ${this.scrollGroup}`);
+          if ( current && outOfRange){
+            current.remove();
+            // console.log(`...removed group ${g}.`);
+            removed.push(g);
+          } else{
+            // console.log(`...group ${g} not removed`);
+            0;
+          }
+        }
+      }
+
+      let existing = Array.from(this.inner.querySelectorAll(`.panel_content > .hex_content > div`));
+      console.log( `scroll : top ${windowScrollTop} | Group ${oldGroup} -> ${this.scrollGroup}: ${groupTop} <-> ${groupBottom} | [ ${existing.map(d=>d.id.split("_")[1]).join(", ")} ] +[${added.join(",")}] -[${removed.join(",")}] (${totalGroups} total)` );
+
+      this.updateLines();
+
+    }
+
   }
 
   animate16to1(overrideMode=null,tile=null){
@@ -3844,9 +4030,13 @@ replace].forEach(d=>console.log(d));
               from: this.links[0]
           };
           // updateBitplaneSeek(this.inner, this, 0 );
-          // this.generateHexHTML( this.source.data, 0, this.source.data.length );
+          this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
+
+          this.generateLineSpacingRange();
+          
+          this.generateHexHTML( this.source.data, 0, this.groupSize*2 ); // first two groups' worth
           // Truncated version for performance
-          this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
+          // this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
 
           // download setup
           if (!this.downloadButton){
@@ -3873,6 +4063,8 @@ replace].forEach(d=>console.log(d));
           };
           // updateBitplaneSeek(this.inner, this, 0 );
           this.generateBitplaneHTML( this.source.data.slice(0,32), 0, "byte1", 32);
+          //
+          updateBitplaneSeek(this.inner, this, 0);
 
           // download setup
           if (!this.downloadButton){
@@ -3963,9 +4155,16 @@ replace].forEach(d=>console.log(d));
 
     }
     // now do the next one, if it exists:
+    //HACK: paletteViewer was slowing things down,
+    // propogating out to regenerate a bunch of stuff.
     // if (this.nexts[0] && (this.kind != "paletteViewer") ) { this.nexts[0].propagateSource(); }
     // if (this.nexts[0] ) { this.nexts[0].propagateSource(); }
-    this.nexts.forEach( d => d.propagateSource());
+    // this.nexts.forEach( d => d.propagateSource());
+
+    if ( this.kind != "paletteViewer" ) { 
+      this.nexts.forEach( d => d.propagateSource());
+    }
+
   }
 
 }
@@ -4099,39 +4298,33 @@ function changeByteWidth(panel, overrideMode=null){
 }
 
 function updateBitplaneSeek(panelNode, panel, change, override=false ){
-  let texts = panelNode.querySelectorAll(".panel_content > .bitplane_header > .seekButtons > a");
-  // first update the total number
-
   
-  // console.log( texts );
 
-  // console.log(panelNode);
-  // console.log(panel);
-  // console.log(change);
+  // first update the total number
+  let currentTile = panelNode.querySelector(".panel_content > .hex_header > .seekButtons > #currentTile");
+  let totalTiles = panelNode.querySelector(".panel_content > .hex_header > .seekButtons > #totalTiles");
+
   console.log("seek btn:");
-  [panelNode, panel, change, override].forEach( d=> console.log(d));
+  [panelNode, panel, change, override, currentTile, totalTiles].forEach( d=> console.log(d));
 
   if (panel.source){
-    let totalNumber = Math.ceil(panel.source.data.length/32);
-    console.log(`within updatebitplaneseek if panel.source`);
-    texts[3].innerHTML = totalNumber;
-    //
-    let oldVal = (1*texts[1].innerHTML);
 
+    let totalNumber = Math.ceil(panel.source.data.length/32);
+    totalTiles.innerHTML = totalNumber;
+    //
+    let oldVal = (1*currentTile.innerHTML);
     let newVal =  (typeof(override)=='number' ) ? override : (oldVal+change);
 
     // min max/ clamp the range:
     if (newVal>totalNumber) newVal = totalNumber;
     if (newVal<1) newVal = 1;
 
-
     // if we have a valid change:
     if ( (newVal != oldVal) || (override!=false) ){
-      texts[1].innerHTML = newVal;
+      currentTile.innerHTML = newVal;
       console.log(`Valid seek change: updating bitplane seek to ${newVal}`)
-      // let offset = 
-
-      panel.generateHexHTML(panel.source.data, (newVal-1)*32 );
+      
+      panel.generateBitplaneHTML(panel.source.data, (newVal-1)*32 );
     
     } else{
       console.log("invalid seek change");
@@ -4324,20 +4517,22 @@ var inputPanel = ["fileIn",               13, 15,    c0, d0,  "Input - Compresse
 var paletteInputPanel = ["fileIn",        16, 18,    c0, d0,  "Input - Palette"];  //  1
 var paletteViewer = ["paletteViewer",      2,  6,    c3, d3,  "Palette", [1]]; // 2
 var decompHexPanel = ["hexViewer",         2, 28,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 2]]; // 3
-var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [3, 2]]; //  4
-var metatilemapInputPanel = ["fileIn",    19, 21,    c0, d0,  "Input - Tilemap32 (Metatiles)"]; //  5
-var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [2,4,5]]; // 6 pal viewer, tileset vwr, metatile input 
-var levelMapInputPanel = ["fileIn",       22, 24,    c0, d0,  "Input - Level Map"]; //  7
-var levelMapViewer = ["levelMapViewer",   19, 27,    c3, d3,  "Level Map", [2,6,7]]; // 8 paletteViewer, metatilesViewer, fileIn
-var description = ["textDescription",      2, 12,    c0, d0,  "About"];
-var bitplanePanel = ["bitplaneViewer",     2, 28,    c2, d2,  "Bitplane Viewer - Decompressed Data", [3, 2]]; // 10
+var bitplanePanel = ["bitplaneViewer",     2, 28,    c2, d2,  "Bitplane Viewer - Decompressed Data", [3, 2]]; // 4
+var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [3, 2, 4]]; //  5
+var metatilemapInputPanel = ["fileIn",    19, 21,    c0, d0,  "Input - Tilemap32 (Metatiles)"]; //  6
+var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [2,5,6]]; // 7 pal viewer, tileset vwr, metatile input 
+var levelMapInputPanel = ["fileIn",       22, 24,    c0, d0,  "Input - Level Map"]; //  8
+var levelMapViewer = ["levelMapViewer",   19, 27,    c3, d3,  "Level Map", [2,7,8]]; // 9 paletteViewer, metatilesViewer, fileIn
+var description = ["textDescription",      2, 12,    c0, d0,  "About"]; // 10
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
-        [ inputPanel, paletteInputPanel, paletteViewer, decompHexPanel, tilesetViewer, 
+        [ inputPanel, paletteInputPanel, paletteViewer, 
+        decompHexPanel, bitplanePanel, 
+        tilesetViewer, 
         metatilemapInputPanel, metatilesViewer,
         levelMapInputPanel, levelMapViewer,
-        description, bitplanePanel ],
+        description ],
         "main"
     );
 
