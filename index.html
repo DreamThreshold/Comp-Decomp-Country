@@ -340,6 +340,11 @@ button{
   image-rendering: pixelated;
   border: 1px solid rgba(255,0,0,0.25);
 }
+
+.tile_item_selected{
+  border: 2px solid rgba(0, 0, 255, 0.75);
+}
+
 .metatile_wrapper{
   
   flex-grow: 1;
@@ -400,6 +405,7 @@ button{
   color: rgba(255, 255, 255, 0.75);;
   pointer-events: none;
 }
+
 
 .fileButton{}
 .byteWidthButton{}
@@ -867,6 +873,7 @@ end of animation classes
   /* height: 20em;  */
   /* overflow-y:scroll; */
   font-family:Arial, Helvetica, sans-serif;
+  line-height: 1.5em;
   padding: 1ch;
   
 }
@@ -2267,7 +2274,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
   </svg>
 
   <div class="main" id="main">
-    <div id="navbar"><h2><i style="padding-left:5ch;">Comp / Decomp Country</i></h2></div>
+    <div id="navbar"><h4><i style="padding-left:5ch;">Comp / Decomp Country</i></h4></div>
     <div id="panelgrid"></div>
   </div>
 
@@ -2357,7 +2364,7 @@ class Panel {
         }
         if ( (i==3) && (j==3) ){
           edge.style.cursor = "se-resize";
-          console.log(edge);
+          // console.log(edge);
           this.assignResize(this, edge);
         }
       }
@@ -2484,27 +2491,37 @@ class Panel {
           this.panelContent.innerHTML += `\
             <div class="text_content" >
               <p>
-                <b>Hello!</b> This app decompresses graphics data from DKC. 
+                <b>Hello!</b> This app decompresses graphics data from DKC, and provides visualizations that can help in ROM hacking.
                 <br><br>
-                It allows users to: 
+                It provides several panels with different applications: 
                 <ul>
-                  <li> Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
+                  <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.</li>
+                  <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
                     <ul>
                       <li> Upload a file to "Input - Compressed Data" to get started. This expects a .bin file that you might get in a disassembly of the game, usually in the "graphics/compressed" folder. Or, copy the hex values from the relevant offset of your ROM to a new file.</li>
-                      <li> Click "Change View" to see a diagram of the bitplanes. Click again to return to the hex editor-like view. With the diagram, you can see how they the bits from each plane form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. for example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
-                      <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out. Smaller windows/displays might encounter issues viewing clearly.</li>
-                      <li> Click "<" and ">" to flip through the tiles.</li>
-                      <li> Click "Download" to download the raw, decompressed data (still 4BPP intertwined).</li>
+                      <li> After uploading valid data, the bitplane diagram should appear, showing the fiirst tile. In the diagram, you can see how the 32 bytes of data go comprise foir bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
+                      <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out.</li>
+                      <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
                     </ul>
                   </li>
-                  <li> View color palettes used in the game's levels. Select a color to have its sub-palette appear in the bitplane viewer and tileset viewer.</li>
-                  <li> View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
-                  <li> View 32x32 pixel metatiles (each composed of 4x4 tiles) with an assigned palette. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
-                  <li> View level maps built from the metatiles. Currently limited to only part of the level, for app performance reaons. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
+                  <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to have it appear in the bitplane viewer and tileset viewer.</li>
+                  <li> <b>Tileset Viewer</b>. View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
+                  <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. If a tileset viewer panel is present, click a tile within it to have highlight all instances of that tile within the metatiles. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
+                  <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently limited to only part of the level, for app performance reaons, and currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
                 </ul>
-                <br><br>
-                Most features require uploading a file to the relevant file input panels below. 
+                <br>
+                Most features require uploading a file to the relevant file input panels on the page. 
               </p>
+              <br>
+                Panels can be:<br>
+                <ul>
+                    <li> moved around the page by dragging their headers</li>
+                    <li> resized by dragging the bottom right corner</li>
+                    <li> collapsed by clicking "˄" in the header</li>
+                    <li> and maximized by double clicking the header.</li>
+                  </ul>
+                Some panels also have settings or other features hidden in the "☰" menu.
+              
               <br><br>
               <p>
                 The app is at an early stage, but was released to celebrate DKC's 30th anniversary. The goal is to de-mystify DKC hacking and to provide even more appreciation for what Rare developed in the 1990s. Works best in a full screen window, tested most thoroughly with firefox. You can expect more features for visualizing, documenting, and hacking the DKC series soon. Thanks!
@@ -2670,6 +2687,7 @@ class Panel {
 
             break;
 
+        case "hexViewerComp":
         case "hexViewer":
             // style="height: calc(100% - ${headerHeight}px);"
             //TODO: this is duplicated throughout code, should make modular
@@ -2681,7 +2699,7 @@ class Panel {
 
             
             let offsets0tof = Array.from( Array(32).keys() ).map(
-              (d,i) => `${(i==16)?'<a style=""></a>':''}<a class="hex_header_offset_label hex_header_offset_label${m}" style="">${hex(d,2)}</a>`
+              (d,i) => `${(i==16)?'<a style=""></a>':''}<a class="hex_header_offset_label hex_header_offset_label${m}" style="">${hex(d,2-(i>>4))}</a>`
             ).join('');
 
             offsetsTop = `\
@@ -3452,7 +3470,7 @@ replace].forEach(d=>console.log(d));
     );
   }
 
-  generateDownloadButton(parent, data, fileName, title, label="Download"){
+  generateDownloadButton(data, fileName, title, label="Download"){
     // let header = this.inner.querySelector(" .panel_header");
     setTimeout( ()=>{
         let downloadButton = document.createElement("button");
@@ -3485,15 +3503,16 @@ replace].forEach(d=>console.log(d));
   }
 
   updateLines(){
-    let hc = this.inner.querySelector(".panel_content > .hex_content");
 
+    // update hexContent grid's grid-template-rows
+    let hc = this.inner.querySelector(".panel_content > .hex_content");
     let numberOfGroups = Math.ceil( this.source.data.length / this.groupSize );
     let groupHeight = this.settings['Line Height'].value * this.groupSize / this.settings['Number of Columns'].value ;
     let gtr = `repeat(${numberOfGroups}, ${ groupHeight}em)`;
-
     hc.style.gridTemplateRows = gtr;
+
+    // update cells' line height
     let cells = Array.from( hc.querySelectorAll("div > div > div > .hex_cell"));
-    // console.log(cells);
     cells.forEach( d => d.style.height = this.settings['Line Height'].value +"em");
   }
 
@@ -3563,13 +3582,22 @@ replace].forEach(d=>console.log(d));
       }
       wrapper.setAttribute("data-tile-index", count);
 
-      // add event listener
+      // add event listener for
+      // opening this tile's data in the linked bitplane viewer
+      // and highlighting this tile's presence in metatiles.
       wrapper.addEventListener("click", (event) => { 
 
         let clickedTile = event.target;
-        console.log(clickedTile);
+        // console.log(clickedTile);
         let parent = clickedTile.parentNode;
-        console.log(parent);
+        // console.log(parent);
+        let tileIndex = parent.getAttribute("data-tile-index")*1; // 1-based
+        console.log("Selected Tile "+tileIndex+".");
+
+        // toggle this tile's selected class:
+        let alreadySelected = clickedTile.classList.contains("tile_item_selected");
+        Array.from(parent.parentNode.querySelectorAll(".tile_wrapper > .tile_item_selected")).forEach(d=>d.classList.remove("tile_item_selected"));
+        if (!alreadySelected) clickedTile.classList.add("tile_item_selected"); // add it back if it wasn't selected
 
         // update the bitplane viewer if it's available
         //HACK: assumes index 0 is the bitplane viewer
@@ -3578,19 +3606,36 @@ replace].forEach(d=>console.log(d));
           // A wrapper that prevents jumping to 1st tile
           // last argument, override, will ensure the svg is updated.
           
-          console.log(`this.links[2]: `);
-          console.log(this.links[2]);
+          // console.log(`this.links[2]: `);
+          // console.log(this.links[2]);
           updateBitplaneSeek(this.links[2].inner, this.links[2], 0, 
-            parent.getAttribute("data-tile-index")*1 )
-          this.selectedTile = parent.getAttribute("data-tile-index")*1;
+            tileIndex )
+          this.selectedTile = tileIndex;
           // this.links[0].scrollToTile( this.selectedTile );
           
         }
-        // this is where we could run a little css wobble animation to 
-        // highlight this tile's presence within metatiles...?
-        // if (this.nexts[0].source){
+
+        
+        // highlight this tile's presence within linked metatile viewers
+        var subtiles, tileClass;
+
+        for (let panel of this.nexts){
+          if ( (panel.kind == "metatilesViewer") && panel.source ){
+
+            tileClass = "metatile_subtile_tile_index_"+tileIndex;
+            subtiles = panel.inner.querySelectorAll(".panel_content > .tileset_content > .metatile_wrapper > canvas");
+
+            // toggle selected class if this is the tile in question, else remove selected class
+            for (let subtile of subtiles){
+              if (subtile.classList.contains(tileClass) ) { subtile.classList.toggle("tile_item_selected"); }
+              else { subtile.classList.remove("tile_item_selected"); }
+            }
+
+          }
+
+        }
           
-        // }
+        
         
       });
 
@@ -3602,7 +3647,7 @@ replace].forEach(d=>console.log(d));
   generateMetatilesetHTML(input = null){
     let tilesetContent = this.panelContent.querySelector(".tileset_content");
 
-
+    let mtCount = 1;
     for (let mt of input){
 
       let metatileWrapper = tilesetContent.appendChild( document.createElement("div"));
@@ -3611,8 +3656,13 @@ replace].forEach(d=>console.log(d));
 
       for (let st of mt) {
         let pidx = st.paletteIndex*16;
-        display( [st.colorIndices],  metatileWrapper, this.palette.slice(pidx,pidx+16), 1 );
+        let title = `Metatile ${mtCount}\n\nTile ${st.tileIndex+1}\nVertical Flip: ${st.vflip?"yes":"no"}\nHorizontal Flip: ${st.hflip?"yes":"no"}`;
+        // Note that tile index is 1-based indexing, palette is 0-based
+        let classes = [`metatile_subtile_tile_index_${st.tileIndex+1}`, `metatile_subtile_palette_index_${st.paletteIndex}`];
+        display( [st.colorIndices],  metatileWrapper, this.palette.slice(pidx,pidx+16), 1, title, classes );
+
       }
+      mtCount++;
     }
   }
 
@@ -4021,7 +4071,7 @@ replace].forEach(d=>console.log(d));
       case "hexViewer":
         // decompress
         // if we have source compressed graphics (ignore for calls from others )
-        if (this.links[0].source){
+        if (this.links[0].source && !this.source ){
           this.source = {
               name: "Decompressed from "+this.links[0].source.file.name,
               kind: "bytes",
@@ -4030,7 +4080,7 @@ replace].forEach(d=>console.log(d));
               from: this.links[0]
           };
           // updateBitplaneSeek(this.inner, this, 0 );
-          this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
+          // this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
 
           this.generateLineSpacingRange();
           
@@ -4042,9 +4092,38 @@ replace].forEach(d=>console.log(d));
           if (!this.downloadButton){
             let downloadFileName = this.links[0].source.file.name.replace(".bin","_Decompressed.bin");
             this.generateDownloadButton( 
-              this.panelContent.querySelector(".bitplane_header"), 
               this.source.data, downloadFileName, 
               "Download Decompressed Graphics File (.bin)");
+          }
+        }
+
+        break;
+      case "hexViewerComp":
+        // compressed data hex viewer and animator
+        // if we have source compressed graphics (ignore for calls from others )
+        if (this.links[0].source && !this.source){
+          this.source = {
+              name: this.links[0].source.file.name,
+              kind: "bytes",
+              data: this.links[0].source.data,
+              panel: this,
+              from: this.links[0]
+          };
+          // updateBitplaneSeek(this.inner, this, 0 );
+          // this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
+
+          this.generateLineSpacingRange();
+          
+          this.generateHexHTML( this.source.data, 0, this.groupSize*2 ); // first two groups' worth
+          // Truncated version for performance
+          // this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
+
+          // download setup
+          if (!this.downloadButton){
+            let downloadFileName = this.links[0].source.file.name;
+            this.generateDownloadButton( 
+              this.source.data, downloadFileName, 
+              "Download Original Compressed Data File (.bin)");
           }
         }
 
@@ -4053,7 +4132,7 @@ replace].forEach(d=>console.log(d));
       case "bitplaneViewer":
         // decompress
         // if we have source compressed graphics (ignore for calls from others )
-        if (this.links[0].source){
+        if (this.links[0].source && !this.source){
           this.source = {
               name: this.links[0].source.name,
               kind: "bytes",
@@ -4070,7 +4149,6 @@ replace].forEach(d=>console.log(d));
           if (!this.downloadButton){
             let downloadFileName = this.name.replace(".bin","_Decompressed.bin");
             this.generateDownloadButton( 
-              this.panelContent.querySelector(".bitplane_header"), 
               this.source.data, downloadFileName, 
               "Download Decompressed Graphics File (.bin)");
           }
@@ -4185,10 +4263,10 @@ function fileInput(e, ui, panel){
     var fReader = new FileReader();
     fReader.readAsArrayBuffer(file);
 
-    console.log("this/e/ui");
-    console.log(this);
-    console.log(e);
-    console.log(ui);
+    // console.log("this/e/ui");
+    // console.log(this);
+    // console.log(e);
+    // console.log(ui);
 
     fReader.addEventListener('load', function (e) {
 
@@ -4205,7 +4283,8 @@ function fileInput(e, ui, panel){
 
         // Automatically do the next steps...
         // console.log(panel);
-        panel.nexts[0].propagateSource();
+        // panel.nexts[0].propagateSource();
+        panel.propagateSource();
 
     });
 
@@ -4304,8 +4383,8 @@ function updateBitplaneSeek(panelNode, panel, change, override=false ){
   let currentTile = panelNode.querySelector(".panel_content > .hex_header > .seekButtons > #currentTile");
   let totalTiles = panelNode.querySelector(".panel_content > .hex_header > .seekButtons > #totalTiles");
 
-  console.log("seek btn:");
-  [panelNode, panel, change, override, currentTile, totalTiles].forEach( d=> console.log(d));
+  // console.log("seek btn:");
+  // [panelNode, panel, change, override, currentTile, totalTiles].forEach( d=> console.log(d));
 
   if (panel.source){
 
@@ -4514,20 +4593,22 @@ let c0 = 2, c1 = 12, c2 = 22, c3=33;
 let d0 = c1-1, d1 = c2-1, d2=c3-1, d3=42;
 //              _, kind,                  rows        cols     name=null, link
 var inputPanel = ["fileIn",               13, 15,    c0, d0,  "Input - Compressed Data"];
-var paletteInputPanel = ["fileIn",        16, 18,    c0, d0,  "Input - Palette"];  //  1
-var paletteViewer = ["paletteViewer",      2,  6,    c3, d3,  "Palette", [1]]; // 2
-var decompHexPanel = ["hexViewer",         2, 28,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 2]]; // 3
-var bitplanePanel = ["bitplaneViewer",     2, 28,    c2, d2,  "Bitplane Viewer - Decompressed Data", [3, 2]]; // 4
-var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [3, 2, 4]]; //  5
-var metatilemapInputPanel = ["fileIn",    19, 21,    c0, d0,  "Input - Tilemap32 (Metatiles)"]; //  6
-var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [2,5,6]]; // 7 pal viewer, tileset vwr, metatile input 
-var levelMapInputPanel = ["fileIn",       22, 24,    c0, d0,  "Input - Level Map"]; //  8
-var levelMapViewer = ["levelMapViewer",   19, 27,    c3, d3,  "Level Map", [2,7,8]]; // 9 paletteViewer, metatilesViewer, fileIn
-var description = ["textDescription",      2, 12,    c0, d0,  "About"]; // 10
+var compHexPanel = ["hexViewerComp",       2,  4,    c0, d0,  "Hex Viewer - Compressed Data", [0]]; // 1
+var paletteInputPanel = ["fileIn",        16, 18,    c0, d0,  "Input - Palette"];  //  2
+var paletteViewer = ["paletteViewer",      2,  6,    c3, d3,  "Palette", [2]]; // 3
+var decompHexPanel = ["hexViewer",         2, 28,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3]]; // 4
+var bitplanePanel = ["bitplaneViewer",     2, 28,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
+var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [4, 3, 5]]; //  6
+var metatilemapInputPanel = ["fileIn",    19, 21,    c0, d0,  "Input - Tilemap32 (Metatiles)"]; //  7
+var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input 
+var levelMapInputPanel = ["fileIn",       22, 24,    c0, d0,  "Input - Level Map"]; //  9
+var levelMapViewer = ["levelMapViewer",   19, 27,    c3, d3,  "Level Map", [3,8,9]]; // 10 paletteViewer, metatilesViewer, fileIn
+var description = ["textDescription",      5, 12,    c0, d0,  "About"]; // 11
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
-        [ inputPanel, paletteInputPanel, paletteViewer, 
+        [ inputPanel, compHexPanel,
+        paletteInputPanel, paletteViewer, 
         decompHexPanel, bitplanePanel, 
         tilesetViewer, 
         metatilemapInputPanel, metatilesViewer,
@@ -4775,13 +4856,13 @@ function palette2rgb(inp, offset=0){
       (input[i+1] << 8) + input[i]  /* swapped */
       
     ) );
-    console.log(`Color ${snes2rgb( (input[i] << 8) + input[i+1] ) }` );
+    // console.log(`Color ${snes2rgb( (input[i] << 8) + input[i+1] ) }` );
   }
   return output;
 }
 
 
-function display(dat, parent, palette, sc=1){
+function display(dat, parent, palette, sc=1, title=null, classes=null){
     // use canvas to display image. Maybe try integrer scaling, and pixel-rendering CSS stuff for better look.
     // console.log(dat);
     // sc is pexel scale
@@ -4795,6 +4876,8 @@ function display(dat, parent, palette, sc=1){
     canvas.className = "tile_item";
     canvas.width = sc * w;
     canvas.height = dat.length*sc * h;
+    if (title) canvas.title = title;
+    if (classes) classes.forEach(d=>canvas.classList.add(d));
     var ctx = canvas.getContext("2d");
     // var pixels = new Uint8ClampedArray(8*8*4);
     for (var tileIndex = 0; tileIndex<(dat.length); tileIndex++){ 
@@ -4908,7 +4991,13 @@ function metatile(tiles, tilemap32){
     var tilestr = ``;
     var rowstr;
 
-    stobjs.push( {paletteIndex: palet, colorIndices: zeros(8,8)} );
+    stobjs.push( {
+      paletteIndex: palet, 
+      colorIndices: zeros(8,8),
+      tileIndex: tilex,
+      vflip: vflip,
+      hflip: hflip
+    } );
 
     for ( let row = 0; row < tl;  row++){
       rowstr = ``;
