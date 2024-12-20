@@ -1150,27 +1150,60 @@ Generated ...
 
 .decomp_animation_details{
   display: grid;
+  grid-template-rows: 1fr;
   position: absolute;
   place-items:center;
   place-content: center;
-  border-radius: 8px;
+  border-radius: 2ch;
   transform-origin: right;
   right: 100%;
+  z-index: 100;
+  white-space: nowrap;
   /* border: 2px solid white; */
 }
 
 .decomp_animation_details_item{
-  min-width: 0;
-  min-height: 0;
+  /* min-width: 0;
+  min-height: 0; */
   overflow: hidden;
   height: 100%;
   width: 100%;
   text-align: center;
   align-content: center;
   /* box-sizing: border-box; */
-  font: Arial, serif;
+  /* font-family: Arial, serif; */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  /* justify-content: stretch; */
 }
-
+.notBubble{
+  /* padding-left:1ch;
+  padding-right:1ch; */
+  text-align: center;
+  height: 100%;
+  align-content: center;
+}
+.bubbleCell{
+  border-radius: 2ch;
+  border: 2px solid;
+  /* padding-left:1ch;
+  padding-right:1ch; */
+  text-align: center;
+  height: 100%;
+  align-content: center;
+  box-sizing: border-box;
+}
+.bubbleCellOne{
+  border-radius: 2ch;
+  border: 2px solid;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  align-content: center;
+  box-sizing: border-box;
+}
 @keyframes bulge{
   0%{
     font-size: 100%;
@@ -2570,11 +2603,15 @@ class Panel {
                 <br><br>
                 It provides several panels with different applications:
                 <ul>
-                  <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.</li>
+                  <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.<br>
+                    <ul>
+                      <li> After uploading valid compressed data, if there is a hex viewer panel for decompressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These game files used many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>  
+                    </ul>
+                  </li>
                   <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
                     <ul>
                       <li> Upload a file to "Input - Compressed Data" to get started. This expects a .bin file that you might get in a disassembly of the game, usually in the "graphics/compressed" folder. Or, copy the hex values from the relevant offset of your ROM to a new file.</li>
-                      <li> After uploading valid data, the bitplane diagram should appear, showing the fiirst tile. In the diagram, you can see how the 32 bytes of data go comprise foir bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
+                      <li> After uploading valid data, the bitplane diagram should appear, showing the first tile. In the diagram, you can see how the 32 bytes of data go comprise foir bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
                       <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out.</li>
                       <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
                     </ul>
@@ -2595,7 +2632,7 @@ class Panel {
                     <li> collapsed by clicking "˄" in the header</li>
                     <li> and maximized by double clicking the header.</li>
                   </ul>
-                Some panels also have settings or other features hidden in the "☰" menu.
+                Some panels also have settings or other features hidden in the "☰" menu. You can zoom out of the page (usually ctrl+scroll) to have more space to organize your panels. Depending on the initial panelset template, some panels may be hidden off-screen at first.
 
               <br><br>
               <p>
@@ -3912,6 +3949,30 @@ replace].forEach(d=>console.log(d));
     this.selectedTile = tileIndex;
 
   }
+  /* some scroll functions may be redundant... */
+  checkOffsetPosition( offset, bottomRowMargin=2, topRowMargin=0 ){
+    let hc = this.panelContent.querySelector(".hex_content");
+    let windowHeight = hc.getBoundingClientRect().height;
+    let windowScrollTop = hc.scrollTop;
+    let windowScrollBottom = windowHeight + windowScrollTop;
+    // check where the offset would be:
+    // (doesn't directly query, because html node might not exist yet, for performance reasons)
+    let g32Height = hc.querySelector("div > .hex_g32").getBoundingClientRect().height;
+    let offsetPos = (g32Height*(offset>>5));
+    let rowHeight = (this.settings['Number of Columns'].value==16) ? g32Height/2 : g32Height;
+    // if we're in the second row, add a rowHeight 
+    //TODO: make more modular for arbitrary col widths?
+    if ( (this.settings['Number of Columns'].value==16) && (((offset/16)%2)>=1) ) offsetPos += g32Height/2;
+    //
+
+    if ( (offsetPos < (windowScrollTop + (topRowMargin*rowHeight))) || (offsetPos > (windowScrollBottom - (bottomRowMargin*rowHeight))) ){
+      // setTimeout( ()=>hc.scrollTo({top: offsetPos, behavior: 'smooth'}), 0.1);
+      return {inView: false, position: offsetPos, topMargin: topRowMargin*rowHeight};
+    } else {
+      return {inView: true, position: offsetPos, topMargin: topRowMargin*rowHeight};
+    }
+
+  }
   scrollToOffset( offset ){
     // scrolls to an offset: expects offset as a number, not string
     console.log("scrolling to offset "+hex(offset,6));
@@ -4414,14 +4475,34 @@ replace].forEach(d=>console.log(d));
           "HISTORY",
           "LUT"
         ];
+        this.operandNames = [
+          "№ bytes",
+          "№ times",
+          "№ bytes",
+          "LUT index"
+        ];
 
         this.hexToDec = {
           '0':0, '1':1, '2':2,  '3':3,  '4':4,  '5':5,  '6':6,  '7':7,
           '8':8, '9':9, 'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15
         };
+        this.corner = '2ch';
 
         // set all decomp to invisible
         Array.from(this.decompContent.querySelectorAll("div .hex_g32 div .hex_byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
+
+        // circle the words of the LUT.
+        Array.from(this.compContent.querySelectorAll("div .hex_g32 div .hex_byte")).slice(0,128).forEach((d,i)=> {
+          d.style.border = '2px solid';
+          if (i%2) { // right side
+            d.style.borderRadius = `0 ${this.corner} ${this.corner} 0`;
+            d.style.borderLeft = "none";
+          } else{    // left side of bubble
+            d.style.borderRadius = `${this.corner} 0 0 ${this.corner}`;
+            d.style.borderRight = "none";
+          }
+          
+        });
 
         // begin iterations
         this.decompSpan();
@@ -4534,6 +4615,8 @@ replace].forEach(d=>console.log(d));
 
 
         // cloning it at the same position
+        var crnr = this.corner;
+        var rounded = `${crnr} ${crnr} ${crnr} ${crnr}`;
 
         var fromDivBbox = fromDiv.getBoundingClientRect();
         var mover = fromDiv.cloneNode(true);
@@ -4546,6 +4629,7 @@ replace].forEach(d=>console.log(d));
         mover.style.zIndex = "102";
         mover.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
         mover.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+        mover.style.borderRadius = rounded;
         
         mover.style.opacity = "1";
         mover = document.getElementById("animationTop").appendChild( mover ); // actually add it to page
@@ -4560,6 +4644,7 @@ replace].forEach(d=>console.log(d));
         shadow.style.transform = `translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px)`;
         shadow.style.zIndex = "101";
         shadow.style.backgroundColor = `rgba(0,0,0,0.8)`;
+        shadow.style.borderRadius = rounded;
         shadow.style.opacity = "1";
         shadow = document.getElementById("animationTop").appendChild( shadow ); // actually add it to page
         //
@@ -4642,18 +4727,28 @@ replace].forEach(d=>console.log(d));
         // apply the animation ("forwards" might be important?)
         shadow.style.animation = `${shadowMoveName} ${travelTime}s ease forwards`;
 
+        
 
         // Also re-color the appropriate parts of the compressed/input data
         switch(this.mode){
           case 0: // copy
             fromDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
             fromDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+            var bleft=['0','0'], bright=' 0 0 ';
+            // if (this.firstIncomplete){
+            //   bleft = [crnr,crnr];
+              
+            // }
+            if (this.moveBuffer.length == 0) bright = ` ${crnr} ${crnr} `;
+            fromDiv.style.borderRadius = bleft.join(bright);
+            
             break;
 
           case 1: // RLE
             if (fromDiv.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
               fromDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
               fromDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+              fromDiv.style.borderRadius = `0 ${crnr} ${crnr} 0`; // right side rounded
             }
             break;
 
@@ -4663,11 +4758,12 @@ replace].forEach(d=>console.log(d));
             if (cmd1.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
               cmd1.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
               cmd1.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+              // cmd1.style.borderRadius = `${crnr} 0 0 ${crnr}`;
               
               var cmd2 = this.compContent.querySelector(`div > #g0x${hex( 32*((2+this.compIndex)>>5), 6 )} div #byte_${hex( (2+this.compIndex), 6 )}`);
               cmd2.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
               cmd2.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-              
+              cmd2.style.borderRadius = `0 ${crnr} ${crnr} 0`;
             }
             
             break;
@@ -4680,11 +4776,18 @@ replace].forEach(d=>console.log(d));
         }
 
         // decrement the visible n:
-        var ndiv = this.detailsDiv.querySelector("#n");
+        
         if (this.mode!=3){      
-          
-          this.ni-=1;
-          ndiv.innerHTML = `Detail:&nbsp;${hex(this.ni,2)}`;
+          try {
+            var ndiv = this.detailsDiv.querySelector("div > .n");
+            // console.log(ndiv);
+            this.ni-=1;
+            var nattempt = ndiv.innerHTML.replace(/[0-9A-F]{2}/i,hex(this.ni,2));;
+            // console.log("Attempt to replace n:\n"+nattempt);
+            ndiv.innerHTML = nattempt; // replaces hex
+            } catch(err){
+              console.log("error:" +err);
+            }
           // ndiv.style.animation = `bulge ${travelTime*0.9}s linear forwards`;
         }
 
@@ -4698,6 +4801,15 @@ replace].forEach(d=>console.log(d));
           
           toDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
           toDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+          var blefts=['0','0'], brights=' 0 0 ';
+          if (this.firstIncomplete){
+            blefts = [crnr,crnr];
+            this.firstIncomplete = false;
+          }
+          if (this.moveBuffer.length == 0) brights = ` ${crnr} ${crnr} `;
+          toDiv.style.borderRadius = blefts.join(brights);
+          console.log(`\n\n\n\ntodiv borderRadius:${blefts.join(brights)}\n\n\n\n`);
+
 
           // fade out/remove clone elements
           mover.remove();
@@ -4712,6 +4824,18 @@ replace].forEach(d=>console.log(d));
             this.cloneAndMove();
 
           } else {
+            
+            // style the cmd byte if we haven't already (shouldn't have):
+            let cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`); // actual div node
+            if (cmd.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
+              cmd.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
+              cmd.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+              
+              var cmdbleft=[crnr, crnr], cmdbright=' 0 0 ';
+              if (this.mode == 3) cmdbright = ` ${crnr} ${crnr} `; // mode 3 has no following bytes in its span
+              console.log(`\n\n\n\ncmd borderRadius:${cmdbleft.join(cmdbright)}\n\n\n\n`);
+              cmd.style.borderRadius = cmdbleft.join(cmdbright);
+            }
             // console.log("length of buffer is: "+this.moveBuffer.length+"; move on to next decompSpan()");
 
             // increment the comp index
@@ -4735,8 +4859,33 @@ replace].forEach(d=>console.log(d));
                 break;
             }
 
-            // begin the next span
-            if (this.compIndex < this.comp.source.data.length) this.decompSpan();
+            // remove all previous animations:
+            Array.from(document.body.querySelectorAll(".decomp_animation_details")).forEach(d=>d.remove());
+
+
+            // see if we need to return the hex_content positions before the next span:
+            // bc we possibly got messed up by a previous LUT mode scroll
+            var cmdOffsetPos = this.comp.checkOffsetPosition( this.compIndex, 2, 1 );
+            var cmdy;
+            if (!cmdOffsetPos.inView) {
+              cmdy = cmdOffsetPos.position-cmdOffsetPos.topMargin; // for the details div
+              this.compContent.scrollTo({top: cmdy, behavior: 'smooth'});
+
+            }
+            
+            // Do the same for decomp... although we still have the problem with decomp where it might not look clear if
+            // history mode bytes are higher up than the current decompIndex
+            var outOffsetPos = this.decomp.checkOffsetPosition( this.decompIndex, 2, 1 );
+            if (!outOffsetPos.inView) this.decompContent.scrollTo({top: outOffsetPos.position-outOffsetPos.topMargin, behavior: 'smooth'});
+
+            //HACK: a somewhat arbitrary time to wait for panel(s) to scroll
+            setTimeout( ()=>{
+              if (this.compIndex < this.comp.source.data.length) this.decompSpan();
+            }, (!cmdOffsetPos.inView || !outOffsetPos.inView) ? 1200 : 50)
+            
+            // // begin the next span
+            // if (this.compIndex < this.comp.source.data.length) this.decompSpan();
+
           }
 
         });
@@ -4833,8 +4982,9 @@ replace].forEach(d=>console.log(d));
         // LEVEL 1
         // Intitialize and show mode details
 
-        // remove all previous :
-        Array.from(document.body.querySelectorAll(".decomp_animation_details")).forEach(d=>d.remove());
+        
+        
+        
 
         // set more details based on the current command byte
         //
@@ -4855,27 +5005,40 @@ replace].forEach(d=>console.log(d));
         // Create the Details div, a grid that will animate to show the breakdown of the command byte
         //
         // get the command byte html div so we can find its properties and line up our details html div to it
-        let g32 = hex( 32*(this.compIndex>>5), 6 ); // get g32 group by floor dividing by 32 (>>5)
-        let offset = hex( this.compIndex, 6 );
-        let cmd = this.compContent.querySelector(`div > #g0x${g32} div #byte_${offset}`); // actual div node
-
-        cmd.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-        cmd.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+        let cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`); // actual div node
+                
         let cmdBbox = cmd.getBoundingClientRect();
         // set up dimensions
+        // y will be the new "scrolled" y position if we determined we will scroll
+        // (it takes a bit to scroll so the bounding box won't immediately be up-to-date)
         let w = cmdBbox.width, h = cmdBbox.height, x = cmdBbox.x, y = cmdBbox.y;
         let ww = w*1.5;
         let wl = 5*w; // width for "labels"
+        let wll = wl;
+
+        // string versions, easier to change units and stuff:
+        var wh = w/2+"px";
+        // wh = "1fr";
+        var wlls = wll+"px";
+        wlls = "1fr";
+        var ww2s = ww*2 + "px";
+        ww2s = "1fr";
+
         // let xl = x+w-(wl+(2*ww)); // x when fully expanded left
         let xl = cmdBbox.x+w;
         // create a new div that will walk through the process for this command mode
         var details = document.createElement("div");
-        details.style.gridTemplateColumns = `0px ${w/2}px ${w/2}px 0px 0px 0px 0px`;
-        details.style.gridTemplateRows = `0px ${h}px 0px 0px 0px 0px 0px 0px 0px`;
-        details.style.transform = `translate3D(${ xl }px, ${ y }px, 0px)`;
-        details.style.zIndex = "100";
-        details.style.position = "absolute";
-        details.style.border = `2px solid rgb(${this.fgColors[this.mode]})`;
+        // details.style.gridTemplateColumns = `0px ${wh} ${wh} 0px 0px 0px 0px`;
+        // details.style.gridTemplateRows = `0px ${h}px 0px 0px 0px 0px 0px 0px 0px`;
+        
+        var runningColumns = `0px 0px 0px 0px 0px 0px 0px`; // this shouldn't be necssary...
+        var runningTransform = `translate3D(${ Math.round(xl) }px, ${ Math.round(y) }px, 0px)`;
+        details.style.transform = runningTransform;
+        details.style.height = cmdBbox.height+"px";
+        // details.style.border = `2px solid rgb(${this.fgColors[this.mode]})`;
+        details.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
+        details.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+
         details.classList.add("decomp_animation_details");
         details = document.getElementById("animationTop").appendChild(details);
         this.detailsDiv = details;
@@ -4888,213 +5051,395 @@ replace].forEach(d=>console.log(d));
         // let bgc = `background-color: rgba(${this.modeColor.map(d=>d*0.25)},1); `;
         let bgc = `background-color: rgba(${this.bgColors[this.mode]},1); color: rgba(${this.fgColors[this.mode]},1); `;
         let clsnm = "decomp_animation_details_item";
-
-        details.innerHTML = `\
-          <div class="${clsnm}" style="${bgc}grid-row: 2; grid-column: 1;">Command (hex)</div>
-            <div class="${clsnm}" style="${bgc}grid-row: 2; grid-column: 2 / 4;">${this.cmdHex}</div>`;
-        details.innerHTML += `\
-          <div class="${clsnm}" style="${bgc}grid-row: 3; grid-column: 1;">Command (bin)</div>
-            <div class="${clsnm}" style="${bgc}grid-row: 3; grid-column: 2 / 4;">${this.cmdBin}</div>`;
-        details.innerHTML += `\
-          <div class="${clsnm}" style="${bgc}grid-row: 4 ; grid-column: 1;">(bin)</div>
-            <div class="${clsnm}" style="${bgc}grid-row: 4; grid-column: 2;">Mode&nbsp;${this.cmdBin.slice(0,2)}</div>
-            <div id="nBin" class="${clsnm}" style="${bgc}grid-row: 4; grid-column: 3;">Detail:&nbsp;${this.cmdBin.slice(2)}</div>
-          <div class="${clsnm}" style="${bgc}grid-row: 5 ; grid-column: 1;">(hex)</div>
-            <div class="${clsnm}" style="${bgc}grid-row: 5; grid-column: 2;">Mode&nbsp;${this.mode}&nbsp;${this.modeNames[this.mode]}</div>
-            <div id="n" class="${clsnm}" style="${bgc}grid-row: 5; grid-column: 3;">Detail:&nbsp;${hex(this.n,2)}</div>
-
-          `;
-        // right side
-        // details.innerHTML += `\
-        //   <div style="${bgc}grid-row: 3 / -1; grid-column: 3 / 5;">Swap Bytes</div>`;
-        //<div id="" class="${clsnm}" style="overflow:hidden;background-color:rgba(0,0,0,0);border:5px inset;grid-row: 6 / -1; grid-column: 6;"></div>
-
-        //         <div id="address" class="${clsnm}" style="${bgc}grid-row: 6 / -1; grid-column: 4;">${hex(this.address,4)}</div>
-        if (this.mode==2) details.innerHTML += `\
-          <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 4;">swap next 2</div>
-            <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 5;">${hex(this.comp.source.data[this.compIndex+2],2)}</div>
-            <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 6;">${hex(this.comp.source.data[this.compIndex+1],2)}</div>
-          `;
-
-        if (this.mode==3) details.innerHTML += `\
-          <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 4;"><<&nbsp;1&nbsp;=</div>
-            <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 5;">${hex(this.address,4)}</div>
-
-          `;
+        let bbl = 'div class="bubbleCell">';
 
         // Animation of details div
         // see how many steps the animation will go through:
         var total; // total steps
         switch(this.mode){
           case 2:
-            total = 9+12;
-            break;
           case 3:
-            total = 9+9;
+            total = 7;
             break;
           default:
-            total = 9;
+            total = 4;
 
         }
-        var detailsKeyframesDuration = total/2; // 7
+        // timing:
+        var detailsKeyframesDuration = total; // 7
         var count = 1;
-        var wll = 0;
+
+        // new method; rolling columns (all in one row)
+        // custom object to allow the "keyframe builder" to be more modular.
+        //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+        // a⮀❮⇋↹⇄━─═▶--►▸⇒⇨➠➔➜➩➧➤⭆⮞🡆🠞🡢🡪🡪🡲🡺🢥⟹⇒🡒
+        this.detailsObjects = [
+          // First, basically a copy of cmd cell
+          {
+            text: [this.cmdHex],
+            width: cmdBbox.width,
+            widthUnits: "px",
+            class: ['bubbleCellOne'],
+            transform: runningTransform+""
+          },
+          // binary
+          {
+            text: [` -to-binary-> `,` ${this.cmdBin} `],
+            class: ['notBubble','bubbleCell']
+          },
+          // binary mode/operand
+          {
+            text: [` -split-bits-> `,` Mode: ${this.cmdBin.slice(0,2)} `,` Operand: ${this.cmdBin.slice(2)} `],
+            class: ['notBubble','bubbleCell','bubbleCell']
+          },
+          // hex mode/operand
+          {
+            text: [` -hex-> `,` Mode: ${this.mode} (${this.modeNames[this.mode]}) `,` Operand: ${hex(this.n,2)} (${this.operandNames[this.mode]}) `],
+            class: ['notBubble','bubbleCell','bubbleCell n']
+          }
+        ];
+
+        if (this.mode>1){
+          // setup
+          var panel = (this.mode==2) ? this.decomp : this.comp;
+          var panelContent = (this.mode==2) ? this.decompContent : this.compContent;
+          var contentBbox = panelContent.getBoundingClientRect();
+          var addressByte = panelContent.querySelector(`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
+          var addrByteBbox = addressByte.getBoundingClientRect();
+          var deltay = 0;
+          
+           
+          if (this.mode==2) {
+            this.detailsObjects.push(...[
+              {
+                text: [` swap next 2 bytes -> `,` history address: ${hex(this.address,4)} `],
+                class: ['notBubble','bubbleCell']
+              }
+              
+            ]);
+          }
+          else if (this.mode==3) {
+            this.detailsObjects.push(...[
+              {
+              text: [` -> ×2 -> `,` LUT byte address: ${hex(this.address,4)} `],
+              class: ['notBubble','bubbleCell']
+              }
+            ]);
+          }
+
+          // establish scroll, if needed:
+          // (will determine vertical position of details div)
+          var offsetPos = panel.checkOffsetPosition( this.address);
+          //
+          if (offsetPos.inView){
+            // go directly there if it's in view
+            this.detailsObjects.push(...[
+              {
+                transform: `translate3D(${Math.round(addrByteBbox.x)}px, ${Math.round(addrByteBbox.y)}px, ${0}px)`
+              },
+            ]);
+          } else{
+            // go to top left, scroll it into view at the top, then go to right
+            this.detailsObjects.push(...[
+              {
+                transform: `translate3D(${contentBbox.x}px, ${contentBbox.y}px, ${0}px)`
+              },
+              {
+                transform: `translate3D(${Math.round(addrByteBbox.x)}px, ${Math.round(contentBbox.y)}px, ${0}px)`
+              },
+            ]);
+
+            // set scrolling timeout now that we know length of detailsObjects
+            var scrollStartTime = detailsKeyframesDuration*(this.detailsObjects.length-2)/this.detailsObjects.length;
+            console.log(`scrollStartTime:   ${scrollStartTime}`);
+            setTimeout( ()=>{
+              // try {
+                console.log("1) in settimeout for scroll. panel content:");
+                console.log(panelContent);
+                panelContent.scrollTo({top: offsetPos.position, behavior: 'smooth'});
+              // } catch (err){
+              //   console.log(err);
+              //   try {
+
+              //     console.log("2) in settimeout for scroll. panel content:");
+              //     var pc = (this.mode==2) ? this.decompContent : this.compContent;
+              //     console.log(pc);
+              //     pc.querySelector(".hex_content").scrollTo({top: offsetPos.position, behavior: 'smooth'});
+              //   } catch (err){
+              //     console.log(err);
+              //   }
+              // }
+              
+              
+              },
+              scrollStartTime*1000
+            );
+
+          }
+           
+        }
+
+        // details.innerHTML = `\
+        //   <div class="${clsnm}" style="${bgc}grid-row: 2; grid-column: 1;">Command (hex)</div>
+        //     <div class="${clsnm}" style="${bgc}grid-row: 2; grid-column: 2 / 4;">${this.cmdHex}</div>`;
+        // details.innerHTML += `\
+        //   <div class="${clsnm}" style="${bgc}grid-row: 3; grid-column: 1;">Command (bin)</div>
+        //     <div class="${clsnm}" style="${bgc}grid-row: 3; grid-column: 2 / 4;">${this.cmdBin}</div>`;
+        // details.innerHTML += `\
+        //   <div class="${clsnm}" style="${bgc}grid-row: 4 ; grid-column: 1;">(bin)</div>
+        //     <div class="${clsnm}" style="${bgc}grid-row: 4; grid-column: 2;">Mode&nbsp;${this.cmdBin.slice(0,2)}</div>
+        //     <div id="nBin" class="${clsnm}" style="${bgc}grid-row: 4; grid-column: 3;">Detail:&nbsp;${this.cmdBin.slice(2)}</div>
+        //   <div class="${clsnm}" style="${bgc}grid-row: 5 ; grid-column: 1;">(hex)</div>
+        //     <div class="${clsnm}" style="${bgc}grid-row: 5; grid-column: 2;">Mode&nbsp;${this.mode}&nbsp;${this.modeNames[this.mode]}</div>
+        //     <div id="n" class="${clsnm}" style="${bgc}grid-row: 5; grid-column: 3;">Detail:&nbsp;${hex(this.n,2)}</div>
+
+        //   `;
+        // // right side
+        // // details.innerHTML += `\
+        // //   <div style="${bgc}grid-row: 3 / -1; grid-column: 3 / 5;">Swap Bytes</div>`;
+        //<div id="" class="${clsnm}" style="overflow:hidden;background-color:rgba(0,0,0,0);border:5px inset;grid-row: 6 / -1; grid-column: 6;"></div>
+
+        //         <div id="address" class="${clsnm}" style="${bgc}grid-row: 6 / -1; grid-column: 4;">${hex(this.address,4)}</div>
+        // if (this.mode==2) details.innerHTML += `\
+        //   <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 4;">swap next 2</div>
+        //     <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 5;">${hex(this.comp.source.data[this.compIndex+2],2)}</div>
+        //     <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 6;">${hex(this.comp.source.data[this.compIndex+1],2)}</div>
+        //   `;
+
+        // if (this.mode==3) details.innerHTML += `\
+        //   <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 4;"><<&nbsp;1&nbsp;=</div>
+        //     <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 5;">${hex(this.address,4)}</div>
+
+        //   `;
+        
+
+        
+
+        // build the html
+        var texts = 0;
+        var transforms = 0;
+        var textsColWidths = [];
+
+
+        details.innerHTML = ``;
+
+        this.detailsObjects.forEach((d,i)=>{
+          if (d.text) {
+              let inners = d.text.reduce( (s,e,j) => s+='<div class="'+d.class[j]+'">'+d.text[j].replaceAll(" ","&nbsp;")+'</div>','');
+              
+              console.log(inners);
+              details.innerHTML+=`<div class="${clsnm}" style="grid-row: 1; grid-column: ${1+i};">`+inners+`</div>`;
+              texts++;
+            
+            textsColWidths.push( (d.widthUnits==undefined)?"0ch":"0"+d.widthUnits);
+            
+          }
+          if (d.transform) transforms++;
+          
+        });
+
+        
+        var textsColWidthsOG = Array.from(textsColWidths)
+        var window = 2;
+        console.log(`${details.innerHTML}\nAfter building html, counted ${texts} texts and ${transforms} transforms`);
+        
         // keframes:
         var detailsName = `Mode_${this.mode}_details_${Date.now()}`;
-        var keyframes = `@keyframes ${detailsName} {
-          /* initially just the same as the original cmd cell */
-          0%,
-          ${100*(count++)/total}%  {
-            grid-template-columns: 0px ${w/2}px ${w/2}px 0px 0px 0px 0px;
-            grid-template-rows: 0px ${h}px 0px 0px 0px 0px 0px 0px 0px;
-            transform: translate3D(${ xl }px, ${ y }px, 0px);
-          }
-
-          /* next, expand left to show "cmd hex" */
-          ${100*(count++)/total}%,
-          ${100*(count++)/total}% {
-            grid-template-columns: ${wll}px ${ww*2}px ${ww*2}px 0px 0px 0px 0px;
-            grid-template-rows: 0px ${h}px 0px 0px 0px 0px 0px 0px 0px;
-            transform: translate3D(${ xl }px, ${ y }px, 0px);
-          }
-
-          /* "cmd binary" | bin val */
-          ${(100*(count++)/total)+0.05}%,
-          ${100*(count++)/total}% {
-            grid-template-columns: ${wll}px ${ww*2}px ${ww*2}px 0px 0px 0px 0px;
-            grid-template-rows: 0px ${0}px ${h}px 0px 0px 0px 0px 0px 0px;
-            transform: translate3D(${ xl }px, ${ y }px, 0px);
-          }
-
-          /* better aniation for splitting binary 2 MSBs and 6 LSBs, left/right, hide "binary v" */
-          /* ??? */
-
-          /* "Mode" and "detail" | bin MSBs | bin LSBs*/
-          ${100*(count++)/total}%,
-          ${100*(count++)/total}% { /* ++ */
-            grid-template-columns: ${wll}px ${ww*2}px ${ww*2}px 0px 0px 0px 0px;
-            grid-template-rows: 0px ${0}px ${0}px ${h}px 0px 0px 0px 0px 0px;
-            transform: translate3D(${ xl }px, ${ y }px, 0px);
-          }
-
-          /* "Mode" and "detail" | HEX MSBs | HEX LSBs*/
-          ${(100*(count++)/total)+0.05}%,
-          ${100*(count++)/total}% {
-            grid-template-columns: ${wll}px ${ww*2}px ${ww*2}px 0px 0px 0px 0px;
-            grid-template-rows: 0px ${0}px ${0}px 0px ${h}px 0px 0px 0px 0px;
-            transform: translate3D(${ xl }px, ${ y }px, 0px);
-          }
-          `;
-        
-        // track the ending style, for later:
-        var last = `grid-template-columns: ${wll}px ${ww*2}px ${ww*2}px 0px 0px 0px 0px;
-          grid-template-rows: 0px ${0}px ${0}px 0px ${h}px 0px 0px 0px 0px;
-          transform: translate3D(${ xl }px, ${ y }px, 0px);
-        
+        var textCount=0;
+        var rts = false; // returnToStart - this idea didn't work so it's being debugged-out for now...
+        var returning = (this.mode>2) && rts;
+        var keyframes = `
+        @keyframes ${detailsName} {
         `;
-
-        // expand right
-        if ((this.mode==2) || (this.mode==3)){
-          last = `grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px 0px 0px 0px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${ xl }px, ${ y }px, 0px);
+        this.detailsObjects.forEach((d,i)=>{
+            
+            if (d.text) {
+              textCount++;
+              // roll the window (update current, remove last if present)
+              textsColWidths[i] = d.width ? d.width+""+d.widthUnits : (d.text.reduce((s,d,i)=>s+=d.length+0,0)+1)+"ch";
+              if (i-window >= 0) textsColWidths[i-window] = textsColWidthsOG[i-window];
+            }
+            // add the next keyframe. 
+            // If it's the last, and we didnt move details (mode 0 and 1 stay in place), close it with "100%"
+            
+            keyframes+=`/* ${i+1} of ${this.detailsObjects.length}; should be at time ${detailsKeyframesDuration*(i)/(this.detailsObjects.length)} */
+            ${100*(i)/(this.detailsObjects.length)}%, 
+            ${100*(i+0.66)/(this.detailsObjects.length)}%${(i+1==this.detailsObjects.length) && !returning ?', 100%':''} {
+              grid-template-columns: ${ d.text ? (runningColumns=textsColWidths.join(" ")) : runningColumns };
+              transform: ${ d.transform ? (runningTransform=d.transform) : runningTransform };
+            }
             `;
-          keyframes+=`\
-            ${100*(count++)/total}%,
-            ${100*(count++)/total}%,
-            ${100*(count++)/total}% {
-              ${last}}
-          `;
-
-          // move details div to top left of either <comp or decomp> panel, lining up its "address" cell.
-          // (assuming we use entire details div. we'll just get the offset from the top1
-          //  so it could be replaced with 0 later if using a separate div)
-          // we will then scroll, then move to the right. But we'll consolidate this all into one keframes animation.
-          // var dur;
-          // var moveToAddressKeyframes;
-          // var moveToAddressName;
-
-          // setup
-          var panelContent = (this.mode==2)?this.decompContent:this.compContent;
-          var panel = (this.mode==2)?this.decomp:this.comp;
-
-          // get delta x and delta y of address div to its parent "details" div
-
-          // var detailsAddress = details.querySelector("#address");
-          // var detailsBbox = details.getBoundingClientRect();
-          // var addrBbox = detailsAddress.getBoundingClientRect();
-          // var dx = addrBbox.x - detailsBbox.x; // not needed: just width of entire details div?
-          // var dy = addrBbox.y - detailsBbox.y;
-
-          var contentBbox = panelContent.getBoundingClientRect();
-
-          // get details about where to move it to the right for the second "movement", 
-          // lining up against <this.address>'s x coord
-          var addressByte = panelContent.querySelector(`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
-          // addressByte.style.border="1px solid white";
-          var addrByteBbox = addressByte.getBoundingClientRect();
-          
-          var detailsDivWidth = wl+ww+ww;
-          var deltay = 0;
-
-          if (this.mode==2) keyframes+=`\
-             
-             ${100*(count++)/total}%, 
-             ${100*(count++)/total}% {
-              grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px 0px ${w}px ${w}px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${ xl+(2*w) }px, ${ y }px, 0px);
-            }
-            ${100*(count++)/total}%, 
-             ${100*(count++)/total}% {
-              grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px ${w}px ${w}px ${0}px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${ xl+(2*w) }px, ${ y }px, 0px);
-            }
-              
-             ${100*(count++)/total}%,
-             ${100*(count++)/total}%, 
-             ${100*(count++)/total}% {
-              grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px ${w}px ${w}px ${0}px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${contentBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-            }
-             ${100*(count++)/total}%,
-              ${100*(count++)/total}% {
-              grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px ${w}px ${w}px ${0}px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${addrByteBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-            }  `;
-          
-          if (this.mode==3) keyframes+=`\
-             
-             ${100*(count++)/total}%, 
-             ${100*(count++)/total}% {
-              grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px ${w}px 0px 0px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${ xl }px, ${ y }px, 0px);
-            }
-             ${100*(count++)/total}%,
-             ${100*(count++)/total}% {
-              grid-template-columns:${0}px ${ww*2}px ${ww*2}px ${ww}px ${w}px 0px 0px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${contentBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-            }
-             ${100*(count++)/total}%,
-              ${100*(count++)/total}% {
-              grid-template-columns: ${0}px ${ww*2}px ${ww*2}px ${ww}px ${w}px 0px 0px;
-              grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-              transform: translate3D(${addrByteBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-            } `;
-          
-
-          // apply a scroll in the "middle" of the animation:
-          // (scroll <comp or decomp> hex_content to <this.address>'s y coord)
-          setTimeout( ()=>{panel.scrollToOffset(this.address);console.log("scroll finished");}, detailsKeyframesDuration*(total-3)*1000/total );
-          console.log(`MODE 2/3 ADDRESS LINE-UP: \nfrom translate3D(${contentBbox.x - detailsDivWidth}px, ${contentBbox.y-deltay}px, ${0}px)\nto translate3D(${addrByteBbox.x - detailsDivWidth}px, ${addrByteBbox.y-deltay}px, ${0}px)\n`);
-
+          });
+        // if mode 3 or 4, we move back to the starting point real quick
+        if ( returning && (this.mode>1) ) {
+          keyframes+=`
+              100% {
+                grid-template-columns: ${ [this.detailsObjects[0].width, ...textsColWidthsOG.slice(1)].join(" ") };
+                transform: ${ this.detailsObjects[0].transform };
+              }
+            }`; 
+        } else {
+          keyframes+=`}`; // else just close it up
         }
+        // var keyframes = `@keyframes ${detailsName} {
+        //   /* initially just the same as the original cmd cell */
+        //   0%,
+        //   ${100*(count++)/total}%  {
+        //     grid-template-columns: 0px ${wh} ${wh} 0px 0px 0px 0px;
+        //     grid-template-rows: 0px ${h}px 0px 0px 0px 0px 0px 0px 0px;
+        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //   }
 
+        //   /* next, expand left to show "cmd hex" */
+        //   ${100*(count++)/total}%,
+        //   ${100*(count++)/total}% {
+        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
+        //     grid-template-rows: 0px ${h}px 0px 0px 0px 0px 0px 0px 0px;
+        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //   }
+
+        //   /* "cmd binary" | bin val */
+        //   ${(100*(count++)/total)+0.05}%,
+        //   ${100*(count++)/total}% {
+        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
+        //     grid-template-rows: 0px ${0}px ${h}px 0px 0px 0px 0px 0px 0px;
+        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //   }
+
+        //   /* better aniation for splitting binary 2 MSBs and 6 LSBs, left/right, hide "binary v" */
+        //   /* ??? */
+
+        //   /* "Mode" and "detail" | bin MSBs | bin LSBs*/
+        //   ${100*(count++)/total}%,
+        //   ${100*(count++)/total}% { /* ++ */
+        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
+        //     grid-template-rows: 0px ${0}px ${0}px ${h}px 0px 0px 0px 0px 0px;
+        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //   }
+
+        //   /* "Mode" and "detail" | HEX MSBs | HEX LSBs*/
+        //   ${(100*(count++)/total)+0.05}%,
+        //   ${100*(count++)/total}% {
+        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
+        //     grid-template-rows: 0px ${0}px ${0}px 0px ${h}px 0px 0px 0px 0px;
+        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //   }
+        //   `;
+        
+        // // track the ending style, for later:
+        // var last = `grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
+        //   grid-template-rows: 0px ${0}px ${0}px 0px ${h}px 0px 0px 0px 0px;
+        //   transform: translate3D(${ xl }px, ${ y }px, 0px);
+        
+        // `;
+
+        // // expand right
+        // if ((this.mode==2) || (this.mode==3)){
+        //   last = `grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px 0px 0px 0px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //     `;
+        //   keyframes+=`\
+        //     ${100*(count++)/total}%,
+        //     ${100*(count++)/total}%,
+        //     ${100*(count++)/total}% {
+        //       ${last}}
+        //   `;
+
+        //   // move details div to top left of either <comp or decomp> panel, lining up its "address" cell.
+        //   // (assuming we use entire details div. we'll just get the offset from the top1
+        //   //  so it could be replaced with 0 later if using a separate div)
+        //   // we will then scroll, then move to the right. But we'll consolidate this all into one keframes animation.
+        //   // var dur;
+        //   // var moveToAddressKeyframes;
+        //   // var moveToAddressName;
+
+        //   // setup
+        //   var panelContent = (this.mode==2)?this.decompContent:this.compContent;
+        //   var panel = (this.mode==2)?this.decomp:this.comp;
+
+        //   // get delta x and delta y of address div to its parent "details" div
+
+        //   // var detailsAddress = details.querySelector("#address");
+        //   // var detailsBbox = details.getBoundingClientRect();
+        //   // var addrBbox = detailsAddress.getBoundingClientRect();
+        //   // var dx = addrBbox.x - detailsBbox.x; // not needed: just width of entire details div?
+        //   // var dy = addrBbox.y - detailsBbox.y;
+
+        //   var contentBbox = panelContent.getBoundingClientRect();
+
+        //   // get details about where to move it to the right for the second "movement", 
+        //   // lining up against <this.address>'s x coord
+        //   var addressByte = panelContent.querySelector(`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
+        //   // addressByte.style.border="1px solid white";
+        //   var addrByteBbox = addressByte.getBoundingClientRect();
+          
+        //   var detailsDivWidth = wl+ww+ww;
+        //   var deltay = 0;
+
+        //   if (this.mode==2) keyframes+=`\
+             
+        //      ${100*(count++)/total}%, 
+        //      ${100*(count++)/total}% {
+        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px 0px ${w}px ${w}px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${ xl+(2*w) }px, ${ y }px, 0px);
+        //     }
+        //     ${100*(count++)/total}%, 
+        //      ${100*(count++)/total}% {
+        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px ${w}px ${0}px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${ xl+(2*w) }px, ${ y }px, 0px);
+        //     }
+              
+        //      ${100*(count++)/total}%,
+        //      ${100*(count++)/total}%, 
+        //      ${100*(count++)/total}% {
+        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px ${w}px ${0}px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${contentBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
+        //     }
+        //      ${100*(count++)/total}%,
+        //       ${100*(count++)/total}% {
+        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px ${w}px ${0}px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${addrByteBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
+        //     }  `;
+          
+        //   if (this.mode==3) keyframes+=`\
+             
+        //      ${100*(count++)/total}%, 
+        //      ${100*(count++)/total}% {
+        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px 0px 0px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${ xl }px, ${ y }px, 0px);
+        //     }
+        //      ${100*(count++)/total}%,
+        //      ${100*(count++)/total}% {
+        //       grid-template-columns:${0}px ${ww2s} ${ww2s} ${ww}px ${w}px 0px 0px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${contentBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
+        //     }
+        //      ${100*(count++)/total}%,
+        //       ${100*(count++)/total}% {
+        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px 0px 0px;
+        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
+        //       transform: translate3D(${addrByteBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
+        //     } `;
+          
+
+        //   // apply a scroll in the "middle" of the animation:
+        //   // (scroll <comp or decomp> hex_content to <this.address>'s y coord)
+        //   setTimeout( ()=>{panel.scrollToOffset(this.address);console.log("scroll finished");}, detailsKeyframesDuration*(total-3)*1000/total );
+        //   console.log(`MODE 2/3 ADDRESS LINE-UP: \nfrom translate3D(${contentBbox.x - detailsDivWidth}px, ${contentBbox.y-deltay}px, ${0}px)\nto translate3D(${addrByteBbox.x - detailsDivWidth}px, ${addrByteBbox.y-deltay}px, ${0}px)\n`);
+          
+        // }
+        
+        // keyframes+=`}`;
+
+        // end of old method...
+
+        console.log(keyframes);
 
         // // Now are the mode 2 and 3 specific ones
         // if (this.mode==2) keyframes+=`\
@@ -5131,7 +5476,6 @@ replace].forEach(d=>console.log(d));
         //     transform: translate3D(${ x+w-(2*ww) }px, ${ y-h }px, 0px);
         //   }`;
 
-      keyframes+=`}`;
       // console.log(keyframes);
 
 
@@ -5284,6 +5628,7 @@ replace].forEach(d=>console.log(d));
           var cloneOffset = (this.mode<2) ? this.compIndex+1 : this.address;
           var clonePanel = (this.mode==2) ? this.decomp : this.comp;
           var clonePanelContent = (this.mode==2) ? this.decompContent : this.compContent;
+          this.firstIncomplete = true;
 
           // ...highlight and clone <a (
           // mode 0: this.n,
@@ -5517,7 +5862,8 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "bitplaneViewer":
-        break;
+        // break;
+
         // decompress
         // if we have source compressed graphics (ignore for calls from others )
         if (this.links[0].source && !this.source){
@@ -5623,7 +5969,7 @@ replace].forEach(d=>console.log(d));
     }
     // now do the next one, if it exists:
     //HACK: paletteViewer was slowing things down,
-    // propogating out to regenerate a bunch of stuff.
+    // propagating out to regenerate a bunch of stuff.
     // if (this.nexts[0] && (this.kind != "paletteViewer") ) { this.nexts[0].propagateSource(); }
     // if (this.nexts[0] ) { this.nexts[0].propagateSource(); }
     // this.nexts.forEach( d => d.propagateSource());
@@ -5978,23 +6324,23 @@ class UImodel {
 //
 
 // let c0 = 2, c1 = 11, c2 = 20, c3=29;
-let c0 = 2, c1 = 12, c2 = 22, c3=33;
+let c0 = 2, c1 = 12, c2 = 33, c3=40;
 let cx = 33;
 let dx = 33+5;
 let d0 = c1-1, d1 = c2-1, d2=c3-1, d3=42;
 //              _, kind,                  rows        cols     name=null, link
-var inputPanel = ["fileIn",               13, 15,    c0, d0,  "Input - Compressed Data"];
-var compHexPanel = ["hexViewerComp",       2,  4,    c0, d0,  "Hex Viewer - Compressed Data", [0]]; // 1
+var inputPanel = ["fileIn",                1,  3,    c0, d0,  "Input - Compressed Data"];
+var compHexPanel = ["hexViewerComp",       1, 14,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
 var paletteInputPanel = ["fileIn",        16, 18,    cx, dx,  "Input - Palette"];  //  2
 var paletteViewer = ["paletteViewer",      2,  6,    c3, d3,  "Palette", [2]]; // 3
-var decompHexPanel = ["hexViewer",         2, 28,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
-var bitplanePanel = ["bitplaneViewer",     2, 28,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
+var decompHexPanel = ["hexViewer",        15, 27,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
+var bitplanePanel = ["bitplaneViewer",     2, 27,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
 var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [4, 3, 5]]; //  6
 var metatilemapInputPanel = ["fileIn",    19, 21,    cx, dx,  "Input - Tilemap32 (Metatiles)"]; //  7
 var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input
 var levelMapInputPanel = ["fileIn",       22, 24,    cx, dx,  "Input - Level Map"]; //  9
 var levelMapViewer = ["levelMapViewer",   19, 27,    c3, d3,  "Level Map", [3,8,9]]; // 10 paletteViewer, metatilesViewer, fileIn
-var description = ["textDescription",      5, 12,    cx, dx,  "About"]; // 11
+var description = ["textDescription",      4, 27,    c0, d0,  "About"]; // 11
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
@@ -6110,6 +6456,7 @@ function dkc1decompress(inp, offset=0){
     var index = 128; // index of byte within data;
     // start after the LUT of 64 16-bit words (64*2=128).
     var output = [];
+    var highestDiff = 0, diff=0;
     while(index < input.length){
         var control = input[index]; // or "command"
         var mode = control >> 6; // same as extracting leftmost 2 bits
@@ -6140,6 +6487,9 @@ function dkc1decompress(inp, offset=0){
                 // from which to extract <detail> number of bytes
                 let addr = input[index+1] | (input[index+2] << 8);
                 output.push(...output.slice(addr, addr + detail));
+                diff = output.length-addr;
+                highestDiff = Math.max(highestDiff,diff);
+                console.log(`HISTORY: addr ${addr} to index ${output.length} (dec) = ${diff} / 0x${hex(diff,6)}`);
                 index += 3;
                 break;
             // Lookup Table ("LUT")
@@ -6156,6 +6506,7 @@ function dkc1decompress(inp, offset=0){
         }
     }
     console.log(`Decompressed ${input.length} bytes to ${output.length} bytes.`);
+    console.log(`Highest diff: ${highestDiff} / 0x${hex(highestDiff,6)}`);
     return new Uint8Array(output);
 }
 
