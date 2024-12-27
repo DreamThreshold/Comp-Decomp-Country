@@ -33,7 +33,7 @@
   --superGray: rgb(165,165,165);
   --superDarkGray: rgb(86,86,86); */
 
-  
+
   /* --superPurple: rgb(33, 24, 46); */
   --superPurple: rgb(36, 27, 51);
   --superBlue: rgb(194,189,235);
@@ -75,9 +75,9 @@ button{
   padding: 3px; */
   /*
   background-color: rgb(50,50,50); */
-  
+
   background-color: var(--superDarkGray);
-  
+
   color: var(--superBlue);
   border:none;
   border-radius: 5px;
@@ -225,7 +225,7 @@ button{
   grid-column: 1;
   z-index: 1;
   /* background-color: rgba(12, 12, 59, 0.8); */
-  
+
   background-color: var(--superGray);
   display: flex;
   /* margin and padding cause weird overflow issues...? */
@@ -1128,7 +1128,7 @@ Generated ...
 }
 .hex_cell{
   /* place-self: center;   */
-  height: 2em;
+  /* height: 2em; */
   align-content: center;
   text-align: center;
 
@@ -1692,7 +1692,7 @@ class View {
     this.oldOrder = this.newOrder+'';
     // console.log(this.groupsArray);
 
-    
+
 
     // this.elemsObj.sort( (a,b) => a.state.r - b.state.r );
 
@@ -2376,7 +2376,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
 
   </svg>
 
-  
+
   <div class="main" id="main">
     <!-- <div id="animationBottom" class="animationBottom"></div> -->
     <div id="navbar"><h4><i style="padding-left:5ch;">Comp / Decomp Country</i></h4></div>
@@ -2384,7 +2384,7 @@ function makeBitplaneSVG(parent, name, dat, angleh=0, anglev=0, observation=1, p
 
   </div>
 
-  
+
   <div id="animationTop" class="animationTop"></div>
 
 
@@ -2428,6 +2428,13 @@ const pal = [
   [ 191, 191, 191 ], [ 207, 207, 207 ],
   [ 223, 223, 223 ], [ 239, 239, 239 ]
 ];
+
+class Animation {
+  constructor(name="anim"+Date.now()){
+
+  }
+
+}
 
 // each panel of the ui; comes in different kinds
 class Panel {
@@ -2605,7 +2612,7 @@ class Panel {
                 <ul>
                   <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.<br>
                     <ul>
-                      <li> After uploading valid compressed data, if there is a hex viewer panel for decompressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These game files used many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>  
+                      <li> After uploading valid compressed data, if there is a hex viewer panel for decompressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These game files used many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
                     </ul>
                   </li>
                   <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
@@ -3958,18 +3965,25 @@ replace].forEach(d=>console.log(d));
     // check where the offset would be:
     // (doesn't directly query, because html node might not exist yet, for performance reasons)
     let g32Height = hc.querySelector("div > .hex_g32").getBoundingClientRect().height;
-    let offsetPos = (g32Height*(offset>>5));
+    let offsetPos = (g32Height*(offset>>5)); // relative to top of its container, NOT the window
     let rowHeight = (this.settings['Number of Columns'].value==16) ? g32Height/2 : g32Height;
-    // if we're in the second row, add a rowHeight 
+    // if we're in the second row, add a rowHeight
     //TODO: make more modular for arbitrary col widths?
     if ( (this.settings['Number of Columns'].value==16) && (((offset/16)%2)>=1) ) offsetPos += g32Height/2;
     //
+    var outs = {
+      position: offsetPos,
+      topMargin: topRowMargin*rowHeight,
+      windowHeight: windowHeight,
+      rowHeight: rowHeight,
+
+    };
 
     if ( (offsetPos < (windowScrollTop + (topRowMargin*rowHeight))) || (offsetPos > (windowScrollBottom - (bottomRowMargin*rowHeight))) ){
       // setTimeout( ()=>hc.scrollTo({top: offsetPos, behavior: 'smooth'}), 0.1);
-      return {inView: false, position: offsetPos, topMargin: topRowMargin*rowHeight};
+      return { ...outs, inView: false};
     } else {
-      return {inView: true, position: offsetPos, topMargin: topRowMargin*rowHeight};
+      return { ...outs, inView: true};
     }
 
   }
@@ -4320,19 +4334,24 @@ replace].forEach(d=>console.log(d));
 
     // ---------------------------------------------------------------
 
-
+    //TODO: move this into its own class
     this.animation = {
-      element: [],
+      elements: [],
       // format for each element of stack:
       // [
       //   {
-      //     'keframeName':'keyframeName1',
+      //     'keyframeName':'keyframeName1',
       //     'element':node1,
-      //     'props': [
-      //       {'prop': 'prop1','value':value1},
-      //       {'prop': 'prop2','value':value2}
+      //     'steps': [
+      //       {'percent': 0,
+      //        'props':{'prop': 'prop1','value':value1},
+      //       }
+      //       {'percent': 5,
+      //        'props':{'prop': 'prop1','value':value1},
+      //       }
       //     ],
       //     baseDuration: 1,
+      //     duration: 1, /* this'll be the current duration */
       //     easingFunction: 'linear',
       //     progress: 0
       //   },
@@ -4344,6 +4363,219 @@ replace].forEach(d=>console.log(d));
       durationScale: 1,
       userDurationScale: 1,
       skippingDurationScale: 0.01,
+
+      initElement: function(e){
+        // initialize and build keyframes,
+        // but do not actually assign the animation to the HTML node yet
+
+        // parse some properties, especially ones likely to not be filled out.
+        if (e.direction==undefined) e.direction = 'forwards';
+        if (e.baseDuration==undefined) e.baseDuration = 1;
+        if (e.duration==undefined) e.duration = e.baseDuration;
+        if (e.easingFunction==undefined) e.easingFunction = "linear";
+        if (e.progress==undefined) e.progress = 0;
+        if (e.kind==undefined) e.kind = "keyframes"; // otherwise could be scroll
+        if (e.name==undefined) e.name = "__ animation"; // 
+
+        this.elements.push( e );
+
+        // create the keyframe CSS (assuming we have the spes already)
+        // and add it to stylesheets
+        var kf = this.buildKeyframe( e );
+
+        document.styleSheets[0].insertRule( kf );
+        this.debug.keyframes += kf+'\n\n'
+
+
+      },
+      startElement: function(e){
+        // depends on animation type
+        switch (e.kind){
+          default:
+          case "keyframes":
+
+            // actually assign it
+            e.element.style.animation = `${e.keyframeName} ${e.duration}s ${e.easingFunction} ${e.direction}`;
+            e.startTime = Date.now();
+            // what to do when this finishes animating
+            // (the logistics stuff.. we may do more element-specific stuff with additional event listeners, elsewhere)
+            e.element.addEventListener("animationend", ()=>{
+
+              
+
+              // assign the current animated properties
+              var computedStyles = window.getComputedStyle(e.element);
+              var styleStr = ``;
+              for (let [key, value] of Object.entries(e.allProps)){
+                // e.element.style.setAttribute(
+                //     key, computedStyles.getPropertyValue(key)
+                //   );
+                // or:
+                // styleStr+=`${key}: ${value}; `;
+                styleStr+=`${key}: ${computedStyles.getPropertyValue(key)}; `;
+              }
+
+
+
+              
+              e.element.setAttribute('style', styleStr); //(?)
+              // console.log(`Assigning the following to ${e.name}:\n${styleStr}`);
+              // console.log(e.element);
+
+              
+              // remove animation (?)
+              e.element.style.animation = ``;
+
+              // find and delete this keyframe to clean up the stylesheet
+              for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
+                if ( document.styleSheets[0].cssRules[i].name === e.keyframeName ){
+                  document.styleSheets[0].deleteRule(i);
+                  break;
+                }
+              }
+
+              // delete this element from this.elements
+              // delete e;
+
+              // delete html dom node
+              if (e.deleteNodeWhenDone) e.element.remove();
+
+            });
+
+            break;
+
+          case "scroll":
+            // .progress
+            e.startTime = Date.now(); // in msec
+
+            function doScroll(animEl, nodeEl){
+              console.log("do scroll... "+Date.now());
+              // get current "percentage"
+              var perc =  (Date.now() - animEl.startTime)/(animEl.duration*10); // incorporates 100 for percentage
+              var current = 0;
+              for (let i =0; i<animEl.steps.length; i++){
+                if (animEl.steps[i].done){
+                  0; // if we already did this, skip it
+                } else{
+                  if ( perc > animEl.steps[i].percent ){
+                    nodeEl.scrollTo({top: animEl.steps[i].props['scroll'], behavior: 'instant'});
+                    animEl.steps[i].done = true;
+                    console.log("Scrolled to "+animEl.steps[i].props['scroll']);
+                    // if it's the last one
+                    if ( i == animEl.steps.length-1){ 
+                      return 0;
+                    } else {
+                      setTimeout( doScroll( animEl, nodeEl), 200);
+                    }
+
+                  }
+                }
+              }
+            }
+            
+            setTimeout( doScroll(e, e.element), 200);
+
+          break;
+        }
+
+      },
+      buildKeyframe: function(e){
+        // we'll track the running props so that, if there's no change, we will use the last one
+        // but if we say so, we won't assign the runningProp,
+        // and css will take over and smoothly animate between.
+        var runningProps = {};
+        e.allProps = {}; // will be used later
+
+        var keyframes = `@keyframes ${e.keyframeName} {\n`;
+
+        // add percent and props for each step
+        var totalSteps = e.steps.length;
+
+        // first check if we actually go up to 100%,
+        // if not, duplicate the last but with a percent of 100.
+        var foundPercent =  e.steps[totalSteps-1]['percent'];
+        var tol = 0.01; //tolerance
+        if ( (foundPercent > 100+tol) || (foundPercent < 100-tol)){
+          e.steps.push({...e.steps[totalSteps-1], 'percent':100});
+          totalSteps++;
+        } else {
+          e.steps[totalSteps-1]['percent'] = 100; // basically round it if it's close
+        }
+        // repeat for 0%?
+
+
+
+        var stepsCSS = [];
+        var lastPerc;
+
+        for (let i=0; i<totalSteps; i++){
+
+          var stepCSS = ``;
+          let d = e.steps[i];
+          // initialize w percent
+          let perc, percStr;
+          switch (typeof(d.percent)){
+            case 'object':
+              perc = Math.round(d.percent[0]*100)/100;
+              percStr = d.percent.map(f=>""+(Math.round(f*100)/100)+"%").join(', ');
+              break;
+            
+            case 'number':
+            default:
+              perc = Math.round(d.percent*100)/100;
+              // if it's just one percentage and equal to the last, add a little fudge factor
+              perc = (perc==lastPerc) ? perc+ 0.01 : perc;
+              lastPerc = perc*1;
+              percStr = ""+perc+"%";
+              break;
+
+
+          }
+          stepCSS += `\n  /* Step ${i+1} of ${totalSteps} `;
+          stepCSS += `     ${e.duration*0.01*perc}s of ${e.duration}s */`;
+          stepCSS += `\n  ${percStr} {`;
+
+          // get properties. overwrite the running if not null.
+          var fillProps = {...runningProps};
+          for (let [key, value] of Object.entries(d.props)){
+            if (value==null) {
+              delete fillProps[key];
+              delete runningProps[key];
+            } else {
+              fillProps[key] = value;
+            }
+          }
+
+          // now update the running props
+          runningProps = {...runningProps, ...fillProps};
+          // now that we have it up to date, go through and apply all props
+          for (let [key, value] of Object.entries(runningProps)){
+            stepCSS += `\n    ${key}: ${value}; `;
+            e.allProps[key] = true; //save this
+          }
+          // save back to steps for future reference:
+          e.steps[i] = {...e.steps[i], ...runningProps};
+
+          // close this step
+          stepCSS += `\n  }`;
+          // console.log(stepCSS);
+
+          keyframes += stepCSS;
+          stepsCSS.push(stepCSS);
+
+          // save running props for use later:
+          e.runningProps = {...runningProps};
+        }
+
+        // close entire thing
+        keyframes += `\n}`;
+
+        e.keyframes = keyframes;
+        e.keyframeStepsCSS = stepsCSS;
+        // console.log(keyframes);
+        return keyframes;
+
+      },
       pause: function(){
         this.elements.forEach( d => {
           this.pauseElement( d );
@@ -4487,6 +4719,30 @@ replace].forEach(d=>console.log(d));
           '8':8, '9':9, 'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15
         };
         this.corner = '2ch';
+        this.cornerUnits = 'ch'; // might help smooth animating of borderRadius, in future...
+
+
+        var rnd = this.corner;
+        var shp = "0"+this.cornerUnits;
+        this.bblBoth = `${rnd} ${rnd} ${rnd} ${rnd}`,
+        this.bblLeft = `${rnd} ${shp} ${shp} ${rnd}`,
+        this.bblRight= `${shp} ${rnd} ${rnd} ${shp}`,
+        this.bblNone = `${shp} ${shp} ${shp} ${shp}`;
+
+        this.parallelize = true;; // move all divs in parallel (faster)
+        this.riseTime = 0.15;
+        this.staggerTime = 0.2;
+        this.moveTime = 0.3;
+        this.bblTime = Math.min(this.riseTime, this.staggerTime)/2;
+        // this.detailsTime = 2.5;
+        this.detailsTime = 5.5;
+        this.scrollTime = 1; // time to give to scroll during details div. in sec here, mult by 1000 later for ms
+
+        this.debug = {
+          keyframes: '',
+          log: '',
+          header: ''
+        };
 
         // set all decomp to invisible
         Array.from(this.decompContent.querySelectorAll("div .hex_g32 div .hex_byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
@@ -4501,14 +4757,44 @@ replace].forEach(d=>console.log(d));
             d.style.borderRadius = `${this.corner} 0 0 ${this.corner}`;
             d.style.borderRight = "none";
           }
-          
+
         });
 
         // begin iterations
+        this.decompSpanCount = 0;
         this.decompSpan();
 
       },
       highlight: function(countdown, total, name){
+
+        // from cloneAndMove: ---------------
+        // First, highlight the fromDiv ???
+
+        // var highlightName = `Mode_${this.mode}_highlight_${Date.now()}`;
+        // var highlightKeyframe = `@keyframes ${highlightName} {
+        //   0% {
+        //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
+        //     background-size: 200% 100%;
+        //     background-position: right;
+        //   }
+        //   100% {
+        //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
+        //     background-size: 200% 100%;
+        //     background-position: left;
+        //   }
+        // }`;
+        // // insert into stylesheet at index 0
+        // document.styleSheets[0].insertRule(highlightKeyframe);
+
+        // // assign the base color for future reference
+        // // (for ex, if this is a LUT )
+        // fromDiv.setAttribute("data-base-color",`rgba(${this.modeColor},0.4)`);
+        // // apply the animation ("forwards" might be important?)
+        // fromDiv.style.animation = `${highlightName} 1s linear forwards`;
+
+        // fromDiv.addEventListener("animationend", ()=>{});
+        // ------------------------------
+
         // designed for highlighting multiple cells in series across the decomp hex_content
         // get the first decomp byte for this decomp span
         let g32d = hex( 32*(this.decompIndex>>5), 6 ); // get g32 group by floor dividing by 32 (>>5)
@@ -4539,7 +4825,7 @@ replace].forEach(d=>console.log(d));
           if (countdown==0){
             // close up if this was the last one.
 
-            // find and delete this keframe to clean up the stylesheet
+            // find and delete this keyframe to clean up the stylesheet
             // for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
             //   if ( document.styleSheets[0].cssRules[i].name === name ){
             //     document.styleSheets[0].deleteRule(i);
@@ -4570,6 +4856,10 @@ replace].forEach(d=>console.log(d));
                 break;
             }
 
+            this.decompSpanCount++;
+            console.log("this, at end of clonendMove");
+            console.log(this);
+
             if (this.compIndex < this.comp.source.data.length) this.decompSpan();
 
           } else{
@@ -4582,260 +4872,419 @@ replace].forEach(d=>console.log(d));
       cloneAndMove: function(){
         // console.log(`Starting cloneAndMove with ${this.moveBuffer.length} remaining bytes in moveBuffer`);
 
-        // get the source div
-        var fromDiv = this.moveBuffer.pop(); // It will act on this.moveBuffer, popping off each element
-        // console.log(`popped: nowmoveBuffer is length ${this.moveBuffer.length} `)
+        // some setup
+        // bubble/rounded corners shorthands
+        // left means rounded on left side, right means rounded on right side
+        // later we say "expand" left or right, that means going "sharp" in those directions
+        var bblBoth = this.bblBoth;
+        var bblLeft = this.bblLeft;
+        var bblRight = this.bblRight;
+        var bblNone = this.bblNone;
 
-        // First, highlight the fromDiv ???
-
-        // var highlightName = `Mode_${this.mode}_highlight_${Date.now()}`;
-        // var highlightKeyframe = `@keyframes ${highlightName} {
-        //   0% {
-        //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
-        //     background-size: 200% 100%;
-        //     background-position: right;
-        //   }
-        //   100% {
-        //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
-        //     background-size: 200% 100%;
-        //     background-position: left;
-        //   }
-        // }`;
-        // // insert into stylesheet at index 0
-        // document.styleSheets[0].insertRule(highlightKeyframe);
-
-        // // assign the base color for future reference
-        // // (for ex, if this is a LUT )
-        // fromDiv.setAttribute("data-base-color",`rgba(${this.modeColor},0.4)`);
-        // // apply the animation ("forwards" might be important?)
-        // fromDiv.style.animation = `${highlightName} 1s linear forwards`;
-
-        // fromDiv.addEventListener("animationend", ()=>{});
-
-
-
-        // cloning it at the same position
-        var crnr = this.corner;
-        var rounded = `${crnr} ${crnr} ${crnr} ${crnr}`;
-
-        var fromDivBbox = fromDiv.getBoundingClientRect();
-        var mover = fromDiv.cloneNode(true);
-        // mover.style.pfromDiverspective = `100px`;
-        // mover.style.perspectiveOrigin = `100px`;
-        mover.style.width = fromDivBbox.width+"px";
-        mover.style.height = fromDivBbox.height+"px";
-        mover.style.position = "absolute";
-        mover.style.transform = `translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px)`;
-        mover.style.zIndex = "102";
-        mover.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-        mover.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-        mover.style.borderRadius = rounded;
+        var lift = "20px";
+        var riseTime = this.riseTime;
+        var staggerTime = this.staggerTime;
+        var stagger = 0;
+        var move1920 = 2;
+        var moveTime = this.moveTime;
+        var bblTime = this.bblTime; // should always be <= riseTime and <= staggerTime
+        var scrollTime = ( (this.mode==2) && this.willScrollDecomp) ? 1 : 0;
         
-        mover.style.opacity = "1";
-        mover = document.getElementById("animationTop").appendChild( mover ); // actually add it to page
+        
 
-        // shadow        
-        var shadow = fromDiv.cloneNode();
-        // mover.style.pfromDiverspective = `100px`;
-        // mover.style.perspectiveOrigin = `100px`;
-        shadow.style.width = fromDivBbox.width+"px";
-        shadow.style.height = fromDivBbox.height+"px";
-        shadow.style.position = "absolute";
-        shadow.style.transform = `translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px)`;
-        shadow.style.zIndex = "101";
-        shadow.style.backgroundColor = `rgba(0,0,0,0.8)`;
-        shadow.style.borderRadius = rounded;
-        shadow.style.opacity = "1";
-        shadow = document.getElementById("animationTop").appendChild( shadow ); // actually add it to page
+        // get the source divs
+        // It will act on this.moveBuffer, popping off each batch
+        // if not a parralelized span, each batch will only conntain 1 div
+        var fromDivs = this.moveBuffer.pop();
+
         //
+        //  A  lifting all from divs
+        //
+        var totalFromDivs = fromDivs.length;
+        this.batchSize = fromDivs.length;
+        var totalStagger = ((totalFromDivs-1)*staggerTime);
+        var totalTime = totalStagger + riseTime; // before move time, which we have to calculate.
+        totalTime += scrollTime; // scroll time
+        totalTime += totalStagger +  moveTime + riseTime + staggerTime + bblTime; // moving and dropping and bubbling
+        // totalStagger + riseTime + scrollTime + stagger + moveTime + riseTime + staggerTime + bblTime
+        // totalStagger + riseTime + scrollTime + totalStagger + moveTime + riseTime
+
+        var maxMoveTime = 0;
+
+        var positionWillScrollTo = 0;
 
 
-        // getting the location of destination div
-        var toDiv = this.decompContent.querySelector(`div > #g0x${hex( 32*(this.decompIndex>>5), 6 )} div #byte_${hex( this.decompIndex, 6 )}`);
-        var toDivBbox = toDiv.getBoundingClientRect();
-        // and moving the clone to location of destinationDiv
-        
-        // first determine the distance it's moving and make a reasonable travel speed:
-        var travelDist = (((fromDivBbox.x-toDivBbox.x)**2)+((fromDivBbox.y-toDivBbox.y)**2))**0.5;
-        var travelRatio = travelDist/1920; // based on 2sec for travel across width of a 1080/1920 screen
-        // var riseTime = 0.05;
-        // var move1920 = 0.2;
-        var riseTime = 0.25;
-        var move1920 = 0.5;
-        var travelTime = (2*riseTime) + (move1920*travelRatio); // +1sec; 0.5 each for raising and lowering div into place
+        //
+        var checkToDiv = this.decomp.checkOffsetPosition( this.decompIndex, 2, 2 );
+        positionWillScrollTo = checkToDiv.position - checkToDiv.topMargin;
+        ///
+        var fromDiv;
 
-        var moverMoveName = `moverMove_${Date.now()}`;
-        var moverMoveKeyframes = `@keyframes ${moverMoveName} {
-          0% {
-            transform: translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px);
-            width: ${fromDivBbox.width}px;
-            height: ${fromDivBbox.height}px;          
-          }
-          ${100*riseTime/travelTime}% {
-            transform: translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 1vw);
-            width: ${fromDivBbox.width}px;
-            height: ${fromDivBbox.height}px;
-          }
-          ${100*(travelTime-riseTime)/travelTime}% {
-            transform: translate3D(${toDivBbox.x}px, ${toDivBbox.y }px, 1vw);
-            width: ${toDivBbox.width}px;
-            height: ${toDivBbox.height}px;
-          }
-          100% {
-            transform: translate3D(${toDivBbox.x}px, ${toDivBbox.y }px, 0px);
-            width: ${toDivBbox.width}px;
-            height: ${toDivBbox.height}px;
-            
-          } 
-        }`;
-
-        // insert into stylesheet at index 0
-        document.styleSheets[0].insertRule(moverMoveKeyframes);
-
-        // apply the animation ("forwards" might be important?)
-        mover.style.animation = `${moverMoveName} ${travelTime}s ease forwards`;
-
-        // shadow:
-        var shadowMoveName = `shadowMove_${Date.now()}`;
-        var shadowMoveKeyframes = `@keyframes ${shadowMoveName}{
-          0% {
-            transform: translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px);
-            width: ${fromDivBbox.width}px;
-            height: ${fromDivBbox.height}px;          
-          }
-          ${100*riseTime/travelTime}% {
-            transform: translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px);
-            width: ${fromDivBbox.width}px;
-            height: ${fromDivBbox.height}px;
-          }
-          ${100*(travelTime-riseTime)/travelTime}% {
-            transform: translate3D(${toDivBbox.x}px, ${toDivBbox.y }px, 0px);
-            width: ${toDivBbox.width}px;
-            height: ${toDivBbox.height}px;
-          }
-          100% {
-            transform: translate3D(${toDivBbox.x}px, ${toDivBbox.y }px, 0px);
-            width: ${toDivBbox.width}px;
-            height: ${toDivBbox.height}px;
-            
-          } 
-        }`;
-
-        // insert into stylesheet at index 0
-        document.styleSheets[0].insertRule(shadowMoveKeyframes);
-
-        // apply the animation ("forwards" might be important?)
-        shadow.style.animation = `${shadowMoveName} ${travelTime}s ease forwards`;
-
-        
-
-        // Also re-color the appropriate parts of the compressed/input data
-        switch(this.mode){
-          case 0: // copy
-            fromDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-            fromDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-            var bleft=['0','0'], bright=' 0 0 ';
-            // if (this.firstIncomplete){
-            //   bleft = [crnr,crnr];
-              
-            // }
-            if (this.moveBuffer.length == 0) bright = ` ${crnr} ${crnr} `;
-            fromDiv.style.borderRadius = bleft.join(bright);
-            
-            break;
-
-          case 1: // RLE
-            if (fromDiv.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
-              fromDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-              fromDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-              fromDiv.style.borderRadius = `0 ${crnr} ${crnr} 0`; // right side rounded
-            }
-            break;
-
-          case 2: // history
-            // var cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`);
-            var cmd1 = this.compContent.querySelector(`div > #g0x${hex( 32*((1+this.compIndex)>>5), 6 )} div #byte_${hex( (1+this.compIndex), 6 )}`);
-            if (cmd1.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
-              cmd1.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-              cmd1.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-              // cmd1.style.borderRadius = `${crnr} 0 0 ${crnr}`;
-              
-              var cmd2 = this.compContent.querySelector(`div > #g0x${hex( 32*((2+this.compIndex)>>5), 6 )} div #byte_${hex( (2+this.compIndex), 6 )}`);
-              cmd2.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-              cmd2.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-              cmd2.style.borderRadius = `0 ${crnr} ${crnr} 0`;
-            }
-            
-            break;
-
-          case 3: // LUT
-            0; // don't really need to highlight anything...
-            
-            break;
-
+        // set scroll
+        if ( (this.mode==2) && this.willScrollDecomp){
+          
+          setTimeout( ()=>{
+              console.log(`Mode 2 HISTORY: scrolling from ${this.decompContent.scrollTop} to ${positionWillScrollTo}.`);
+              this.decompContent.scrollTo({top: positionWillScrollTo, behavior: 'smooth'});
+            },
+            (totalStagger +  riseTime )*1000
+          );
         }
 
-        // decrement the visible n:
-        
-        if (this.mode!=3){      
-          try {
-            var ndiv = this.detailsDiv.querySelector("div > .n");
-            // console.log(ndiv);
-            this.ni-=1;
-            var nattempt = ndiv.innerHTML.replace(/[0-9A-F]{2}/i,hex(this.ni,2));;
-            // console.log("Attempt to replace n:\n"+nattempt);
-            ndiv.innerHTML = nattempt; // replaces hex
-            } catch(err){
-              console.log("error:" +err);
-            }
-          // ndiv.style.animation = `bulge ${travelTime*0.9}s linear forwards`;
-        }
+        var anims = [];
 
-        mover.addEventListener("animationend", ()=>{
+        for (let i=0; i<fromDivs.length; i++){ // loop A //////////////////////////////////////////////////////////////
+
+          fromDiv = fromDivs[i];
+          
+          // style the from div, if necessary
+          // if it's mode 0 or the first byte of mode 1
+          if ( (this.mode==0) || ( (this.mode==1) && (i==0) ) ){
+
+            let fromDivAnim = new Animation();
+            fromDivAnim.name = "fromDiv animation";
+            fromDivAnim.element = fromDiv;
+            fromDivAnim.baseDuration = totalTime;
+            fromDivAnim.easingFunction = "ease";
+            fromDivAnim.keyframeName = `fromDivStyle_${i}_${Date.now()}`;
+            fromDivAnim.steps = [];
+            
+            
+            let fromDivStyle = window.getComputedStyle(fromDiv);
+            let origs = {
+              'color':fromDivStyle.getPropertyValue('color'),
+              'background-color':fromDivStyle.getPropertyValue('background-color'),
+              'border':fromDivStyle.getPropertyValue('border'),
+              
+            }
+
+            // instant jump to cell style
+            fromDivAnim.steps = [
+              { 'percent': [0, 100*stagger/totalTime], 'props': { ...origs }  },
+              // when the mover div appears, coming out of this, instantly* make it the same color: *actually 0.01%
+              { 'percent': (100*stagger/totalTime)+0.01, 'props': { 
+                'background-color': `rgba(${this.bgColors[this.mode]},1)`,
+                'color': `rgba(${this.fgColors[this.mode]},1)`,
+                'border-radius': bblBoth} },
+              // quickly morph to fit previous, stopping <bblTime> after the stagger
+              { 'percent': [100*(stagger+bblTime)/totalTime, 100*(stagger+staggerTime)/totalTime], 'props': {
+                'border-radius': bblRight
+              } },
+
+            ];
+
+            // if mode 0, we expand for the next cell next
+            if (this.mode==0) fromDivAnim.steps.push(
+              // quickly morph to fit next
+              { 'percent': 100*(stagger+staggerTime+bblTime)/totalTime, 'props': {
+                'border-radius': ( this.axbi==1 ) ? bblRight : bblNone
+              } }
+            );
+
+            
+            this.initElement( fromDivAnim );
+            anims.push(fromDivAnim);
+            // console.log(fromDivAnim.keyframes);
+         }
+
+
+
+          // decrement the visible n:
+          // HACK: this isn't really synced with animation so can't be paused
+          if (this.mode!=3){
+            setTimeout( ()=>{
+            try {
+              let ndiv = this.details.querySelector("div > .n");
+              // console.log(ndiv);
+              this.ni-=1;
+              let nattempt = ndiv.innerHTML.replace(/[0-9A-F]{2}/i,hex(this.ni,2));;
+
+              ndiv.innerHTML = nattempt; // replaces hex
+              } catch(err){
+                console.log("error:" +err);
+              }
+              // one liner
+              // this.details.querySelector("div > .n").innerHTML = this.details.querySelector("div > .n").innerHTML.replace(/[0-9A-F]{2}/i,hex(this.ni--,2));
+            }, stagger*1000);
+          }
+
+
+          // Mover and its Shadow
+          //
+          // create elements
+          let fromDivBbox = fromDiv.getBoundingClientRect();
+
+          // cloning it at the same position
+          let mover = fromDiv.cloneNode();
+          let shadow = fromDiv.cloneNode();
+          // let mover = document.createElement("div");
+          // let shadow = document.createElement("div");
+          mover.style.border = 'none';
+          shadow.style.border = 'none';
+          
+          mover.style.opacity = "0";
+          mover.innerHTML = fromDiv.innerHTML+"";
+          shadow.style.opacity = "0";
+
+          mover = document.getElementById("animationTop").appendChild( mover ); // actually add it to page
+          shadow = document.getElementById("animationTop").appendChild( shadow ); // actually add it to page
+          //
+
+
+          // track this animation, for pausing, etc
+          let moverAnim = new Animation();
+          moverAnim.element = mover;
+          moverAnim.baseDuration = totalTime;
+          moverAnim.duration = totalTime;
+          moverAnim.easingFunction = "ease";
+          moverAnim.deleteNodeWhenDone = true;
+          moverAnim.keyframeName = `moverMove_${i}_${Date.now()}`;
+
+          var moverOrig = {
+            'width': fromDivBbox.width+"px", 'height': fromDivBbox.height+"px", 'border-radius': bblBoth,
+              'position': 'absolute', 'opacity': "0", 'z-index': "102",
+              'transform': `translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px)`,
+              'background-color': `rgba(${this.bgColors[this.mode]},1)`, 'color': `rgba(${this.fgColors[this.mode]},1)`
+          }
+
+          // moverAnim.steps = [
+          //   { 'percent':0, 'props': {
+          //     ...moverOrig}
+          //   }
+          // ];
+
+          let shadowAnim = new Animation();
+          shadowAnim.element = shadow;
+          shadowAnim.baseDuration = totalTime;
+          shadowAnim.easingFunction = "ease";
+          shadowAnim.deleteNodeWhenDone = true;
+          shadowAnim.keyframeName = `shadowMove_${i}_${Date.now()}`;
+          // more modular but not working?
+          // shadowAnim.steps = [ { ...moverAnim.steps[0], 'z-index': "101",  'background-color': `rgba(0,0,0,0.8)` } ];
+          var shadowOrig = { ...moverOrig, 'z-index': "101",  'background-color': `rgba(0,0,0,0.8)` };
+
+          // shadowAnim.steps = [
+          //   { 'percent':0, 'props': {
+          //     'width': fromDivBbox.width+"px", 'height': fromDivBbox.height+"px", 'border-radius': bblBoth,
+          //     'position': 'absolute', 'opacity': "0", 'z-index': "101",
+          //     'transform': `translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, 0px)`,
+          //     'background-color': `rgba(0,0,0,0.8)`}
+          //   }
+          // ];
+
+
+
+          // getting the location of destination div
+          // note that it's not in the right position when we build these,
+          // if we are going to scroll, so we have to check
+          // where it will be once we scroll.
+
+          let toDiv = this.decompContent.querySelector(`div > #g0x${hex( 32*((this.decompIndex+i)>>5), 6 )} div #byte_${hex( (this.decompIndex+i), 6 )}`);
+          let toDivBbox = toDiv.getBoundingClientRect();
+          //
+          let hcTop = this.decompContent.getBoundingClientRect().y;
+          let toDivY;
+          if (this.willScrollDecomp){
+            checkToDiv = this.decomp.checkOffsetPosition( this.decompIndex+i, 2, 2 ); //assuming this is up to date
+            toDivY = hcTop + ( checkToDiv.position - positionWillScrollTo );
+          } else {
+            toDivY = toDivBbox.y;
+          }
+
+          // toDivYs.push(toDivY);
+
+          // hc.y + topMargin;
+          // for each: hcTop.y + ( thisToDiv_.position_from_checkOffsetPosition - positionWillScrollTo );
+
+          // and moving the clone to location of destinationDiv
+
+          // first determine the distance it's moving and make a reasonable travel speed:
+          // let travelDist = (((fromDivBbox.x-toDivBbox.x)**2)+((fromDivBbox.y-toDivY)**2))**0.5;
+          // // based on 2sec for travel across width of a 1080/1920 screen,
+          // // but clamp the time... esp if we're picking up and scrolling for mode 2
+          // // let travelRatio = Math.min( travelDist/1920, 1);
+          // let travelRatio = 1;
+          // let travelTime = move1920*travelRatio; // +1sec; 0.5 each for raising and lowering div into place
+          
+          // moveTimes.push(travelTime);
+          // maxMoveTime = Math.max( travelTime, maxMoveTime ); // track the highest (not necessarily the 1920 time)
+
+          let scrollEndTime = totalStagger+riseTime+scrollTime+stagger; // includes stagger
+
+          // new:
+          // only thing differing s the lift height:
+          [ [moverAnim, lift, moverOrig], [shadowAnim, "0px", shadowOrig] ].forEach(d=>{
+
+            d[0].steps = [
+              // rise //////
+              // wait for stagger
+              { 'percent': [0, 100*stagger/totalTime], 'props': {...d[2]} },
+              // rise
+              { 'percent': 0.01+(100*(stagger)/totalTime), 'props': {
+                'opacity': '1',
+                }
+              },
+              // rise up and remain until scroll break ////
+              { 'percent': [100*(stagger+riseTime)/totalTime, 100*(scrollEndTime)/totalTime], 'props': {
+                'transform': `translate3D(${fromDivBbox.x}px, ${fromDivBbox.y }px, ${d[1]})`}
+              },
+              // move, drop, bubble //////
+              // begin move
+              { 'percent': 100*(scrollEndTime+moveTime)/totalTime, 'props': {
+                'transform': `translate3D(${toDivBbox.x}px, ${toDivY }px, ${d[1]})`,
+                'width': `${toDivBbox.width}px`, 'height': `${toDivBbox.height}px` } },
+              // end move/begin drop
+              { 'percent': 100*(scrollEndTime+moveTime+riseTime)/totalTime, 'props': {
+                'transform': `translate3D(${toDivBbox.x}px, ${toDivY }px, 0px)`, 'opacity': "1"} },
+              // make invisible
+              { 'percent': 0.01+(100*(scrollEndTime+moveTime+riseTime)/totalTime), 'props': {
+                'opacity': "0"} },
+              // end drop/begin bubble
+              // { 'percent': 100, 'props': { } },
+
+            ];
+          });
+
+
+          // style the toDiv
+
+          let toDivAnim = new Animation();
+          toDivAnim.name = "toDiv animation";
+          toDivAnim.element = toDiv;
+          toDivAnim.baseDuration = totalTime;
+          toDivAnim.easingFunction = "ease";
+          toDivAnim.keyframeName = `toDivStyle_${i}_${Date.now()}`;
+          toDivAnim.steps = [];
+
+          let toDivStyle = window.getComputedStyle(toDiv);
+          let torigs = {
+            'color':toDivStyle.getPropertyValue('color'),
+            'background-color':toDivStyle.getPropertyValue('background-color'),
+            'border':toDivStyle.getPropertyValue('border'),
+            'opacity':'0'
+          }
+
+          let finalBbl = bblNone;
+          if (( this.axbi==1 ) && ( this.axbi==this.axb )){
+            finalBbl = bblBoth;
+          } else {
+            if ( this.axbi==1 ) finalBbl = bblRight;        // last
+            if ( this.axbi==this.axb ) finalBbl = bblLeft;  // first
+          }
+
+          // instant jump to cell style
+          toDivAnim.steps.push(...[
+            { 'percent': [0, 100*(scrollEndTime+moveTime+riseTime)/totalTime], 'props': { 
+              ...torigs} },
+            // begin bubble
+            // instantly change color and add full bubble
+            { 'percent': 0.01+(100*(scrollEndTime+moveTime+riseTime)/totalTime), 'props': {
+              'opacity':"1",
+              'background-color': `rgba(${this.bgColors[this.mode]},1)`,
+              'color': `rgba(${this.fgColors[this.mode]},1)`,
+              'border-radius': bblBoth },
+            },
+            
+
+            // quickly morph to fit previous
+            { 'percent': [
+                100*(scrollEndTime+moveTime+riseTime+bblTime)/totalTime,
+                100*(scrollEndTime+moveTime+riseTime+staggerTime)/totalTime
+              ],  'props': {
+              'border-radius': ( this.axbi==this.axb ) ? bblBoth : bblRight
+            } },
+
+            // morph to fit next
+            { 'percent': 100*(scrollEndTime+moveTime+riseTime+staggerTime+bblTime)/totalTime, 'props': {
+              'border-radius': finalBbl
+            } },
+
+
+          ]);
+          //TODO: if we have an output byte coming after, bubble it up to match that one:
+          // (currently all just bubble up at very end)
+          
+          this.axbi--; // countdown
+          stagger += staggerTime;
+          
+          // now that we have all the anims' steps
+          this.initElement( moverAnim );
+          this.initElement( shadowAnim );
+          this.initElement( toDivAnim );
+          // console.log("toDiv:");
+          // console.log(toDivAnim);
+          // console.log(toDivAnim.keyFrames);
+
+          anims.push(...[ moverAnim, shadowAnim, toDivAnim]);
+
+
+          // toDivs.push(toDiv);
+          // movers.push(mover);
+          // shadows.push(shadow);
+
+
+
+        }; // fromDivs for  A end
+
+        // anims.forEach( (d,i) => {
+        //     console.log(d.keyframes);
+        //   }
+        // );
+
+        anims.forEach( (d,i) => {
+          this.startElement( d );
+        });
+
+
+        anims[anims.length-1].element.addEventListener("animationend", ()=>{
+
           // then increment this.decompIndex++;
-          this.decompIndex++;
-          // Replace styles of hex_bytes in hex_content with those of the clones 
+          // this.decompIndex += forDivs.length;
+          // this.decompIndex += this.axb; // number of bytes (a) x number of times (b)
+          this.decompIndex += this.batchSize;
+          // Replace styles of hex_bytes in hex_content with those of the clones
           // (just background and font being visible? maybe borders?)
           // toDiv.style.color = 'var(--textColor)';
           // toDiv.style.background = `rgba(${this.modeColor.map(d=>d*0.25)},1)`;
-          
-          toDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-          toDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-          var blefts=['0','0'], brights=' 0 0 ';
-          if (this.firstIncomplete){
-            blefts = [crnr,crnr];
-            this.firstIncomplete = false;
-          }
-          if (this.moveBuffer.length == 0) brights = ` ${crnr} ${crnr} `;
-          toDiv.style.borderRadius = blefts.join(brights);
-          console.log(`\n\n\n\ntodiv borderRadius:${blefts.join(brights)}\n\n\n\n`);
+
+          // toDiv.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
+          // toDiv.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+          // var blefts=['0','0'], brights=' 0 0 ';
+          // if (this.firstIncomplete){
+          //   blefts = [crnr,crnr];
+          //   this.firstIncomplete = false;
+          // }
+          // if (this.moveBuffer.length == 0) brights = ` ${crnr} ${crnr} `;
+          // toDiv.style.borderRadius = blefts.join(brights);
+          // console.log(`\n\n\n\ntodiv borderRadius:${blefts.join(brights)}\n\n\n\n`);
 
 
           // fade out/remove clone elements
-          mover.remove();
-          shadow.remove();
+          // mover.remove();
+          // shadow.remove();
 
           // if (this.mode!=3) ndiv.style.animation = ``; // remove the bulge animation
 
           // if this is the end of this decomp span
           if (this.moveBuffer.length > 0){
+            // console.log("this.moveBuffer.length > 0, calling this.cloneAndMove()");
             // console.log("continue this.cloneAndMove() for next byte of this span");
             // continue moving the next byte within this same span
             this.cloneAndMove();
 
           } else {
-            
+
             // style the cmd byte if we haven't already (shouldn't have):
-            let cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`); // actual div node
-            if (cmd.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
-              cmd.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
-              cmd.style.color = `rgba(${this.fgColors[this.mode]},1)`;
-              
-              var cmdbleft=[crnr, crnr], cmdbright=' 0 0 ';
-              if (this.mode == 3) cmdbright = ` ${crnr} ${crnr} `; // mode 3 has no following bytes in its span
-              console.log(`\n\n\n\ncmd borderRadius:${cmdbleft.join(cmdbright)}\n\n\n\n`);
-              cmd.style.borderRadius = cmdbleft.join(cmdbright);
-            }
+            // let cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`); // actual div node
+            // if (cmd.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
+            //   cmd.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
+            //   cmd.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+
+            //   var cmdbleft=[crnr, crnr], cmdbright=' 0 0 ';
+            //   if (this.mode == 3) cmdbright = ` ${crnr} ${crnr} `; // mode 3 has no following bytes in its span
+            //   console.log(`\n\n\n\ncmd borderRadius:${cmdbleft.join(cmdbright)}\n\n\n\n`);
+            //   cmd.style.borderRadius = cmdbleft.join(cmdbright);
+            // }
             // console.log("length of buffer is: "+this.moveBuffer.length+"; move on to next decompSpan()");
 
             // increment the comp index
@@ -4865,32 +5314,37 @@ replace].forEach(d=>console.log(d));
 
             // see if we need to return the hex_content positions before the next span:
             // bc we possibly got messed up by a previous LUT mode scroll
-            var cmdOffsetPos = this.comp.checkOffsetPosition( this.compIndex, 2, 1 );
+            var cmdOffsetPos = this.comp.checkOffsetPosition( this.compIndex, 2, 2 );
             var cmdy;
             if (!cmdOffsetPos.inView) {
               cmdy = cmdOffsetPos.position-cmdOffsetPos.topMargin; // for the details div
               this.compContent.scrollTo({top: cmdy, behavior: 'smooth'});
 
             }
-            
+
             // Do the same for decomp... although we still have the problem with decomp where it might not look clear if
             // history mode bytes are higher up than the current decompIndex
-            var outOffsetPos = this.decomp.checkOffsetPosition( this.decompIndex, 2, 1 );
+            var outOffsetPos = this.decomp.checkOffsetPosition( this.decompIndex, 2, 2 );
             if (!outOffsetPos.inView) this.decompContent.scrollTo({top: outOffsetPos.position-outOffsetPos.topMargin, behavior: 'smooth'});
 
             //HACK: a somewhat arbitrary time to wait for panel(s) to scroll
             setTimeout( ()=>{
+              // console.log(`/*\n${this.debug.header}*/\n${this.debug.keyframes}`);
+              let b78 = Array.from(Array(78).keys()).map(d=>"-").join("");
+              this.debug.log += `/*${b78}\n${this.debug.header}\n${b78}*/\n${this.debug.keyframes}`;
               if (this.compIndex < this.comp.source.data.length) this.decompSpan();
-            }, (!cmdOffsetPos.inView || !outOffsetPos.inView) ? 1200 : 50)
-            
+            }, (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0)
+
             // // begin the next span
             // if (this.compIndex < this.comp.source.data.length) this.decompSpan();
 
           }
 
-        });
+         
+        }); // end of A end animation end
 
       },
+
       decompSpan: function(){
 
         // mode-specific
@@ -4982,9 +5436,9 @@ replace].forEach(d=>console.log(d));
         // LEVEL 1
         // Intitialize and show mode details
 
-        
-        
-        
+
+
+
 
         // set more details based on the current command byte
         //
@@ -5000,13 +5454,18 @@ replace].forEach(d=>console.log(d));
         this.numberAddedToDecomp = (this.mode==3) ? 2 : this.n; // number of bytes that will be added to decomp data (not needed?)
         this.modeColor = this.bgColors[this.mode]; // color of this mode
 
-        console.log(`------------\n Decomp span\n mode ${this.mode}\n n ${this.n}\ncomp index ${this.compIndex}\ndecomp index ${this.decompIndex}------------`);
+        
+        this.debug.header = `------------\n Decomp span ${this.decompSpanCount}\n mode ${this.mode}\n n ${this.n}\ncomp index ${this.compIndex}\ndecomp index ${this.decompIndex}\n------------\n`;
+        // console.log(this.debug.header);
+
+
+        // console.log(this);
 
         // Create the Details div, a grid that will animate to show the breakdown of the command byte
         //
         // get the command byte html div so we can find its properties and line up our details html div to it
         let cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`); // actual div node
-                
+
         let cmdBbox = cmd.getBoundingClientRect();
         // set up dimensions
         // y will be the new "scrolled" y position if we determined we will scroll
@@ -5030,8 +5489,8 @@ replace].forEach(d=>console.log(d));
         var details = document.createElement("div");
         // details.style.gridTemplateColumns = `0px ${wh} ${wh} 0px 0px 0px 0px`;
         // details.style.gridTemplateRows = `0px ${h}px 0px 0px 0px 0px 0px 0px 0px`;
-        
-        var runningColumns = `0px 0px 0px 0px 0px 0px 0px`; // this shouldn't be necssary...
+
+        var runningColumns = `0px 0px 0px 0px 0px 0px 0px 0px`; // this shouldn't be necssary...
         var runningTransform = `translate3D(${ Math.round(xl) }px, ${ Math.round(y) }px, 0px)`;
         details.style.transform = runningTransform;
         details.style.height = cmdBbox.height+"px";
@@ -5040,10 +5499,10 @@ replace].forEach(d=>console.log(d));
         details.style.color = `rgba(${this.fgColors[this.mode]},1)`;
 
         details.classList.add("decomp_animation_details");
-        details = document.getElementById("animationTop").appendChild(details);
-        this.detailsDiv = details;
+        this.details = document.getElementById("animationTop").appendChild(details);
+        // this.details = details;
 
-        // 
+        //
         var cmd1 = this.compContent.querySelector(`div > #g0x${hex( 32*((1+this.compIndex)>>5), 6 )} div #byte_${hex( (1+this.compIndex), 6 )}`);
         var cmd2 = this.compContent.querySelector(`div > #g0x${hex( 32*((2+this.compIndex)>>5), 6 )} div #byte_${hex( (2+this.compIndex), 6 )}`);
 
@@ -5058,6 +5517,8 @@ replace].forEach(d=>console.log(d));
         var total; // total steps
         switch(this.mode){
           case 2:
+            total = 9;
+            break;
           case 3:
             total = 7;
             break;
@@ -5066,7 +5527,7 @@ replace].forEach(d=>console.log(d));
 
         }
         // timing:
-        var detailsKeyframesDuration = total; // 7
+        var detailsKeyframesDuration = this.detailsTime*total/4; // 7
         var count = 1;
 
         // new method; rolling columns (all in one row)
@@ -5099,32 +5560,63 @@ replace].forEach(d=>console.log(d));
           }
         ];
 
+        // special stuff for modes 2 and 3
         if (this.mode>1){
           // setup
           var panel = (this.mode==2) ? this.decomp : this.comp;
           var panelContent = (this.mode==2) ? this.decompContent : this.compContent;
           var contentBbox = panelContent.getBoundingClientRect();
+          // console.log('addressByte selector: '+`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
           var addressByte = panelContent.querySelector(`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
           var addrByteBbox = addressByte.getBoundingClientRect();
           var deltay = 0;
-          
-           
+
+
           if (this.mode==2) {
             this.detailsObjects.push(...[
-              {
-                text: [` swap next 2 bytes -> `,` history address: ${hex(this.address,4)} `],
-                class: ['notBubble','bubbleCell']
-              }
               
+              {
+                text: [` swap next 2 bytes -> `],
+                class: ['notBubble']
+              },
+              // filler
+              // {
+                
+              // },
+              {
+                text: [``,` history address: ${hex(this.address,4)} `],
+                class: ['notBubble','bubbleCell']
+              },
+              // {
+              //   text: [` swap next 2 bytes -> `,` history address: ${hex(this.address,4)} `],
+              //   class: ['notBubble','bubbleCell']
+              // },
+
             ]);
+            //TODO: style the following two bytes as bblLeft and bblRight, aynced at this time
+            // var cmd1 = this.compContent.querySelector(`div > #g0x${hex( 32*((1+this.compIndex)>>5), 6 )} div #byte_${hex( (1+this.compIndex), 6 )}`);
+            //   if (cmd1.style.backgroundColor != `rgba(${this.bgColors[this.mode]},1)`){
+            //     cmd1.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
+            //     cmd1.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+            //     // cmd1.style.borderRadius = `${crnr} 0 0 ${crnr}`;
+
+            //     var cmd2 = this.compContent.querySelector(`div > #g0x${hex( 32*((2+this.compIndex)>>5), 6 )} div #byte_${hex( (2+this.compIndex), 6 )}`);
+            //     cmd2.style.backgroundColor = `rgba(${this.bgColors[this.mode]},1)`;
+            //     cmd2.style.color = `rgba(${this.fgColors[this.mode]},1)`;
+            //     cmd2.style.borderRadius = `0 ${crnr} ${crnr} 0`;
+            //   }
           }
           else if (this.mode==3) {
+            // ` ×2 -> `
             this.detailsObjects.push(...[
               {
-              text: [` -> ×2 -> `,` LUT byte address: ${hex(this.address,4)} `],
+              text: [` <<1 -> `,` LUT byte address: ${hex(this.address,4)} `],
               class: ['notBubble','bubbleCell']
               }
             ]);
+
+
+
           }
 
           // establish scroll, if needed:
@@ -5135,9 +5627,11 @@ replace].forEach(d=>console.log(d));
             // go directly there if it's in view
             this.detailsObjects.push(...[
               {
-                transform: `translate3D(${Math.round(addrByteBbox.x)}px, ${Math.round(addrByteBbox.y)}px, ${0}px)`
+                transform: `translate3D(${Math.round(addrByteBbox.x)}px, ${Math.round(addrByteBbox.y)}px, ${0}px)`,
+                height: addrByteBbox.height+"px"
               },
             ]);
+
           } else{
             // go to top left, scroll it into view at the top, then go to right
             this.detailsObjects.push(...[
@@ -5145,75 +5639,29 @@ replace].forEach(d=>console.log(d));
                 transform: `translate3D(${contentBbox.x}px, ${contentBbox.y}px, ${0}px)`
               },
               {
-                transform: `translate3D(${Math.round(addrByteBbox.x)}px, ${Math.round(contentBbox.y)}px, ${0}px)`
+                transform: `translate3D(${Math.round(addrByteBbox.x)}px, ${Math.round(contentBbox.y)}px, ${0}px)`,
+                height: addrByteBbox.height+"px"
               },
             ]);
 
             // set scrolling timeout now that we know length of detailsObjects
             var scrollStartTime = detailsKeyframesDuration*(this.detailsObjects.length-2)/this.detailsObjects.length;
-            console.log(`scrollStartTime:   ${scrollStartTime}`);
+            // var scrollStartTime = this.scrollTime;
+            // console.log(`scrollStartTime:   ${scrollStartTime}`);
             setTimeout( ()=>{
               // try {
                 console.log("1) in settimeout for scroll. panel content:");
-                console.log(panelContent);
+                // console.log(panelContent);
                 panelContent.scrollTo({top: offsetPos.position, behavior: 'smooth'});
-              // } catch (err){
-              //   console.log(err);
-              //   try {
 
-              //     console.log("2) in settimeout for scroll. panel content:");
-              //     var pc = (this.mode==2) ? this.decompContent : this.compContent;
-              //     console.log(pc);
-              //     pc.querySelector(".hex_content").scrollTo({top: offsetPos.position, behavior: 'smooth'});
-              //   } catch (err){
-              //     console.log(err);
-              //   }
-              // }
-              
-              
               },
               scrollStartTime*1000
             );
 
           }
-           
+
         }
 
-        // details.innerHTML = `\
-        //   <div class="${clsnm}" style="${bgc}grid-row: 2; grid-column: 1;">Command (hex)</div>
-        //     <div class="${clsnm}" style="${bgc}grid-row: 2; grid-column: 2 / 4;">${this.cmdHex}</div>`;
-        // details.innerHTML += `\
-        //   <div class="${clsnm}" style="${bgc}grid-row: 3; grid-column: 1;">Command (bin)</div>
-        //     <div class="${clsnm}" style="${bgc}grid-row: 3; grid-column: 2 / 4;">${this.cmdBin}</div>`;
-        // details.innerHTML += `\
-        //   <div class="${clsnm}" style="${bgc}grid-row: 4 ; grid-column: 1;">(bin)</div>
-        //     <div class="${clsnm}" style="${bgc}grid-row: 4; grid-column: 2;">Mode&nbsp;${this.cmdBin.slice(0,2)}</div>
-        //     <div id="nBin" class="${clsnm}" style="${bgc}grid-row: 4; grid-column: 3;">Detail:&nbsp;${this.cmdBin.slice(2)}</div>
-        //   <div class="${clsnm}" style="${bgc}grid-row: 5 ; grid-column: 1;">(hex)</div>
-        //     <div class="${clsnm}" style="${bgc}grid-row: 5; grid-column: 2;">Mode&nbsp;${this.mode}&nbsp;${this.modeNames[this.mode]}</div>
-        //     <div id="n" class="${clsnm}" style="${bgc}grid-row: 5; grid-column: 3;">Detail:&nbsp;${hex(this.n,2)}</div>
-
-        //   `;
-        // // right side
-        // // details.innerHTML += `\
-        // //   <div style="${bgc}grid-row: 3 / -1; grid-column: 3 / 5;">Swap Bytes</div>`;
-        //<div id="" class="${clsnm}" style="overflow:hidden;background-color:rgba(0,0,0,0);border:5px inset;grid-row: 6 / -1; grid-column: 6;"></div>
-
-        //         <div id="address" class="${clsnm}" style="${bgc}grid-row: 6 / -1; grid-column: 4;">${hex(this.address,4)}</div>
-        // if (this.mode==2) details.innerHTML += `\
-        //   <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 4;">swap next 2</div>
-        //     <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 5;">${hex(this.comp.source.data[this.compIndex+2],2)}</div>
-        //     <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 6;">${hex(this.comp.source.data[this.compIndex+1],2)}</div>
-        //   `;
-
-        // if (this.mode==3) details.innerHTML += `\
-        //   <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 4;"><<&nbsp;1&nbsp;=</div>
-        //     <div class="${clsnm}"  style="${bgc}grid-row: 5; grid-column: 5;">${hex(this.address,4)}</div>
-
-        //   `;
-        
-
-        
 
         // build the html
         var texts = 0;
@@ -5221,272 +5669,238 @@ replace].forEach(d=>console.log(d));
         var textsColWidths = [];
 
 
-        details.innerHTML = ``;
+        this.details.innerHTML = ``;
 
         this.detailsObjects.forEach((d,i)=>{
           if (d.text) {
               let inners = d.text.reduce( (s,e,j) => s+='<div class="'+d.class[j]+'">'+d.text[j].replaceAll(" ","&nbsp;")+'</div>','');
-              
-              console.log(inners);
-              details.innerHTML+=`<div class="${clsnm}" style="grid-row: 1; grid-column: ${1+i};">`+inners+`</div>`;
+
+              // console.log(inners);
+              this.details.innerHTML+=`<div class="${clsnm}" style="grid-row: 1; grid-column: ${1+i};">`+inners+`</div>`;
               texts++;
-            
+
             textsColWidths.push( (d.widthUnits==undefined)?"0ch":"0"+d.widthUnits);
-            
+
           }
           if (d.transform) transforms++;
-          
+
         });
 
-        
-        var textsColWidthsOG = Array.from(textsColWidths)
-        var window = 2;
-        console.log(`${details.innerHTML}\nAfter building html, counted ${texts} texts and ${transforms} transforms`);
-        
+        // track this animation, for pausing, etc
+        let anim = new Animation();
+        anim.element = this.details; //the actual node
+        anim.keyframeName = `Mode_${this.mode}_details_${Date.now()}`;;
+        anim.baseDuration = detailsKeyframesDuration;
+        anim.duration = detailsKeyframesDuration;
+        anim.easingFunction = 'linear';
+        anim.progress = 0;
+        anim.name = "Details Div, Mode "+this.mode;
+        anim.steps = [];
+
+        // this.initElement( anim ); // have to add steps first
+
+
+        var textsColWidthsOG = Array.from(textsColWidths);
+        var twindow = (this.mode==2) ? 3 : 2;
+        // console.log(`${this.details.innerHTML}\nAfter building html, counted ${texts} texts and ${transforms} transforms`);
+
         // keframes:
-        var detailsName = `Mode_${this.mode}_details_${Date.now()}`;
-        var textCount=0;
+        var textCount = 0;
         var rts = false; // returnToStart - this idea didn't work so it's being debugged-out for now...
-        var returning = (this.mode>2) && rts;
-        var keyframes = `
-        @keyframes ${detailsName} {
-        `;
+        var returning = (this.mode>1) && rts;
+        
+        var lastTextTimes = [0,1]; // percent that the last text appears
+        var secondToLastTextTimes = [0, 1];
+        var thirdToLastTextTimes = [0, 1];
         this.detailsObjects.forEach((d,i)=>{
-            
+          // update text width info
             if (d.text) {
               textCount++;
               // roll the window (update current, remove last if present)
               textsColWidths[i] = d.width ? d.width+""+d.widthUnits : (d.text.reduce((s,d,i)=>s+=d.length+0,0)+1)+"ch";
-              if (i-window >= 0) textsColWidths[i-window] = textsColWidthsOG[i-window];
+              if (i-twindow >= 0) textsColWidths[i-twindow] = textsColWidthsOG[i-twindow];
+              thirdToLastTextTimes = [...secondToLastTextTimes];
+              secondToLastTextTimes = [...lastTextTimes];
+              lastTextTimes = [detailsKeyframesDuration*(i+0.66)/this.detailsObjects.length, detailsKeyframesDuration*(i+1)/this.detailsObjects.length];
             }
-            // add the next keyframe. 
+
+            // new way to prepare for building keyframes, more modular... ------
+            let props = {
+              'background-color': this.bgColors[this.mode],
+              'color': this.fgColors[this.mode],
+              'height': d.height ? d.height : cmdBbox.height+"px", 
+              'grid-template-columns': d.text ? (runningColumns=textsColWidths.join(" ")) : runningColumns,
+              'transform': d.transform ? (runningTransform=d.transform) : runningTransform,
+            };
+            anim.steps.push(...[
+              // the first; previous would animate up to here and stop...
+              { 'percent': 100*(i)/(this.detailsObjects.length), 'props': {...props} },
+              // ...then we stay here until THIS one's percent
+              { 'percent': 100*(i+0.66)/(this.detailsObjects.length), 'props': {...props} }
+            ]);
+
+            // // if it's the last and we want to close it off:
+            // if ((i+1==this.detailsObjects.length) && !returning) anim.steps.push(
+            //   {'percent': 100, 'props': {...props} }
+            // );
+            // ------
+
+            // old way: --------------
+            // add the next keyframe.
             // If it's the last, and we didnt move details (mode 0 and 1 stay in place), close it with "100%"
-            
-            keyframes+=`/* ${i+1} of ${this.detailsObjects.length}; should be at time ${detailsKeyframesDuration*(i)/(this.detailsObjects.length)} */
-            ${100*(i)/(this.detailsObjects.length)}%, 
-            ${100*(i+0.66)/(this.detailsObjects.length)}%${(i+1==this.detailsObjects.length) && !returning ?', 100%':''} {
-              grid-template-columns: ${ d.text ? (runningColumns=textsColWidths.join(" ")) : runningColumns };
-              transform: ${ d.transform ? (runningTransform=d.transform) : runningTransform };
-            }
-            `;
+
+            // keyframes+=`/* ${i+1} of ${this.detailsObjects.length}; should be at time ${detailsKeyframesDuration*(i)/(this.detailsObjects.length)} */
+            // ${100*(i)/(this.detailsObjects.length)}%,
+            // ${100*(i+0.66)/(this.detailsObjects.length)}%${(i+1==this.detailsObjects.length) && !returning ?', 100%':''} {
+            //   grid-template-columns: ${ d.text ? (runningColumns=textsColWidths.join(" ")) : runningColumns };
+            //   transform: ${ d.transform ? (runningTransform=d.transform) : runningTransform };
+            // }
+            // `;
+            //--------------------
+
           });
+
+
         // if mode 3 or 4, we move back to the starting point real quick
-        if ( returning && (this.mode>1) ) {
-          keyframes+=`
-              100% {
-                grid-template-columns: ${ [this.detailsObjects[0].width, ...textsColWidthsOG.slice(1)].join(" ") };
-                transform: ${ this.detailsObjects[0].transform };
-              }
-            }`; 
+        // if ( returning && (this.mode>1) ) {
+        if ( returning ) {
+          // keyframes+=`
+          //     100% {
+          //       grid-template-columns: ${ [this.detailsObjects[0].width, ...textsColWidthsOG.slice(1)].join(" ") };
+          //       transform: ${ this.detailsObjects[0].transform };
+          //     }
+          //   }`;
+          anim.steps.push( {...anim.steps[0], 'percent': 100} );
         } else {
-          keyframes+=`}`; // else just close it up
+          // keyframes+=`}`; // else just close it up
+          0;
         }
-        // var keyframes = `@keyframes ${detailsName} {
-        //   /* initially just the same as the original cmd cell */
-        //   0%,
-        //   ${100*(count++)/total}%  {
-        //     grid-template-columns: 0px ${wh} ${wh} 0px 0px 0px 0px;
-        //     grid-template-rows: 0px ${h}px 0px 0px 0px 0px 0px 0px 0px;
-        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //   }
+        // console.log( anim.steps);
 
-        //   /* next, expand left to show "cmd hex" */
-        //   ${100*(count++)/total}%,
-        //   ${100*(count++)/total}% {
-        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
-        //     grid-template-rows: 0px ${h}px 0px 0px 0px 0px 0px 0px 0px;
-        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //   }
-
-        //   /* "cmd binary" | bin val */
-        //   ${(100*(count++)/total)+0.05}%,
-        //   ${100*(count++)/total}% {
-        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
-        //     grid-template-rows: 0px ${0}px ${h}px 0px 0px 0px 0px 0px 0px;
-        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //   }
-
-        //   /* better aniation for splitting binary 2 MSBs and 6 LSBs, left/right, hide "binary v" */
-        //   /* ??? */
-
-        //   /* "Mode" and "detail" | bin MSBs | bin LSBs*/
-        //   ${100*(count++)/total}%,
-        //   ${100*(count++)/total}% { /* ++ */
-        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
-        //     grid-template-rows: 0px ${0}px ${0}px ${h}px 0px 0px 0px 0px 0px;
-        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //   }
-
-        //   /* "Mode" and "detail" | HEX MSBs | HEX LSBs*/
-        //   ${(100*(count++)/total)+0.05}%,
-        //   ${100*(count++)/total}% {
-        //     grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
-        //     grid-template-rows: 0px ${0}px ${0}px 0px ${h}px 0px 0px 0px 0px;
-        //     transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //   }
-        //   `;
-        
-        // // track the ending style, for later:
-        // var last = `grid-template-columns: ${wlls} ${ww2s} ${ww2s} 0px 0px 0px 0px;
-        //   grid-template-rows: 0px ${0}px ${0}px 0px ${h}px 0px 0px 0px 0px;
-        //   transform: translate3D(${ xl }px, ${ y }px, 0px);
-        
-        // `;
-
-        // // expand right
-        // if ((this.mode==2) || (this.mode==3)){
-        //   last = `grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px 0px 0px 0px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //     `;
-        //   keyframes+=`\
-        //     ${100*(count++)/total}%,
-        //     ${100*(count++)/total}%,
-        //     ${100*(count++)/total}% {
-        //       ${last}}
-        //   `;
-
-        //   // move details div to top left of either <comp or decomp> panel, lining up its "address" cell.
-        //   // (assuming we use entire details div. we'll just get the offset from the top1
-        //   //  so it could be replaced with 0 later if using a separate div)
-        //   // we will then scroll, then move to the right. But we'll consolidate this all into one keframes animation.
-        //   // var dur;
-        //   // var moveToAddressKeyframes;
-        //   // var moveToAddressName;
-
-        //   // setup
-        //   var panelContent = (this.mode==2)?this.decompContent:this.compContent;
-        //   var panel = (this.mode==2)?this.decomp:this.comp;
-
-        //   // get delta x and delta y of address div to its parent "details" div
-
-        //   // var detailsAddress = details.querySelector("#address");
-        //   // var detailsBbox = details.getBoundingClientRect();
-        //   // var addrBbox = detailsAddress.getBoundingClientRect();
-        //   // var dx = addrBbox.x - detailsBbox.x; // not needed: just width of entire details div?
-        //   // var dy = addrBbox.y - detailsBbox.y;
-
-        //   var contentBbox = panelContent.getBoundingClientRect();
-
-        //   // get details about where to move it to the right for the second "movement", 
-        //   // lining up against <this.address>'s x coord
-        //   var addressByte = panelContent.querySelector(`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
-        //   // addressByte.style.border="1px solid white";
-        //   var addrByteBbox = addressByte.getBoundingClientRect();
-          
-        //   var detailsDivWidth = wl+ww+ww;
-        //   var deltay = 0;
-
-        //   if (this.mode==2) keyframes+=`\
-             
-        //      ${100*(count++)/total}%, 
-        //      ${100*(count++)/total}% {
-        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px 0px ${w}px ${w}px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${ xl+(2*w) }px, ${ y }px, 0px);
-        //     }
-        //     ${100*(count++)/total}%, 
-        //      ${100*(count++)/total}% {
-        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px ${w}px ${0}px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${ xl+(2*w) }px, ${ y }px, 0px);
-        //     }
-              
-        //      ${100*(count++)/total}%,
-        //      ${100*(count++)/total}%, 
-        //      ${100*(count++)/total}% {
-        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px ${w}px ${0}px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${contentBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-        //     }
-        //      ${100*(count++)/total}%,
-        //       ${100*(count++)/total}% {
-        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px ${w}px ${0}px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${addrByteBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-        //     }  `;
-          
-        //   if (this.mode==3) keyframes+=`\
-             
-        //      ${100*(count++)/total}%, 
-        //      ${100*(count++)/total}% {
-        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px 0px 0px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${ xl }px, ${ y }px, 0px);
-        //     }
-        //      ${100*(count++)/total}%,
-        //      ${100*(count++)/total}% {
-        //       grid-template-columns:${0}px ${ww2s} ${ww2s} ${ww}px ${w}px 0px 0px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${contentBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-        //     }
-        //      ${100*(count++)/total}%,
-        //       ${100*(count++)/total}% {
-        //       grid-template-columns: ${0}px ${ww2s} ${ww2s} ${ww}px ${w}px 0px 0px;
-        //       grid-template-rows: 0px ${0}px ${0}px 0px ${h}px ${0}px ${0}px 0px 0px;
-        //       transform: translate3D(${addrByteBbox.x}px, ${contentBbox.y-deltay}px, ${0}px);
-        //     } `;
-          
-
-        //   // apply a scroll in the "middle" of the animation:
-        //   // (scroll <comp or decomp> hex_content to <this.address>'s y coord)
-        //   setTimeout( ()=>{panel.scrollToOffset(this.address);console.log("scroll finished");}, detailsKeyframesDuration*(total-3)*1000/total );
-        //   console.log(`MODE 2/3 ADDRESS LINE-UP: \nfrom translate3D(${contentBbox.x - detailsDivWidth}px, ${contentBbox.y-deltay}px, ${0}px)\nto translate3D(${addrByteBbox.x - detailsDivWidth}px, ${addrByteBbox.y-deltay}px, ${0}px)\n`);
-          
-        // }
-        
-        // keyframes+=`}`;
-
-        // end of old method...
-
-        console.log(keyframes);
-
-        // // Now are the mode 2 and 3 specific ones
-        // if (this.mode==2) keyframes+=`\
-        //     /* expand right 2 columns            */
-        //     ${100*(count++)/total}% {
-        //       grid-template-columns: ${wl}px ${ww}px ${ww}px ${w}px ${w}px;
-        //       grid-template-rows: 0px ${h}px 0px ${h}px 0px ${h}px 0px 0px 0px;
-        //       transform: translate3D(${ x+w-(2*ww) }px, ${ y-h }px, 0px);
-        //     }
-        //     /* show "<- swap _/ "                */
-        //     ${100*(count++)/total}% {
-        //       grid-template-columns: ${wl}px ${ww}px ${ww}px ${w}px ${w}px;
-        //       grid-template-rows: 0px ${h}px 0px ${h}px 0px ${h}px 0px 0px 0px;
-        //       transform: translate3D(${ x+w-(2*ww) }px, ${ y-h }px, 0px);
-        //     }
-        //     /* show"history addr" & acual value  */
-        //     ${100*(count++)/total}% {
-        //       grid-template-columns: ${wl}px ${ww}px ${ww}px ${w}px ${w}px;
-        //       grid-template-rows: 0px ${h}px 0px ${h}px 0px ${h}px 0px ${h}px ${h}px;
-        //       transform: translate3D(${ x+w-(2*ww) }px, ${ y-h }px, 0px);
-        //     }
-        //   `;
-        // if (this.mode==3) keyframes+=`\
-        //   /*  show v x2           */
-        //   ${100*(count++)/total}% {
-        //     grid-template-columns: ${wl}px ${ww}px ${ww}px 0px 0px;
-        //     grid-template-rows: 0px ${h}px 0px ${h}px 0px ${h}px ${h}px 0px 0px;
-        //     transform: translate3D(${ x+w-(2*ww) }px, ${ y-h }px, 0px);
-        //   }
-        //   /*  show "lut addr" and value*/
-        //   ${100*(count++)/total}% {
-        //     grid-template-columns: ${wl}px ${ww}px ${ww}px 0px 0px;
-        //     grid-template-rows: 0px ${h}px 0px ${h}px 0px ${h}px ${h}px ${h}px ${h}px;
-        //     transform: translate3D(${ x+w-(2*ww) }px, ${ y-h }px, 0px);
-        //   }`;
-
-      // console.log(keyframes);
+        // new modulalr version: build the keyframes:
+        // keyframes = this.buildKeyframe(anim);
 
 
+
+      // old method ---------------
       // insert into stylesheet at index 0
-      document.styleSheets[0].insertRule(keyframes);
+      // document.styleSheets[0].insertRule(keyframes);
 
-      // apply the animation ("forwards" might be important?)
-      details.style.animation = `${detailsName} ${(this.mode==2)?detailsKeyframesDuration:detailsKeyframesDuration}s linear forwards`;
+      // // apply the animation ("forwards" might be important?)
+      // this.details.style.animation = `${detailsName} ${(this.mode==2)?detailsKeyframesDuration:detailsKeyframesDuration}s linear forwards`;
+      // -------------------------
 
 
-      details.addEventListener("animationend", ()=>{
+      
+
+
+
+      // also animate the appearance of bubble around the cmd and maybe cmd1 and cmd2 bytes:
+      var bblBoth = this.bblBoth;
+      var bblLeft = this.bblLeft;
+      var bblRight = this.bblRight;
+      var bblNone = this.bblNone;
+      var totalTime2 = detailsKeyframesDuration + this.bblTime;
+      var cmdAnims = [];
+
+      // cmd:
+      let cmdDivAnim = new Animation();
+      cmdDivAnim.name = "cmdDiv animation";
+      cmdDivAnim.element = cmd;
+      cmdDivAnim.baseDuration = totalTime2;
+      cmdDivAnim.easingFunction = "ease";
+      cmdDivAnim.keyframeName = `cmdDivStyle_${Date.now()}`;
+      cmdDivAnim.steps = [];
+      
+
+
+      // 
+      var cmdDivCompStyle = getComputedStyle(cmd);
+      let origs = {
+        'color':cmdDivCompStyle.getPropertyValue('color'),
+        'background-color':cmdDivCompStyle.getPropertyValue('background-color'),
+        'border':cmdDivCompStyle.getPropertyValue('border'),
+        
+      }
+
+
+      var cmdBblTime = (this.mode==2) ? thirdToLastTextTimes[0] : detailsKeyframesDuration;
+      if (this.mode==3) cmdBblTime = 0;
+
+      cmdDivAnim.steps = [
+        { 'percent': [0, 100*(cmdBblTime)/totalTime2],  'props': { ...origs } },
+        // make it the same color from the start; we assume details div is over top anyway
+        { 'percent': 0.02+(100*(cmdBblTime)/totalTime2), 'props': { 
+          'background-color': `rgba(${this.bgColors[this.mode]},1)`,
+          'color': `rgba(${this.fgColors[this.mode]},1)`,
+          'border-radius': bblBoth} },
+        // quickly morph to fit next
+        { 'percent': 100*(cmdBblTime+this.bblTime)/totalTime2, 'props': {
+          'border-radius': (this.mode==3) ? bblBoth : bblLeft
+        } }
+      ];
+      cmdAnims.push( cmdDivAnim );
+
+
+      // if mode 2 history, cmd 1 and cmd 2:
+      if (this.mode==2){
+        let histStart = 1;
+        [cmd1, cmd2].forEach( (d,i)=>{
+
+          let cmdxDivAnim = new Animation();
+          cmdxDivAnim.name = "cmd"+(1+i)+" Div animation";
+          cmdxDivAnim.element = d;
+          cmdxDivAnim.baseDuration = totalTime2;
+          cmdxDivAnim.easingFunction = "ease";
+          cmdxDivAnim.keyframeName = `cmd${1+i}DivStyle_${Date.now()}`;
+
+          cmdDivCompStyle = getComputedStyle(d);
+          let xorigs = {
+            'color':cmdDivCompStyle.getPropertyValue('color'),
+            'background-color':cmdDivCompStyle.getPropertyValue('background-color'),
+            'border':cmdDivCompStyle.getPropertyValue('border'),
+            
+          }
+
+          cmdxDivAnim.steps = [
+            { 'percent': [0, 100*thirdToLastTextTimes[0]/totalTime2], 'props': { ...xorigs} },
+            // when the mover div appears, coming out of this, instantly* make it the same color:
+            { 'percent': 0.02+(100*thirdToLastTextTimes[0]/totalTime2), 'props': { 
+              'background-color': `rgba(${this.bgColors[this.mode]},1)`,
+              'color': `rgba(${this.fgColors[this.mode]},1)`,
+              'border-radius': bblBoth} },
+            // quickly morph to fit adjacent cells
+            { 'percent': 100*(thirdToLastTextTimes[0]+this.bblTime)/totalTime2, 'props': {
+              'border-radius': (i==0) ? bblNone : bblRight
+            } }
+          ];
+
+          // console.log(cmdxDivAnim.steps);
+
+          cmdAnims.push( cmdxDivAnim );
+
+        });
+
+      }
+
+
+      
+
+      // new method : actually start animations -----------
+      cmdAnims.forEach(d=> {this.initElement(d);});
+      
+      this.initElement(anim);
+      // console.log(anim.keyframes);
+
+      cmdAnims.forEach(d=> {this.startElement(d);});
+      this.startElement(anim);
+
+      // ---------------------
+      
+
+      // not sure if it matters...
+      anim.element.addEventListener("animationend", ()=>{
+      // this.details.addEventListener("animationend", ()=>{
 
 
 
@@ -5534,90 +5948,6 @@ replace].forEach(d=>console.log(d));
         //--- end of temporary highlighting ----
 
 
-        // // level 2 addressScroll outline
-        // //
-        // // move details div to top left of either <comp or decomp> panel, lining up its "address" cell.
-        // // (assuming we use entire details div. we'll just get the offset from the top1
-        // //  so it could be replaced with 0 later if using a separate div)
-        // // we will then scroll, then move to the right. But we'll consolidate this all into one keframes animation.
-        // var dur;
-        // var moveToAddressKeyframes;
-        // var moveToAddressName;
-        // if ( (this.mode==2) || (this.mode==3) ){
-        //   // setup
-        //   var panelContent = (this.mode==2)?this.decompContent:this.compContent
-        //   var panel = (this.mode==2)?this.decomp:this.comp;
-
-        //   // get delta x and delta y of address div to its parent "details" div
-
-        //   var detailsAddress = details.querySelector("#address");
-        //   var detailsBbox = details.getBoundingClientRect();
-        //   var addrBbox = detailsAddress.getBoundingClientRect();
-        //   var dx = addrBbox.x - detailsBbox.x; // not needed: just width of entire details div?
-        //   var dy = addrBbox.y - detailsBbox.y;
-        //   var contentBbox = panelContent.getBoundingClientRect();
-
-        //   // get details about where to move it to the right for the second "movement", 
-        //   // lining up against <this.address>'s x coord
-        //   let g32d = hex( 32*(this.address>>5), 6 ); // get g32 group by floor dividing by 32 (>>5)
-        //   let offsetd = hex( this.address, 6 );
-        //   let addressByte = panelContent.querySelector(`div > #g0x${g32d} div #byte_${offsetd}`);
-        //   var addrByteBbox = addressByte.getBoundingClientRect(); 
-
-        //   // now set the new translate3D()'s:
-        //   dur = 3;
-        //   moveToAddressName = `moveToAddresss_${Date.now()}`;
-        //   moveToAddressKeyframes = `@keyframes ${moveToAddressName} {
-        //     0% {
-        //       /* the transform of where we left off previously.. unnecessary?? */
-        //       ${last}
-        //       transform: translate3D(${ xl }px, ${ y }px, 0px);            
-        //     }
-        //     33%, 
-        //     66% {
-        //       ${last}
-        //       transform: translate3D(${contentBbox.x - detailsBbox.width}px, ${contentBbox.y-dy}px, ${0}px);
-        //     }
-        //     100% {
-        //       ${last}
-        //       transform: translate3D(${addrByteBbox.x - detailsBbox.width}px, ${addrByteBbox.y-dy}px, ${0}px);
-        //     } 
-        //   }`;
-
-        //   // apply a scroll in the "middle" of the animation:
-        //   // (scroll <comp or decomp> hex_content to <this.address>'s y coord)
-        //   setTimeout( ()=>{panel.scrollToOffset(this.address);console.log("scroll finished");}, dur*1000*0.33 );
-        
-        // } else{
-        //   console.log("pass through for LEVEL 2...");
-        //   // don't really do anything, just make a sort of "pass-through" animation.
-        //   dur = 0.5;
-        //   moveToAddressName = `moveToAddresss_${Date.now()}`;
-        //   moveToAddressKeyframes = `@keyframes ${moveToAddressName} {
-        //     0%{
-        //       ${last}
-        //       translate3D(${ xl }px, ${ y }px, 0px);
-        //     }
-        //     100%{
-        //       ${last}
-        //       translate3D(${ xl-1 }px, ${ y }px, 0px);
-        //     }
-        //   }`;
-
-        // }
-        
-        // // console.log(`${moveToAddressKeyframes } \n\n-->\n${moveToName} ${dur}s linear forwards`);
-
-        // // insert into stylesheet at index 0
-        // document.styleSheets[0].insertRule(moveToAddressKeyframes);
-        // // apply the animation ("forwards" might be important?)
-        // details.style.animation = `${moveToAddressName} ${dur}s linear forwards`;
-
-        // details.addEventListener("animationend", ()=>{
-        //   console.log("LEVEL 2 COMPLETE");
-
-
-
           // LEVEL 3
           //
           // level 3 cloneAndMove outline
@@ -5625,6 +5955,7 @@ replace].forEach(d=>console.log(d));
           // SETUP:
           this.compIndex; // increment to the byte following the command byte
           // starting at an <index (mode 0 and 1: this.compIndex, modes 2 and 3: this.address)> of <panel (mode 0,1,3: comp; mode 2: decomp)>,
+          var cloneTotal = 0;
           var cloneOffset = (this.mode<2) ? this.compIndex+1 : this.address;
           var clonePanel = (this.mode==2) ? this.decomp : this.comp;
           var clonePanelContent = (this.mode==2) ? this.decompContent : this.compContent;
@@ -5639,28 +5970,91 @@ replace].forEach(d=>console.log(d));
           var a = [this.n, 1, this.n, 2][this.mode];
           //... <b (mode 1: n, else 1)> time(s) each...
           var b = (this.mode==1) ? this.n : 1;
+          this.axb = a*b;
+          this.axbi = a*b; // will count down
 
           // ... (decrementing the visible n value each time for modes 0,1, and 2)
           // scroll decomp into view if needed
           // this.decomp.scrollToView();
 
+          // see if we'll need to scroll the decomp panel between picking up the data
+          // and moving it to current output index:
+          // if ( (this.mode==2) && !offsetPos.inView ){
+          //   //checkOffsetPosition( this.decompIndex, 2, 2 );
+          //   // var historyPos = this.decomp.checkOffsetPosition( this.address);
+          //   this.decompScrollPos = this.decomp.checkOffsetPosition( this.decompIndex);
+          //   //{inView: false, position: offsetPos, topMargin: topRowMargin*rowHeight, windowHeight:windowHeight, rowHeight:rowHeight}
+          //   // we want to know where we'll need to scrol to: it'll actually just be hex_ccontent's top plus the margin
+          //   // hc.y + topMargin;
+          //   // for each: hcTop.y + ( thisToDiv_.position_from_checkOffsetPosition - positionWillScrollTo );
+          //   var willNeedToScroll = (decompPos.position - historyPos.position - (2*decompPos.rowHeight)) > decompPos.windowHeight;
+          //   setTimeout( ()=>{
+          //     // try {
+          //       console.log("1) in settimeout for scroll. panel content:");
+          //       // console.log(panelContent);
+          //       panelContent.scrollTo({top: historyPos.position-topMargin, behavior: 'smooth'});
+
+          //     },
+          //     scrollStartTime*1000
+          //   );
+          // } else {
+          //   this.decompScrollPos = undefined;
+          // }
+
+          //...or, if we had to scroll up to get to history, we'll have to scroll down again, assuming we'll
+          // go back to the first address+topMargin
+
+          // offsetPos.position
+
           // move all clones into decomp starting at this.decompIndex
+          // we usually do them in series,
+          // but for mode 2 HISTORY we might want to do them  semi-parallel,
+          // because we might need to scroll the entire page.
           this.moveBuffer = [];
-          for (let i = a; i>0; i--){
-            for (let j = b; j>0; j--){
-              this.moveBuffer.push( clonePanelContent.querySelector(
-                `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
-              ) );
+
+          if ( ( (this.mode==2) && !offsetPos.inView ) || this.parallelize ){
+            // console.log("first case");
+            // move all in a batch
+            var batch = [];
+            for (let i = a; i>0; i--){
+              for (let j = b; j>0; j--){
+                batch.push(
+                  clonePanelContent.querySelector(
+                    `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
+                  )
+                );
+              }
+              cloneOffset++;
+              // cloneTotal++;
             }
-            cloneOffset++;
+            this.moveBuffer.push( batch ); // note; not popping, won't reverse
+
+          } else {
+            // console.log("secnd case");
+            // move all in series.
+            for (let i = a; i>0; i--){
+              for (let j = b; j>0; j--){
+                this.moveBuffer.push(
+                  [ clonePanelContent.querySelector(
+                    `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
+                  ) ]
+                );
+              }
+              cloneOffset++;
+              // cloneTotal++;
+            }
 
           }
-          // console.log(this.moveBuffer);
-          // duplicate each one <b> time(s) (usually just 1 time) and reverse
-          // this.moveBuffer = this.moveBuffer.flatMap( d => Array(b).fill(d) ).reverse();
+
+          this.cloneIndex = 0;
+          this.previousFromDiv = null;
+          this.previousToDiv = null;
+          this.willScrollDecomp = ( (this.mode==2) && !offsetPos.inView );
+
+
+          // reverse, because we'll be popping
           this.moveBuffer = this.moveBuffer.reverse();
-          // console.log(`this.moveBuffer () \n(Decomp span\n mode ${this.mode}\n n ${this.n}\ncomp index ${this.compIndex}\ndecomp index ${this.decompIndex})`);
-          // console.log(this.moveBuffer);
+          // console.log(this.moveBuffer)
 
           // Call the function to perform the moving (recursively iterates through the this.moveBuffer)
           this.cloneAndMove();
@@ -6489,7 +6883,7 @@ function dkc1decompress(inp, offset=0){
                 output.push(...output.slice(addr, addr + detail));
                 diff = output.length-addr;
                 highestDiff = Math.max(highestDiff,diff);
-                console.log(`HISTORY: addr ${addr} to index ${output.length} (dec) = ${diff} / 0x${hex(diff,6)}`);
+                // console.log(`HISTORY: addr ${addr} to index ${output.length} (dec) = ${diff} / 0x${hex(diff,6)}`);
                 index += 3;
                 break;
             // Lookup Table ("LUT")
@@ -6506,7 +6900,7 @@ function dkc1decompress(inp, offset=0){
         }
     }
     console.log(`Decompressed ${input.length} bytes to ${output.length} bytes.`);
-    console.log(`Highest diff: ${highestDiff} / 0x${hex(highestDiff,6)}`);
+    console.log(`Highest difference in offsets for History mode: ${highestDiff} / 0x${hex(highestDiff,6)}`);
     return new Uint8Array(output);
 }
 
