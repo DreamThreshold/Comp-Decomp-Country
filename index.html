@@ -3957,13 +3957,25 @@ replace].forEach(d=>console.log(d));
 
   }
   /* some scroll functions may be redundant... */
-  checkOffsetPosition( offset, bottomRowMargin=2, topRowMargin=0 ){
-    let hc = this.panelContent.querySelector(".hex_content");
-    let windowHeight = hc.getBoundingClientRect().height;
-    let windowScrollTop = hc.scrollTop;
-    let windowScrollBottom = windowHeight + windowScrollTop;
+  checkOffsetPosition( offset, bottomRowMargin=2, topRowMargin=0, winPos=null ){
+    // pos is an override position, for example if we are planning where the content will be in the future
+    var hc = this.panelContent.querySelector(".hex_content");
+    var windowHeight = hc.getBoundingClientRect().height;
+    var windowScrollTop, windowScrollBottom;
+
+    if (winPos!=null){
+      windowScrollTop = winPos;
+      windowScrollBottom = winPos + windowHeight;
+    } else {
+      windowScrollTop = hc.scrollTop;
+      windowScrollBottom = windowScrollTop + windowHeight;
+
+    }
+
+
     // check where the offset would be:
-    // (doesn't directly query, because html node might not exist yet, for performance reasons)
+    // (doesn't directly query, because html node might not exist yet, for performance reasons,
+    // so we look at the first we can find )
     let g32Height = hc.querySelector("div > .hex_g32").getBoundingClientRect().height;
     let offsetPos = (g32Height*(offset>>5)); // relative to top of its container, NOT the window
     let rowHeight = (this.settings['Number of Columns'].value==16) ? g32Height/2 : g32Height;
@@ -4384,11 +4396,12 @@ replace].forEach(d=>console.log(d));
         var kf = this.buildKeyframe( e );
 
         document.styleSheets[0].insertRule( kf );
-        this.debug.keyframes += kf+'\n\n'
+        // this.debug.keyframes += kf+'\n\n';
 
 
       },
       startElement: function(e){
+        e.startTime = Date.now();
         // depends on animation type
         switch (e.kind){
           default:
@@ -4396,12 +4409,18 @@ replace].forEach(d=>console.log(d));
 
             // actually assign it
             e.element.style.animation = `${e.keyframeName} ${e.duration}s ${e.easingFunction} ${e.direction}`;
-            e.startTime = Date.now();
+            this.debug.times[e.keyframeName] = {
+              start: Date.now(),
+              projectedEnd: Date.now() + (e.duration*1000)
+            };
+
             // what to do when this finishes animating
             // (the logistics stuff.. we may do more element-specific stuff with additional event listeners, elsewhere)
             e.element.addEventListener("animationend", ()=>{
-
-              
+              let nm = e.keyframeName+"";
+              this.debug.times[nm].end = Date.now();
+              if (e.keyframeName.substr(0,5)=="mover") console.log(`Mover end at `+(Date.now()-this.spanStartTime));
+              if (e.keyframeName.substr(0,5)=="shado") console.log(`shadow end at `+(Date.now()-this.spanStartTime));
 
               // assign the current animated properties
               var computedStyles = window.getComputedStyle(e.element);
@@ -4438,7 +4457,7 @@ replace].forEach(d=>console.log(d));
               // delete e;
 
               // delete html dom node
-              if (e.deleteNodeWhenDone) e.element.remove();
+              if (e.deleteNodeWhenDone) setTimeout( e.element.remove(), 2);
 
             });
 
@@ -4589,7 +4608,7 @@ replace].forEach(d=>console.log(d));
       assignAnimation: function(e){
         // TODO: scale e.duration: ( this.skipping ? this.skipDurationScale : this.userDurationScale ) * e.duration
         let delay = -e.progress * e.duration;
-        e.animation = `${e.duration}s ${e.easingFunction} ${delay}s ${e.keframeName}`;
+        e.animation = `${e.duration}s ${e.easingFunction} ${delay}s ${e.keyframeName}`;
       },
       pauseElement: function(e){
         // TODO: scale e.duration: ( this.skipping ? this.skipDurationScale : this.userDurationScale ) * e.duration
@@ -4682,6 +4701,7 @@ replace].forEach(d=>console.log(d));
 
         this.compIndex = 128; // first byte after LUT
         this.decompIndex = 0;
+        this.decompSpanCount = 0;
 
         this.colors = [
           [255,0,0],
@@ -4695,12 +4715,24 @@ replace].forEach(d=>console.log(d));
           [170,170,170],
           [255,255,255]
         ];
+        // this.bgColors = [
+        //   [255,0,0],
+        //   [255,255,0],
+        //   [200,50,100],
+        //   [0,0,255]
+        // ];
         this.fgColors = [
           [255,255,255],
           [255,255,255],
           [0,0,0],
           [0,0,0]
         ];
+        // this.fgColors = [
+        //   [0,0,0],
+        //   [0,0,0],
+        //   [0,0,0],
+        //   [0,0,0]
+        // ];
         this.modeNames = [
           "Copy",
           "RLE",
@@ -4730,18 +4762,27 @@ replace].forEach(d=>console.log(d));
         this.bblNone = `${shp} ${shp} ${shp} ${shp}`;
 
         this.parallelize = true;; // move all divs in parallel (faster)
+        this.riseTime = 0.025;//0.15;
+        this.staggerTime = 0.05;//0.2;
+        this.moveTime = 0.1;//0.3;
+        this.detailsTime = 0.1;//5.5;
+        this.scrollTime = 0.1;//1; // time to give to scroll during details div
+
         this.riseTime = 0.15;
         this.staggerTime = 0.2;
         this.moveTime = 0.3;
+        this.detailsTime = 5.5;
+        this.scrollTime = 1; // time to give to scroll during details div
+
+
         this.bblTime = Math.min(this.riseTime, this.staggerTime)/2;
         // this.detailsTime = 2.5;
-        this.detailsTime = 5.5;
-        this.scrollTime = 1; // time to give to scroll during details div. in sec here, mult by 1000 later for ms
-
+        
         this.debug = {
           keyframes: '',
           log: '',
-          header: ''
+          header: '',
+          times: {}
         };
 
         // set all decomp to invisible
@@ -4761,7 +4802,6 @@ replace].forEach(d=>console.log(d));
         });
 
         // begin iterations
-        this.decompSpanCount = 0;
         this.decompSpan();
 
       },
@@ -4888,7 +4928,7 @@ replace].forEach(d=>console.log(d));
         var move1920 = 2;
         var moveTime = this.moveTime;
         var bblTime = this.bblTime; // should always be <= riseTime and <= staggerTime
-        var scrollTime = ( (this.mode==2) && this.willScrollDecomp) ? 1 : 0;
+        var scrollTime = ( (this.mode==2) && this.willScrollDecomp) ? this.scrollTime : 0;
         
         
 
@@ -4939,7 +4979,7 @@ replace].forEach(d=>console.log(d));
           
           // style the from div, if necessary
           // if it's mode 0 or the first byte of mode 1
-          if ( (this.mode==0) || ( (this.mode==1) && (i==0) ) ){
+          if ( (this.mode==0) || ( (this.mode==1) && (this.axbi == this.axb) ) ){
 
             let fromDivAnim = new Animation();
             fromDivAnim.name = "fromDiv animation";
@@ -4981,6 +5021,9 @@ replace].forEach(d=>console.log(d));
               } }
             );
 
+            fromDivAnim.steps.push(
+              { 'percent': 100, 'props': {} }
+            );
             
             this.initElement( fromDivAnim );
             anims.push(fromDivAnim);
@@ -5140,10 +5183,13 @@ replace].forEach(d=>console.log(d));
               { 'percent': 0.01+(100*(scrollEndTime+moveTime+riseTime)/totalTime), 'props': {
                 'opacity': "0"} },
               // end drop/begin bubble
-              // { 'percent': 100, 'props': { } },
+              { 'percent': 100, 'props': { } },
 
             ];
           });
+
+          
+          // console.log(`Mode ${this.mode} mover, last at ${0.01+(100*(scrollEndTime+moveTime+riseTime)/totalTime)}%.`);
 
 
           // style the toDiv
@@ -5199,7 +5245,8 @@ replace].forEach(d=>console.log(d));
               'border-radius': finalBbl
             } },
 
-
+            { 'percent': 100, 'props': {} }
+            
           ]);
           //TODO: if we have an output byte coming after, bubble it up to match that one:
           // (currently all just bubble up at very end)
@@ -5310,6 +5357,7 @@ replace].forEach(d=>console.log(d));
 
             // remove all previous animations:
             Array.from(document.body.querySelectorAll(".decomp_animation_details")).forEach(d=>d.remove());
+            // document.getElementById('animationTop').innerHTML = '';
 
 
             // see if we need to return the hex_content positions before the next span:
@@ -5318,14 +5366,27 @@ replace].forEach(d=>console.log(d));
             var cmdy;
             if (!cmdOffsetPos.inView) {
               cmdy = cmdOffsetPos.position-cmdOffsetPos.topMargin; // for the details div
-              this.compContent.scrollTo({top: cmdy, behavior: 'smooth'});
+              this.compContent.scrollTo({top: cmdy, behavior: 'instant'});
 
             }
 
             // Do the same for decomp... although we still have the problem with decomp where it might not look clear if
             // history mode bytes are higher up than the current decompIndex
             var outOffsetPos = this.decomp.checkOffsetPosition( this.decompIndex, 2, 2 );
-            if (!outOffsetPos.inView) this.decompContent.scrollTo({top: outOffsetPos.position-outOffsetPos.topMargin, behavior: 'smooth'});
+            if (!outOffsetPos.inView) this.decompContent.scrollTo({top: outOffsetPos.position-outOffsetPos.topMargin, behavior: 'instant'});
+
+            this.debug.times['decomp span '+this.decompSpanCount].end = Date.now();
+            var times = '////////////////////////\ndecomp span '+this.decompSpanCount+" [mode "+this.mode+"]\n";
+
+            for (let [key, value] of Object.entries(this.debug.times)){
+              let name = key+'                            ';
+              name = name.substr(0,20);
+              times+=`\n${name}:\t ${value.start-this.spanStartTime} ->\t${value.end-this.spanStartTime}\t(${value.projectedEnd?(value.projectedEnd-this.spanStartTime):''})\t[${value.end-value.start}]`;
+            }
+            console.log(times);
+            var scrtm = (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0;
+            console.log("scroll time: "+ scrtm);
+            this.decompSpanCount++;
 
             //HACK: a somewhat arbitrary time to wait for panel(s) to scroll
             setTimeout( ()=>{
@@ -5333,7 +5394,7 @@ replace].forEach(d=>console.log(d));
               let b78 = Array.from(Array(78).keys()).map(d=>"-").join("");
               this.debug.log += `/*${b78}\n${this.debug.header}\n${b78}*/\n${this.debug.keyframes}`;
               if (this.compIndex < this.comp.source.data.length) this.decompSpan();
-            }, (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0)
+            }, scrtm )
 
             // // begin the next span
             // if (this.compIndex < this.comp.source.data.length) this.decompSpan();
@@ -5346,6 +5407,10 @@ replace].forEach(d=>console.log(d));
       },
 
       decompSpan: function(){
+        var nm = 'decomp span '+this.decompSpanCount; 
+        this.debug.times = { };
+        this.debug.times[nm] = {start:Date.now()};
+        this.spanStartTime = Date.now();
 
         // mode-specific
         switch(this.mode){
@@ -5704,7 +5769,7 @@ replace].forEach(d=>console.log(d));
         var twindow = (this.mode==2) ? 3 : 2;
         // console.log(`${this.details.innerHTML}\nAfter building html, counted ${texts} texts and ${transforms} transforms`);
 
-        // keframes:
+        // keyframes:
         var textCount = 0;
         var rts = false; // returnToStart - this idea didn't work so it's being debugged-out for now...
         var returning = (this.mode>1) && rts;
@@ -5907,7 +5972,7 @@ replace].forEach(d=>console.log(d));
 
 
         // console.log("LEVEL 1 finished\n");
-        // find and delete this keframe to clean up the stylesheet
+        // find and delete this keyframe to clean up the stylesheet
 
         // for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
         //   if ( document.styleSheets[0].cssRules[i].name === name ){
@@ -6077,7 +6142,7 @@ replace].forEach(d=>console.log(d));
 
           // byt.addEventListener("animationend", ()=>{
           //   console.log("LEVEL 2 finished\n");
-          //   // find and delete this keframe to clean up the stylesheet
+          //   // find and delete this keyframe to clean up the stylesheet
 
           //   for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
           //     if ( document.styleSheets[0].cssRules[i].name === name ){
