@@ -2580,13 +2580,14 @@ class Panel {
     setTimeout(
       ()=> {
         this.panelHeader.querySelector(".panel_menu_button").addEventListener("click", (event) => {
-            console.log("toggling menu");
+          this.toggleMenu(event);
+            // console.log("toggling menu");
 
-            // change button appearance
-            event.target.classList.toggle("panel_menu_button_opened");
-            // change menu appearance (show it)
-            this.inner.querySelector(".panel_menu").classList.toggle("panel_menu_opened");
-            this.inner.querySelector(".panel_content").classList.toggle("panel_content_disabled");
+            // // change button appearance
+            // event.target.classList.toggle("panel_menu_button_opened");
+            // // change menu appearance (show it)
+            // this.inner.querySelector(".panel_menu").classList.toggle("panel_menu_opened");
+            // this.inner.querySelector(".panel_content").classList.toggle("panel_content_disabled");
 
           }
         );
@@ -3192,6 +3193,21 @@ class Panel {
 
 
   }
+  toggleMenu(event=null){
+    if (event){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    console.log("toggling menu");
+
+    // change button appearance
+    // event.target
+    this.panelHeader.querySelector(".panel_menu_button").classList.toggle("panel_menu_button_opened");
+    // change menu appearance (show it)
+    this.inner.querySelector(".panel_menu").classList.toggle("panel_menu_opened");
+    this.inner.querySelector(".panel_content").classList.toggle("panel_content_disabled");
+  }
 
   updateBox(rowStartDelta, rowEndDelta, columnStartDelta, columnEndDelta, widthDelta=0, heightDelta=0){
     this.rowStart += rowStartDelta;
@@ -3607,6 +3623,7 @@ replace].forEach(d=>console.log(d));
         this.animateDecompButton.addEventListener("click", (event) => {
           // begin animation
           this.animation.initDecomp( this, this.nexts[0] );
+          this.toggleMenu();
         });
         console.log("Animate Decompression button added...");
       },
@@ -4380,6 +4397,9 @@ replace].forEach(d=>console.log(d));
         // initialize and build keyframes,
         // but do not actually assign the animation to the HTML node yet
 
+        if (e.initialized) return 0;
+
+
         // parse some properties, especially ones likely to not be filled out.
         if (e.direction==undefined) e.direction = 'forwards';
         if (e.baseDuration==undefined) e.baseDuration = 1;
@@ -4398,6 +4418,7 @@ replace].forEach(d=>console.log(d));
         document.styleSheets[0].insertRule( kf );
         // this.debug.keyframes += kf+'\n\n';
 
+        e.initialized = true;
 
       },
       startElement: function(e){
@@ -4464,35 +4485,65 @@ replace].forEach(d=>console.log(d));
             break;
 
           case "scroll":
+
+
             // .progress
             e.startTime = Date.now(); // in msec
 
-            function doScroll(animEl, nodeEl){
-              console.log("do scroll... "+Date.now());
-              // get current "percentage"
-              var perc =  (Date.now() - animEl.startTime)/(animEl.duration*10); // incorporates 100 for percentage
-              var current = 0;
-              for (let i =0; i<animEl.steps.length; i++){
-                if (animEl.steps[i].done){
-                  0; // if we already did this, skip it
-                } else{
-                  if ( perc > animEl.steps[i].percent ){
-                    nodeEl.scrollTo({top: animEl.steps[i].props['scroll'], behavior: 'instant'});
-                    animEl.steps[i].done = true;
-                    console.log("Scrolled to "+animEl.steps[i].props['scroll']);
-                    // if it's the last one
-                    if ( i == animEl.steps.length-1){ 
-                      return 0;
-                    } else {
-                      setTimeout( doScroll( animEl, nodeEl), 200);
-                    }
+            const animEl = e;
+            const nodeEl = e.element;
+            
 
+            function scrollStep(){
+
+
+              // see which steps we're between
+              let progress = animEl.progress + (Date.now() - animEl.startTime ) / (1000*animEl.duration); // 1-0
+              let beforePerc, afterPerc, beforePos, afterPos; //positions
+              // iterate until we find where we are.
+              // if we're before any percentages, Percs should remain undefined, and we won't do anything
+              for (let i=0; i<animEl.steps.length; i++){
+                if (progress*100 >= animEl.steps[i].percent){
+                  beforePos = animEl.steps[i].props.position;
+                  beforePerc = animEl.steps[i].percent;
+                  if ((i+1)<animEl.steps.length){
+                    afterPos = animEl.steps[i+1].props.position;
+                    afterPerc = animEl.steps[i+1].percent;
+                  } else {
+                    afterPos = beforePos;
                   }
+                  break;
                 }
               }
+
+              // if before and after are the same, don't bother scrolling.
+              var newPos;
+              var scrolled = false;
+              if (beforePos == afterPos){
+                0;
+              } else{ // if not, interpolate: 
+                const scrollProg = Math.min( 1, (progress - (beforePerc*0.01) ) / ((afterPerc*0.01)-(beforePerc*0.01)));
+                // if (scrollProg > 0.98) { /* might prevent losing the final position? */
+                  // nodeEl.scrollTo({top: afterPos, behavior: 'instant'});
+                  // } else {
+                  const newPosProg = 0.5+(-0.5*Math.cos( scrollProg*Math.PI) );
+                  newPos = ((afterPos-beforePos)*newPosProg) + beforePos;
+                  // console.log(newPos);
+                  // then actually scroll
+                  nodeEl.scrollTo({top: newPos, behavior: 'instant'});// instant...
+                  scrolled = true;
+                // }
+              }
+
+              // now call the next frame (keep going if we somehow didn't quite get to the last position)
+              if ( (progress <= 1) || (scrolled && (newPos != afterPos)) ){
+                requestAnimationFrame(scrollStep);
+              }
+
+
             }
             
-            setTimeout( doScroll(e, e.element), 200);
+            requestAnimationFrame( scrollStep );
 
           break;
         }
@@ -4765,14 +4816,14 @@ replace].forEach(d=>console.log(d));
         this.riseTime = 0.025;//0.15;
         this.staggerTime = 0.05;//0.2;
         this.moveTime = 0.1;//0.3;
-        this.detailsTime = 0.1;//5.5;
-        this.scrollTime = 0.1;//1; // time to give to scroll during details div
-
-        this.riseTime = 0.15;
-        this.staggerTime = 0.2;
-        this.moveTime = 0.3;
         this.detailsTime = 5.5;
-        this.scrollTime = 1; // time to give to scroll during details div
+        this.scrollTime = 0.2;//1; // time to give to scroll during details div
+
+        // this.riseTime = 0.15;
+        // this.staggerTime = 0.2;
+        // this.moveTime = 0.3;
+        // this.detailsTime = 5.5;
+        // this.scrollTime = 1; // time to give to scroll during details div
 
 
         this.bblTime = Math.min(this.riseTime, this.staggerTime)/2;
@@ -4804,6 +4855,27 @@ replace].forEach(d=>console.log(d));
         // begin iterations
         this.decompSpan();
 
+      },
+      scrollContent: function(content, startPos, endPos, duration, delay=0, steps=null, hold=false){
+        // wrapper to scroll compContent or decompContent
+        let scrollAnim = new Animation();
+        scrollAnim.name = "scroll animation "+Date.now();
+        scrollAnim.element = content;
+        scrollAnim.baseDuration = duration;
+        scrollAnim.kind = "scroll";
+        scrollAnim.keyframeName = `contentScroll`; //?
+        scrollAnim.steps = [
+          { 'percent': 0, 'props': { position: startPos} },
+          { 'percent': 100, 'props': { position: endPos} },
+        ];
+        // override if we pass in specific steps
+        if (steps) scrollAnim.steps = steps;
+
+        this.initElement(scrollAnim );
+        // start it unless we don't want to yet
+        if (!hold) setTimeout( this.startElement(scrollAnim ), delay*1000);
+        
+        return scrollAnim;
       },
       highlight: function(countdown, total, name){
 
@@ -4959,19 +5031,28 @@ replace].forEach(d=>console.log(d));
         positionWillScrollTo = checkToDiv.position - checkToDiv.topMargin;
         ///
         var fromDiv;
+        var anims = [];
 
         // set scroll
         if ( (this.mode==2) && this.willScrollDecomp){
           
-          setTimeout( ()=>{
-              console.log(`Mode 2 HISTORY: scrolling from ${this.decompContent.scrollTop} to ${positionWillScrollTo}.`);
-              this.decompContent.scrollTo({top: positionWillScrollTo, behavior: 'smooth'});
-            },
-            (totalStagger +  riseTime )*1000
-          );
+          // setTimeout( ()=>{
+          //     console.log(`Mode 2 HISTORY: scrolling from ${this.decompContent.scrollTop} to ${positionWillScrollTo}.`);
+          //     this.decompContent.scrollTo({top: positionWillScrollTo, behavior: 'smooth'});
+          //   },
+          //   (totalStagger +  riseTime )*1000
+          // );
+
+          anims.push(
+              this.scrollContent(this.decompContent, 0, 0, totalTime, 0, 
+                [
+                  {percent: 100*(totalStagger +  riseTime )/totalTime, props: {position:1*this.decompContent.scrollTop}},
+                  {percent: 100*((totalStagger +  riseTime )+this.scrollTime)/totalTime, props: {position:positionWillScrollTo}},                  
+                ], true)
+            );
+
         }
 
-        var anims = [];
 
         for (let i=0; i<fromDivs.length; i++){ // loop A //////////////////////////////////////////////////////////////
 
@@ -5347,7 +5428,7 @@ replace].forEach(d=>console.log(d));
                 break;
               case 2:
                 this.compIndex += 2+1;
-                // this.decompIndex += n;
+                // this.decompIndex += n;scrollCont
                 break;
               case 3:
                 this.compIndex += 0+1;
@@ -5363,38 +5444,41 @@ replace].forEach(d=>console.log(d));
             // see if we need to return the hex_content positions before the next span:
             // bc we possibly got messed up by a previous LUT mode scroll
             var cmdOffsetPos = this.comp.checkOffsetPosition( this.compIndex, 2, 2 );
-            var cmdy;
-            if (!cmdOffsetPos.inView) {
-              cmdy = cmdOffsetPos.position-cmdOffsetPos.topMargin; // for the details div
-              this.compContent.scrollTo({top: cmdy, behavior: 'instant'});
-
-            }
+            if (!cmdOffsetPos.inView) this.scrollContent(
+              this.compContent, 
+              this.compContent.scrollTop, cmdOffsetPos.position-cmdOffsetPos.topMargin, 
+              this.scrollTime ); 
 
             // Do the same for decomp... although we still have the problem with decomp where it might not look clear if
             // history mode bytes are higher up than the current decompIndex
             var outOffsetPos = this.decomp.checkOffsetPosition( this.decompIndex, 2, 2 );
-            if (!outOffsetPos.inView) this.decompContent.scrollTo({top: outOffsetPos.position-outOffsetPos.topMargin, behavior: 'instant'});
+            if (!outOffsetPos.inView) this.scrollContent(
+              this.decompContent, 
+              this.decompContent.scrollTop, outOffsetPos.position-outOffsetPos.topMargin, 
+              this.scrollTime ); 
 
-            this.debug.times['decomp span '+this.decompSpanCount].end = Date.now();
-            var times = '////////////////////////\ndecomp span '+this.decompSpanCount+" [mode "+this.mode+"]\n";
+            // debug
+            // this.debug.times['decomp span '+this.decompSpanCount].end = Date.now();
+            // var times = '////////////////////////\ndecomp span '+this.decompSpanCount+" [mode "+this.mode+"]\n";
 
-            for (let [key, value] of Object.entries(this.debug.times)){
-              let name = key+'                            ';
-              name = name.substr(0,20);
-              times+=`\n${name}:\t ${value.start-this.spanStartTime} ->\t${value.end-this.spanStartTime}\t(${value.projectedEnd?(value.projectedEnd-this.spanStartTime):''})\t[${value.end-value.start}]`;
-            }
-            console.log(times);
-            var scrtm = (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0;
-            console.log("scroll time: "+ scrtm);
+            // for (let [key, value] of Object.entries(this.debug.times)){
+            //   let name = key+'                            ';
+            //   name = name.substr(0,20);
+            //   times+=`\n${name}:\t ${value.start-this.spanStartTime} ->\t${value.end-this.spanStartTime}\t(${value.projectedEnd?(value.projectedEnd-this.spanStartTime):''})\t[${value.end-value.start}]`;
+            // }
+            // console.log(times);
+            // var scrtm = (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0;
+            // console.log("scroll time: "+ scrtm);
+
             this.decompSpanCount++;
 
             //HACK: a somewhat arbitrary time to wait for panel(s) to scroll
             setTimeout( ()=>{
               // console.log(`/*\n${this.debug.header}*/\n${this.debug.keyframes}`);
-              let b78 = Array.from(Array(78).keys()).map(d=>"-").join("");
-              this.debug.log += `/*${b78}\n${this.debug.header}\n${b78}*/\n${this.debug.keyframes}`;
+              // let b78 = Array.from(Array(78).keys()).map(d=>"-").join("");
+              // this.debug.log += `/*${b78}\n${this.debug.header}\n${b78}*/\n${this.debug.keyframes}`;
               if (this.compIndex < this.comp.source.data.length) this.decompSpan();
-            }, scrtm )
+            }, (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0 )
 
             // // begin the next span
             // if (this.compIndex < this.comp.source.data.length) this.decompSpan();
@@ -5411,6 +5495,22 @@ replace].forEach(d=>console.log(d));
         this.debug.times = { };
         this.debug.times[nm] = {start:Date.now()};
         this.spanStartTime = Date.now();
+
+        // let decompScrollAnim = new Animation();
+        // decompScrollAnim.name = "comp scroll animation";
+        // decompScrollAnim.element = this.compContent;
+        // decompScrollAnim.baseDuration = 2;
+        // decompScrollAnim.kind = "scroll";
+        // // decompScrollAnim.easingFunction = "ease";
+        // decompScrollAnim.keyframeName = `decompScroll`;
+        // decompScrollAnim.steps = [
+        //   { 'percent': 0, 'props': { position: this.compContent.scrollTop} },
+        //   { 'percent': 100, 'props': { position: this.compContent.scrollTop+300} },
+        // ];
+        // this.initElement(decompScrollAnim );
+        // this.startElement(decompScrollAnim );
+        // return 0;
+
 
         // mode-specific
         switch(this.mode){
@@ -5503,7 +5603,7 @@ replace].forEach(d=>console.log(d));
 
 
 
-
+        var anims = [];
 
         // set more details based on the current command byte
         //
@@ -5672,10 +5772,10 @@ replace].forEach(d=>console.log(d));
             //   }
           }
           else if (this.mode==3) {
-            // ` ×2 -> `
+            // ` ×2 -> ` ` <<1 -> `
             this.detailsObjects.push(...[
               {
-              text: [` <<1 -> `,` LUT byte address: ${hex(this.address,4)} `],
+              text: [` ×2 -> `,` LUT byte address: ${hex(this.address,4)} `],
               class: ['notBubble','bubbleCell']
               }
             ]);
@@ -5713,14 +5813,27 @@ replace].forEach(d=>console.log(d));
             var scrollStartTime = detailsKeyframesDuration*(this.detailsObjects.length-2)/this.detailsObjects.length;
             // var scrollStartTime = this.scrollTime;
             // console.log(`scrollStartTime:   ${scrollStartTime}`);
-            setTimeout( ()=>{
-              // try {
-                console.log("1) in settimeout for scroll. panel content:");
-                // console.log(panelContent);
-                panelContent.scrollTo({top: offsetPos.position, behavior: 'smooth'});
+            // setTimeout( ()=>{
+            //   // try {
+            //     console.log("1) in settimeout for scroll. panel content:");
+            //     // console.log(panelContent);
+            //     panelContent.scrollTo({top: offsetPos.position, behavior: 'smooth'});
 
-              },
-              scrollStartTime*1000
+            //     //(content, startPos, endPos, duration, delay=0, steps=null, hold=false)
+            //     this.scrollContent(content, startPos, endPos, duration, delay=0, steps=null, hold=false);
+
+            //   },
+            //   scrollStartTime*1000
+            // );
+            
+            // create a scroll animation and add it to our list of animations
+            // (content, startPos, endPos, duration, delay=0, steps=null, hold=false)
+            anims.push(
+              this.scrollContent(panelContent, 0, 0, detailsKeyframesDuration, 0, 
+                [
+                  {percent: 100*scrollStartTime/detailsKeyframesDuration, props: {position:panelContent.scrollTop}},
+                  {percent: 100*(scrollStartTime+this.scrollTime)/detailsKeyframesDuration, props: {position:offsetPos.position}},                  
+                ], true)
             );
 
           }
@@ -5866,7 +5979,7 @@ replace].forEach(d=>console.log(d));
       var bblRight = this.bblRight;
       var bblNone = this.bblNone;
       var totalTime2 = detailsKeyframesDuration + this.bblTime;
-      var cmdAnims = [];
+      
 
       // cmd:
       let cmdDivAnim = new Animation();
@@ -5904,7 +6017,7 @@ replace].forEach(d=>console.log(d));
           'border-radius': (this.mode==3) ? bblBoth : bblLeft
         } }
       ];
-      cmdAnims.push( cmdDivAnim );
+      anims.push( cmdDivAnim );
 
 
       // if mode 2 history, cmd 1 and cmd 2:
@@ -5942,7 +6055,7 @@ replace].forEach(d=>console.log(d));
 
           // console.log(cmdxDivAnim.steps);
 
-          cmdAnims.push( cmdxDivAnim );
+          anims.push( cmdxDivAnim );
 
         });
 
@@ -5952,12 +6065,12 @@ replace].forEach(d=>console.log(d));
       
 
       // new method : actually start animations -----------
-      cmdAnims.forEach(d=> {this.initElement(d);});
+      anims.forEach(d=> {this.initElement(d);});
       
       this.initElement(anim);
       // console.log(anim.keyframes);
 
-      cmdAnims.forEach(d=> {this.startElement(d);});
+      anims.forEach(d=> {this.startElement(d);});
       this.startElement(anim);
 
       // ---------------------
