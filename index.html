@@ -259,6 +259,7 @@ button{
 .panel_menu_button_opened{
   /* border-left: 2px solid white;
   border-top: 2px solid white; */
+  z-index: 10;
   border-radius: 6px 6px 0px 0px;
   /* background-color: rgba(12, 12, 59, 0.8);
    */
@@ -458,27 +459,17 @@ button{
 .seekTileUpButton{}
 .seekTileDownButton{}
 
+
+
 .hex_header{
-    /* background-color: rgb(20, 40, 20); */
-    display: grid;
-    /* grid-template-columns: 2fr repeat(16, 1fr);
-    grid-area: 2 / 1 / 3 / -1; */
-    grid-column: 1 / -1;
-    /* grid-row: 2 / 3; */
-    grid-template-columns: subgrid;
-
-    place-items: center;
-    transition: var(--bitplaneViewerTransition);
-
-    /* this adds padding so it lines up with hex_content,
-    because windows adds the weird scrollbar */
-    overflow:auto;
-    scrollbar-gutter: stable;
-    place-items: center;
-
-    /* for 1-byte-wide: */
-    /* grid-template-columns: 2fr 16fr; */
+  
+  display: grid;
+  grid-template-columns: subgrid;
+  /* grid-template-rows: subgrid;   */
+  grid-column: 2 / -2;
+  font-weight: 900;
 }
+
 /* labels across the top header:  */
 .hex_header_offset{
   display: grid;
@@ -495,13 +486,13 @@ button{
 
     grid-auto-flow: row;
     grid-template-columns: 18fr 0fr; */
-    grid-column: 1 / -1;
+    grid-column: 2 / -2;
     /* grid-row: 3 / 4; */
     grid-template-columns: subgrid;
     /* grid-template-rows: 100%; /*HACK: assumes viewing only 32 bytes */
     /* grid-template-rows: 1fr; */
     /* grid-template-columns: subgrid; */
-    scrollbar-gutter: stable;
+    /* scrollbar-gutter: stable; */
 
     /* transition: var(--bitplaneViewerTransition); */
 
@@ -827,12 +818,7 @@ classes for bitplane animation
 }
 
 /* 5 */
-.byte{
-  grid-area: 2 / 2 / 3 / 3;
-  display: grid;
 
-
-}
 .byte_b16{
 
 }
@@ -928,143 +914,13 @@ ul{
 
 
 
-/*
-Generated ...
-*/
-.g32rb_item_0_b16{top:25%;left:3.125%;}
-.g32rb_item_0_b1{top:1.5625%;left:50%;}
-.g32l_item_0_b16{top:25%;left:50%;}
-.g32l_item_0_b1{top:1.5625%;left:50%;}
-.g32rb_item_1_b16{top:25%;left:9.375%;}
-.g32rb_item_1_b1{top:4.6875%;left:50%;}
-.g32l_item_1_b16{top:25%;left:50%;}
-.g32l_item_1_b1{top:4.6875%;left:50%;}
-.g32rb_item_2_b16{top:25%;left:15.625%;}
-.g32rb_item_2_b1{top:7.8125%;left:50%;}
-.g32l_item_2_b16{top:25%;left:50%;}
-.g32l_item_2_b1{top:7.8125%;left:50%;}
-.g32rb_item_3_b16{top:25%;left:21.875%;}
-.g32rb_item_3_b1{top:10.9375%;left:50%;}
-.g32l_item_3_b16{top:25%;left:50%;}
-.g32l_item_3_b1{top:10.9375%;left:50%;}
-.g32rb_item_4_b16{top:25%;left:28.125%;}
-.g32rb_item_4_b1{top:14.0625%;left:50%;}
-.g32l_item_4_b16{top:25%;left:50%;}
-.g32l_item_4_b1{top:14.0625%;left:50%;}
-.g32rb_item_5_b16{top:25%;left:34.375%;}
-.g32rb_item_5_b1{top:17.1875%;left:50%;}
-.g32l_item_5_b16{top:25%;left:50%;}
-.g32l_item_5_b1{top:17.1875%;left:50%;}
-.g32rb_item_6_b16{top:25%;left:40.625%;}
-.g32rb_item_6_b1{top:20.3125%;left:50%;}
-.g32l_item_6_b16{top:25%;left:50%;}
-.g32l_item_6_b1{top:20.3125%;left:50%;}
-.g32rb_item_7_b16{top:25%;left:46.875%;}
-.g32rb_item_7_b1{top:23.4375%;left:50%;}
-.g32l_item_7_b16{top:25%;left:50%;}
-.g32l_item_7_b1{top:23.4375%;left:50%;}
-.g32rb_item_8_b16{top:25%;left:53.125%;}
-.g32rb_item_8_b1{top:26.5625%;left:50%;}
-.g32l_item_8_b16{top:25%;left:50%;}
-.g32l_item_8_b1{top:26.5625%;left:50%;}
-.g32rb_item_9_b16{top:25%;left:59.375%;}
-.g32rb_item_9_b1{top:29.6875%;left:50%;}
-.g32l_item_9_b16{top:25%;left:50%;}
-.g32l_item_9_b1{top:29.6875%;left:50%;}
-.g32rb_item_10_b16{top:25%;left:65.625%;}
-.g32rb_item_10_b1{top:32.8125%;left:50%;}
-.g32l_item_10_b16{top:25%;left:50%;}
-.g32l_item_10_b1{top:32.8125%;left:50%;}
-.g32rb_item_11_b16{top:25%;left:71.875%;}
-.g32rb_item_11_b1{top:35.9375%;left:50%;}
-.g32l_item_11_b16{top:25%;left:50%;}
-.g32l_item_11_b1{top:35.9375%;left:50%;}
-.g32rb_item_12_b16{top:25%;left:78.125%;}
-.g32rb_item_12_b1{top:39.0625%;left:50%;}
-.g32l_item_12_b16{top:25%;left:50%;}
-.g32l_item_12_b1{top:39.0625%;left:50%;}
-.g32rb_item_13_b16{top:25%;left:84.375%;}
-.g32rb_item_13_b1{top:42.1875%;left:50%;}
-.g32l_item_13_b16{top:25%;left:50%;}
-.g32l_item_13_b1{top:42.1875%;left:50%;}
-.g32rb_item_14_b16{top:25%;left:90.625%;}
-.g32rb_item_14_b1{top:45.3125%;left:50%;}
-.g32l_item_14_b16{top:25%;left:50%;}
-.g32l_item_14_b1{top:45.3125%;left:50%;}
-.g32rb_item_15_b16{top:25%;left:96.875%;}
-.g32rb_item_15_b1{top:48.4375%;left:50%;}
-.g32l_item_15_b16{top:25%;left:50%;}
-.g32l_item_15_b1{top:48.4375%;left:50%;}
-.g32rb_item_16_b16{top:75%;left:3.125%;}
-.g32rb_item_16_b1{top:51.5625%;left:50%;}
-.g32l_item_16_b16{top:75%;left:50%;}
-.g32l_item_16_b1{top:51.5625%;left:50%;}
-.g32rb_item_17_b16{top:75%;left:9.375%;}
-.g32rb_item_17_b1{top:54.6875%;left:50%;}
-.g32l_item_17_b16{top:75%;left:50%;}
-.g32l_item_17_b1{top:54.6875%;left:50%;}
-.g32rb_item_18_b16{top:75%;left:15.625%;}
-.g32rb_item_18_b1{top:57.8125%;left:50%;}
-.g32l_item_18_b16{top:75%;left:50%;}
-.g32l_item_18_b1{top:57.8125%;left:50%;}
-.g32rb_item_19_b16{top:75%;left:21.875%;}
-.g32rb_item_19_b1{top:60.9375%;left:50%;}
-.g32l_item_19_b16{top:75%;left:50%;}
-.g32l_item_19_b1{top:60.9375%;left:50%;}
-.g32rb_item_20_b16{top:75%;left:28.125%;}
-.g32rb_item_20_b1{top:64.0625%;left:50%;}
-.g32l_item_20_b16{top:75%;left:50%;}
-.g32l_item_20_b1{top:64.0625%;left:50%;}
-.g32rb_item_21_b16{top:75%;left:34.375%;}
-.g32rb_item_21_b1{top:67.1875%;left:50%;}
-.g32l_item_21_b16{top:75%;left:50%;}
-.g32l_item_21_b1{top:67.1875%;left:50%;}
-.g32rb_item_22_b16{top:75%;left:40.625%;}
-.g32rb_item_22_b1{top:70.3125%;left:50%;}
-.g32l_item_22_b16{top:75%;left:50%;}
-.g32l_item_22_b1{top:70.3125%;left:50%;}
-.g32rb_item_23_b16{top:75%;left:46.875%;}
-.g32rb_item_23_b1{top:73.4375%;left:50%;}
-.g32l_item_23_b16{top:75%;left:50%;}
-.g32l_item_23_b1{top:73.4375%;left:50%;}
-.g32rb_item_24_b16{top:75%;left:53.125%;}
-.g32rb_item_24_b1{top:76.5625%;left:50%;}
-.g32l_item_24_b16{top:75%;left:50%;}
-.g32l_item_24_b1{top:76.5625%;left:50%;}
-.g32rb_item_25_b16{top:75%;left:59.375%;}
-.g32rb_item_25_b1{top:79.6875%;left:50%;}
-.g32l_item_25_b16{top:75%;left:50%;}
-.g32l_item_25_b1{top:79.6875%;left:50%;}
-.g32rb_item_26_b16{top:75%;left:65.625%;}
-.g32rb_item_26_b1{top:82.8125%;left:50%;}
-.g32l_item_26_b16{top:75%;left:50%;}
-.g32l_item_26_b1{top:82.8125%;left:50%;}
-.g32rb_item_27_b16{top:75%;left:71.875%;}
-.g32rb_item_27_b1{top:85.9375%;left:50%;}
-.g32l_item_27_b16{top:75%;left:50%;}
-.g32l_item_27_b1{top:85.9375%;left:50%;}
-.g32rb_item_28_b16{top:75%;left:78.125%;}
-.g32rb_item_28_b1{top:89.0625%;left:50%;}
-.g32l_item_28_b16{top:75%;left:50%;}
-.g32l_item_28_b1{top:89.0625%;left:50%;}
-.g32rb_item_29_b16{top:75%;left:84.375%;}
-.g32rb_item_29_b1{top:92.1875%;left:50%;}
-.g32l_item_29_b16{top:75%;left:50%;}
-.g32l_item_29_b1{top:92.1875%;left:50%;}
-.g32rb_item_30_b16{top:75%;left:90.625%;}
-.g32rb_item_30_b1{top:95.3125%;left:50%;}
-.g32l_item_30_b16{top:75%;left:50%;}
-.g32l_item_30_b1{top:95.3125%;left:50%;}
-.g32rb_item_31_b16{top:75%;left:96.875%;}
-.g32rb_item_31_b1{top:98.4375%;left:50%;}
-.g32l_item_31_b16{top:75%;left:50%;}
-.g32l_item_31_b1{top:98.4375%;left:50%;}
 
 
 /* NEW simplified hex viewer classes */
 .hex_panel_content{
   grid-template-rows: 1.5em 1fr;
   grid-template-columns: 2fr repeat(16, 1fr) 0fr;
+  scrollbar-gutter: stable;
 }
 .hex_panel_content_32wide{
   grid-template-columns: 2fr repeat(16, 1fr) 0fr repeat(16, 1fr) 0fr;
@@ -2810,27 +2666,12 @@ class Panel {
         case "hexViewerComp":
         case "hexViewer":
             this.selectedTile = 1;
-            // style="height: calc(100% - ${headerHeight}px);"
-            //TODO: this is duplicated throughout code, should make modular
-            // also, should only show hex offset header if the hex file is loaded and in view?
-            m = "_b16";
-            // let offsets0tof = Array.from( Array(32).keys() ).map(
-            //   (d,i) => `${(i==16)?'<a style="grid-column: '+(1+i)+';  grid-row: 1;"></a>':''}<a class="hex_header_offset_label hex_header_offset_label${m}" style="grid-column: ${(i>>4)+1+i};  grid-row: 1;">${hex(d,2)}</a>`
-            // ).join('');
 
-
-            let offsets0tof = Array.from( Array(32).keys() ).map(
-              (d,i) => `${(i==16)?'<a style=""></a>':''}<a class="hex_header_offset_label hex_header_offset_label${m}" style="">${hex(d,+(i>>4))}</a>`
-            ).join('');
-
-            offsetsTop = `\
-              <div class="hex_header_offset"><a>OFFSET</a></div>
-              <div class="hex_new_top_labels">
-              ${offsets0tof}</div>`;
+            
 
             this.scrollGroup = 0; // currently-viewed g256 group
             this.scrolling = false;
-            this.groupSize = 256*3;
+            this.groupSize = 64;
             setTimeout(()=>{
               // add scroll tracker to hexContent
               this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
@@ -2844,7 +2685,6 @@ class Panel {
                     this.scrolling = true;
                     this.hexScroll();
                     setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
-                    setTimeout( this.scrolling = false, 100);
                   }
                 });
             }, 2000);
@@ -2853,7 +2693,7 @@ class Panel {
             ////////////////
 
             this.panelContent.innerHTML +=
-                `<div class="hex_header_new">${offsetsTop}</div>
+                `<div class="hex_header"></div>
                 <div class="hex_content"
                  style=""></div>`;
 
@@ -2874,6 +2714,9 @@ class Panel {
 
             // Add a byte-width change button to settings:
             this.settings['Number of Columns'] = {value:16};
+            this.settings['Spacing Every x Bytes'] = {value:'None'}
+            this.settings['Spacing Amount'] = {value:0}
+            
             setTimeout( ()=>{
               let downloadButton = document.createElement("button");
               downloadButton.className = "downloadButtons";
@@ -2886,9 +2729,10 @@ class Panel {
               this.byteWidthButton.addEventListener("click", (event) => {
                 this.panelContent.classList.toggle("hex_panel_content_32wide");
                 // toggle within settings for refering to elsewhere
-                this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
+                this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?1:16;
+                this.setPanelContentColumns();
                 // Update line/group/row heights:
-                this.updateLines();
+                // this.updateLines();
 
               });
               console.log("byte width button added...");
@@ -2900,6 +2744,29 @@ class Panel {
           // use:
           // let newLineHeight = "4em";
           // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
+
+          this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
+          // this.settings['Byte Mode'] = 'nibble';
+          // this.settings['Byte Mode'] = 'bit';
+          // debug 
+
+          if (kind=='hexViewer'){
+
+            this.source = {
+                name: "Debug",
+                kind: "bytes",
+                data: Array.from(Array(128*8).keys()).map(d=>Math.round(255*Math.random())),
+                panel: this,
+                from: this.links[0]
+            };
+            this.generateLineSpacingRange();
+            this.setPanelContentColumns();
+            this.generateHexHeaderHTML();
+            this.generateHexHTML( this.source.data, 0, 1);
+            setTimeout( ()=>{this.hexScroll();}, 1000); // will generate an appropriate amount of rows 
+            // this.updateLines();
+            // end debug
+          }
 
           break;
 
@@ -3238,101 +3105,153 @@ class Panel {
     }
   }
 
-  generateHexHTML( input = null, offset=null, length=256){
+  getByteLocationFromOffset( byteOffset, subPos = 0, bitPrecision='byte'){
+    // byte node, the div containing the offset and all sub-characters (bytes, nibbles, or bits)
+    let bnode = this.inner.querySelector(`.panel_content > .hex_content > #byte_${hex(byteOffset,6)}`);
+    // the sub-node: 'byte', 'nibble', 'bit'
+    let snode = bnode.querySelector(`.${bitPrecision}_${subPos}`);
+    // calculate the vertical and horizontal offsets from hex_content's top
+    // (doesn't factor in current scroll height)
+    // let numberOfRows = Math.ceil( this.source.data.length / this.settings['Number of Columns'].value );
+    
+    var bitShift = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+    let gridRow0Based = (byteOffset>>bitShift); // floor divides
+    return {
+      fromTop: gridRow0Based*this.settings['Line Height'].value, 
+      fromLeft: 0, 
+      byteNode: bnode, 
+      subNode: snode
+    };
+  }
+  getLineHeightInPx( ){
+    return this.inner.querySelector(`.panel_content > .hex_content > .byte_container`).getBoundingClientRect().height;
+  }
+  getOffsetFromByteLocation( fromTop ){
+    // var bitShift = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+    // only works for the first column of each row; rounded, in that way
+    return this.settings['Number of Columns'].value*Math.floor(fromTop/this.getLineHeightInPx( ));
 
-    //NOTE: currentl must pass in entire data and offsets to get accurate osset-based class names/ids.
-    // Get indices of our bytes, and if we have an offset,
-    // grab only those bytes and indices at the offset
-    var data, offsets;
-    offsets = Array.from( Array(input.length).keys()); //TODO: make this work for offsets...?
-    if (offset!=null){
-      data = input.slice(offset, Math.min(offset+length, input.length));
-      offsets = offsets.slice(offset, Math.min(offset+length, offsets.length));
-    } else{
-      data = input;
-      offset = 0;
-    }
+  }
+  
+  setPanelContentRows(){
+    
+    // update hexContent grid's grid-template-rows
+    let hc = this.inner.querySelector(".panel_content > .hex_content");
+    let numberOfRows = Math.ceil( this.getNumberOfCells() / this.settings['Number of Columns'].value );
+    hc.style.gridTemplateRows = `repeat(${numberOfRows}, ${ this.settings['Line Height'].value}em)`;
 
+    // update cells' line height
+    let cells = Array.from( hc.querySelectorAll("div"));
+    cells.forEach( d => d.style.height = this.settings['Line Height'].value +"em");
+  }
+  getNumberOfCells(){
+    // varies by Panel class...?
+    return this.source.data.length;
+  }
 
-
-    // generate hexadecimal and binary strings for each byte
-    let bytesHex = [];
-    let bytesBin = [];
-    for (let i=0; i<data.length;i++){
-      bytesHex.push(hex(data[i],2));
-      bytesBin.push(binar(data[i],8,4));
-    }
-
-    // parent div for following g32 elements
-    var hexContent = this.inner.querySelector(" .panel_content > .hex_content");
-
-    var count = 0;
-    var html = ``;
-
-    // for (let g4096=0; g4096 < Math.ceil(data.length/4096); g4096++){
-    //   html+=`<div id="g4096_${g4096}" class="hex_g4096" style="grid-row:${1+(offsets[count]/4096)};">`;
-
-    // for (let j=0; j < data.length; j++){
-      // html+=`<div id="g4096_${g4096}" class="hex_g4096" style="grid-row:${1+(offsets[count]/4096)};">`;
-
-    let groupSize = this.groupSize;
-    var tileIndex;
-    for (let group = Math.floor(offsets[0]/groupSize); ; group++){
-      html+=`<div id="group_${group}" class="hex_g256" style="grid-row:${1+group};">`;
-        //NOTE: not necessarily groups of 256.
-      // console.log(`within generateHexHTML, creating group ${group} ( ${offsets[0]} // ${groupSize})`);
-      for (let g32=0; g32 < groupSize/32; g32++){
-
-        // separate g321 and g32r version:
-        //
-        // html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32">`;
-        // // Create g32 left (offsets) column, adding secon row if needed
-        // html+= `<div class="hex_g32l"><div class="new_offset">${hex(Math.floor(offsets[count]),6)}</div>`;
-        // if ( count+16 < data.length ) html+=`<div class="new_offset">${hex(Math.floor(offsets[count+16]),6)}</div>`;
-        // html+= `</div>`;
-        // // begin g32 right (data) column
-        // html+= `<div class="hex_g32r">`;
-
-        // for (let i=0; i < 32; i++){
-        //   html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte">${bytesHex[count]}</div>`;
-        //   count++;
-        //   if ( count >= data.length ) break;
-        // }
-        // html+=`</div></div>`;
-
-
-        // un-separated g32 l and r version:
-        //
-        tileIndex = Math.floor(offsets[count]/32)+1;
-        html+=`<div id="g0x${hex(offsets[count],6)}" class="hex_g32" data-tile-index="${tileIndex}" title="32-Byte Group No. ${tileIndex}">`;
-        html+=`<div class="hex_g32lr">`;
-
-        for (let i=0; i < 32; i++){
-          if ( i==0 ) html+= `<div class="new_offset hex_cell">${hex(Math.floor(offsets[count]),6)}</div>`;
-          if ( i==16 ) html+= `<div class="new_offset new_offet_middle hex_cell">${hex(Math.floor(offsets[count]),6)}</div>`;
-          html+=`<div id="byte_${hex(offsets[count],6)}" class="hex_byte hex_cell">${bytesHex[count]}</div>`;
-          count++;
-          if ( count >= data.length ) break;
-        }
-        html+=`</div>`;
-        html+=`</div>`;
-
-        if ( count >= data.length ) break;
-      }
-      html+=`</div>`;
-      if ( count >= data.length ) break;
-    }
-      // html+=`</div>`;
-    // }
-
-    // console.log(html);
-    hexContent.innerHTML += html;
-
+  setPanelContentColumns(){
+    var panelContent = this.inner.querySelector(".panel_content");
+    // panelContent.style.gridTemplateColumns = `2fr repeat(16, 1fr) 0fr repeat(16, 1fr) 0fr`;
+    var offsetsWidthString = '7ch';
+    var leftbar = '0ch', rightbar = '0ch'; // if we want additional NON-SCROLLING side bars
+    panelContent.style.gridTemplateColumns = [leftbar, ...Array.from(
+      Array(this.settings['Number of Columns'].value).keys()).flatMap(
+      (d,i)=>[
+        i==0 ? offsetsWidthString : '0fr', 
+        '1fr',
+        '1fr', '1fr', '1fr', '1fr', 
+        '1fr',
+        '1fr', '1fr', '1fr', '1fr', 
+      ]
+    ), rightbar].join(` `);
 
 
   }
+  generateHexHeaderHTML(){
+    const offsetString = 'OFFSET';
+    var hexHeader = this.inner.querySelector(" .panel_content > .hex_header");
+    //display:none;  helps?
+    var byteSpan;
+    hexHeader.innerHTML = Array.from(
+      Array(64).keys()).flatMap(
+      (d,i)=>[
+        `<div style="margin:0;padding:0;grid-column: span 1;min-width:0ch;" >${ i==0 ? offsetString : ''}</div>`, 
+        `<div style="margin:0;padding:0;grid-column: span 1; min-width:0ch;"></div>`,
+        `<div style="margin:0;padding:0;grid-column: span 9;background:black;">${ hex(i, i>>4?2:1)}</div>`, 
+      ]
+    ).join(``);
+    hexHeader.style.gridTemplateRows = '1fr';
+    hexHeader.style.overflow = "hidden";
+  }
 
+  generateHexHTML( input = null, offset=0, length=this.groupSize){
+    const start = Date.now();
+    //NOTE: currently must pass in entire data and offsets to get accurate osset-based class names/ids.
+    // Get indices of our bytes, and if we have an offset,
+    // grab only those bytes and indices at the offset
+    var data, offsets;
+    offsets = Array.from( Array(input.length).keys()).map(d=>d+offset);
+    data = input.slice(offset, Math.min(offset+length, input.length));
 
+    // generate hexadecimal and binary strings for each byte
+    let bytesHex = data.map(d=>hex(d,2));
+    let bytesBin = data.map(d=>binar(d,8)); // ?
+    let offsetsHex = offsets.map(d=>hex(d,6));
+
+    
+    // parent div for byte elements
+    var hexContent = this.inner.querySelector(" .panel_content > .hex_content");
+
+    var html = ``;
+
+    // 
+    
+    var bitShift = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+
+    data.forEach((d,i)=>{
+      let gridRow = 1+(offsets[i]>>bitShift); // essentially floor divides
+      let offsetString = offsetsHex[i];
+      // wrapper div
+      let byteHTML = `<div id="byte_${offsetString}" class="byte_container" style="display:grid; grid-template-rows: 1fr;  grid-column: span 11; grid-template-columns: subgrid;grid-row:${gridRow};" data-offset="${offsets[i]}">`;
+      // offset
+      byteHTML += `<div style="display: grid; grid-row: 1; grid-column: span 1; min-width:0;overflow:hidden;"><a style="width:100%;user-select: none;" >${(offsets[i]%this.settings['Number of Columns'].value)==0?offsetString:''}</a></div>`;
+      // spacing
+      byteHTML += `<div style="display: grid; grid-row: 1; grid-column: span 1; min-width:0;width:0;overflow:hidden;"></div>`;
+
+      this.settings['Spacing Every x Bytes'];
+      this.settings['Spacing Amount'];
+      this.settings['Number of Columns'];
+
+      switch (this.settings['Byte Mode']){
+        case 'byte':
+          byteHTML += `<div class="byte" style="display: grid; grid-row: 1; grid-column: span 9;background:black;">${bytesHex[i]}</div>`;
+          break;
+        case 'nibble':
+          byteHTML += `<div class="nibble" style="display: grid; grid-row: 1; grid-column: span 4;background:red;">${bytesHex[i][0]}</div>`;
+          byteHTML += `<div style="display: grid; grid-row: 1; grid-column: span 1;background:green;"></div>`;
+          byteHTML += `<div class="nibble" style="display: grid; grid-row: 1; grid-column: span 4;background:blue;">${bytesHex[i][1]}</div>`;
+          break;
+        case 'bit':
+          console.log(bytesBin[i]);
+          byteHTML += bytesBin[i].split('').map((e,j)=>`<div class="bit" style="background:yellow;display: grid; grid-row: 1; grid-column: span 1;">${e}</div>${(j==3)?'<div style="display: grid; grid-row: 1; grid-column: span 1;"></div>':''}`).join('');
+          break;
+
+      }
+      byteHTML += `</div>`; // close byte_container
+      html+=byteHTML;
+    });
+
+    ////////////
+
+    // var count = 0;
+    // let groupSize = this.groupSize;
+    // var tileIndex;
+
+    hexContent.innerHTML += html;
+
+    // console.log("generateHexHTML: "+(Date.now()-start));
+
+  }
 
   generateBitplaneHTML(input = null, offset=0, mode=null, length=32, replace=[]){
     // does main work for generating hex editor-style view and bp viewer ui
@@ -3715,8 +3634,8 @@ replace].forEach(d=>console.log(d));
       // event.target.label.innerHTML = this.settings['Line Height'].value;
       this.settings['Line Height'].html[2].innerHTML = this.settings['Line Height'].value;
       //
-      this.updateLines();
-
+      // this.updateLines();
+      this.setPanelContentRows();
     });
 
 
@@ -4044,74 +3963,102 @@ replace].forEach(d=>console.log(d));
 
   hexScroll(){
     // this is called within an event listener of the hex_content being scrolled
-    let gnum = this.groupSize;
-    let totalGroups = Math.ceil(this.source.data.length/gnum);
-    let oldGroup = this.scrollGroup*1;
+    const start = Date.now();
 
-    let headersHeight = this.inner.querySelector(".panel_header").getBoundingClientRect().height + this.inner.querySelector(".hex_header_new").getBoundingClientRect().height;
+    // var byteLocation = this.selectHexData( byteOffset);
+    // var top = byteLocation.fromTop;
 
-    let groupElementSelector = `.panel_content > .hex_content > #group_${this.scrollGroup}`;
-    // console.log(groupElementSelector);
-    let groupElement = this.inner.querySelector(groupElementSelector);
-    let groupHeight = groupElement.getBoundingClientRect().height;
-    let groupTop = groupElement.offsetTop - headersHeight;
-    // let groupTop = groupElement.getBoundingClientRect().top;
-    let groupBottom = groupHeight + groupTop;
-    let windowHeight = this.inner.querySelector(".panel_content > .hex_content").getBoundingClientRect().height;
-    let windowScrollTop = this.inner.querySelector(".panel_content > .hex_content").scrollTop;
-    let windowScroll = windowScrollTop + (windowHeight/2); // use middle
+    let hc = this.inner.querySelector(".panel_content > .hex_content");
+    let windowHeight = hc.getBoundingClientRect().height;
+    let windowScrollTop = hc.scrollTop;
 
-    // if we're outside the current group, find which one we're in.
-    // Assumes all groups are the same height.
-    if ( ( windowScrollTop > groupBottom ) || ( windowScrollTop < groupTop ) ) {
+    // Convert the current scroll top to the rounded-to-row-start offset
+    var currentOffset = this.getOffsetFromByteLocation( windowScrollTop );
 
-      // New group based on scroll position, limited to possible groups' range,
-      // because sometimes the scroll position seems to jump impossibly past the end,
-      this.scrollGroup = Math.min(Math.max(Math.floor(windowScrollTop/groupHeight),0),totalGroups-1);
+    // the scroll buffer top is max(current scroll - window height, 0)
+    var bufferTopOffset = Math.max( this.getOffsetFromByteLocation( windowScrollTop - windowHeight ), 0);
 
-      // If there was a change:
-      let added = [], removed = [];
+    // the scroll buffer bottom is min(current scroll + 2*window height, numRows)
+    var bufferBottomOffset = Math.min( this.getOffsetFromByteLocation( windowScrollTop + (2*windowHeight) ), this.getNumberOfCells()-1 );
 
-      // now that we have the new group,
-      // check that all groups within a 3-tall window of it are present, if within possible range.
-      for (let g=this.scrollGroup-1; g<this.scrollGroup+2; g++){
-        // if it's even within range:
-        if ( (g>-1) && (g<totalGroups) ){
-          // if it doesn't yet exist, create it:
-          var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
-          if ( !current ){
-            this.generateHexHTML( this.source.data, g*gnum, gnum);
-            // console.log(`added group ${g} of ${totalGroups}.`);
-            added.push(g);
-          }
-        }
+    console.log(`Window top: ${windowScrollTop}, height ${windowHeight}; Scroll buffer from ${bufferTopOffset} |<-- ${currentOffset} -->| ${bufferBottomOffset} (window height ${windowHeight}).`);
+
+    // look at existing and remove if they're outside our window + buffers
+    Array.from(hc.querySelectorAll(`.byte_container`)).forEach(
+      (d,i)=>{
+        let ofs = d.getAttribute("data-offset")*1;
+        // console.log(d);
+        if ( (ofs < bufferTopOffset) || (ofs > bufferBottomOffset) ) d.remove();
       }
+    );
 
-      // remove previous.
-      for (let g = oldGroup-1; g <= oldGroup+1; g++){
-        // if it's even within possible range:
-        if ( ( g >= 0 ) && ( g < totalGroups ) ){
-          // if it exists, and isn't within the new group's range, remove it:
-          var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
-          var outOfRange = (g < (this.scrollGroup-1)) || (g > (this.scrollGroup+1));
-          // if (outOfRange) console.log(`group ${g} is out of range of group ${this.scrollGroup}`);
-          if ( current && outOfRange){
-            current.remove();
-            // console.log(`...removed group ${g}.`);
-            removed.push(g);
-          } else{
-            // console.log(`...group ${g} not removed`);
-            0;
-          }
-        }
+    // loop through all of what we should have, 
+    for ( let i=bufferTopOffset; i<=bufferBottomOffset; i++){
+      // see if it exists
+      if ( hc.querySelector(`#byte_${hex(i,6)}`) ){
+        0;
+      } else{
+        this.generateHexHTML( this.source.data, i, 1);
       }
-
-      let existing = Array.from(this.inner.querySelectorAll(`.panel_content > .hex_content > div`));
-      console.log( `scroll : top ${windowScrollTop} | Group ${oldGroup} -> ${this.scrollGroup}: ${groupTop} <-> ${groupBottom} | [ ${existing.map(d=>d.id.split("_")[1]).join(", ")} ] +[${added.join(",")}] -[${removed.join(",")}] (${totalGroups} total)` );
-
-      this.updateLines();
 
     }
+
+    this.setPanelContentRows();
+    console.log("hexScroll: "+(Date.now()-start));
+    this.scrolling = false; // say we're done
+
+    // // if we're outside the current group, find which one we're in.
+    // // Assumes all groups are the same height.
+    // if ( ( windowScrollTop > groupBottom ) || ( windowScrollTop < groupTop ) ) {
+
+    //   // New group based on scroll position, limited to possible groups' range,
+    //   // because sometimes the scroll position seems to jump impossibly past the end,
+    //   this.scrollGroup = Math.min(Math.max(Math.floor(windowScrollTop/groupHeight),0),totalGroups-1);
+
+    //   // If there was a change:
+    //   let added = [], removed = [];
+
+    //   // now that we have the new group,
+    //   // check that all groups within a 3-tall window of it are present, if within possible range.
+    //   for (let g=this.scrollGroup-1; g<this.scrollGroup+2; g++){
+    //     // if it's even within range:
+    //     if ( (g>-1) && (g<totalGroups) ){
+    //       // if it doesn't yet exist, create it:
+    //       var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
+    //       if ( !current ){
+    //         this.generateHexHTML( this.source.data, g*gnum, gnum);
+    //         // console.log(`added group ${g} of ${totalGroups}.`);
+    //         added.push(g);
+    //       }
+    //     }
+    //   }
+
+    //   // remove previous.
+    //   for (let g = oldGroup-1; g <= oldGroup+1; g++){
+    //     // if it's even within possible range:
+    //     if ( ( g >= 0 ) && ( g < totalGroups ) ){
+    //       // if it exists, and isn't within the new group's range, remove it:
+    //       var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
+    //       var outOfRange = (g < (this.scrollGroup-1)) || (g > (this.scrollGroup+1));
+    //       // if (outOfRange) console.log(`group ${g} is out of range of group ${this.scrollGroup}`);
+    //       if ( current && outOfRange){
+    //         current.remove();
+    //         // console.log(`...removed group ${g}.`);
+    //         removed.push(g);
+    //       } else{
+    //         // console.log(`...group ${g} not removed`);
+    //         0;
+    //       }
+    //     }
+    //   }
+
+    //   let existing = Array.from(this.inner.querySelectorAll(`.panel_content > .hex_content > div`));
+
+    //   console.log( `scroll : top ${windowScrollTop} | Group ${oldGroup} -> ${this.scrollGroup}: ${groupTop} <-> ${groupBottom} | [ ${existing.map(d=>d.id.split("_")[1]).join(", ")} ] +[${added.join(",")}] -[${removed.join(",")}] (${totalGroups} total)` );
+
+      // this.updateLines();
+
+    // }
 
   }
 
@@ -6364,6 +6311,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "hexViewer":
+        break;
         // decompress
         // if we have source compressed graphics (ignore for calls from others )
         if (this.links[0].source && !this.source ){
@@ -6393,12 +6341,15 @@ replace].forEach(d=>console.log(d));
 
 
           this.updateLines(); // should bring to full height, accurate scrollbar?
+          // this.setPanelContentRows(); // ?
         }
 
         break;
       case "hexViewerComp":
         // compressed data hex viewer and animator
         // if we have source compressed graphics (ignore for calls from others )
+        
+        
         if (this.links[0].source && !this.source){
           this.source = {
               name: this.links[0].source.file.name,
@@ -6424,6 +6375,7 @@ replace].forEach(d=>console.log(d));
           //     "Download Original Compressed Data File (.bin)");
           // }
           this.updateLines(); // should bring to full height, accurate scrollbar?
+          // this.setPanelContentRows(); // ?
 
           // create the button used to run the decomp animation
           if (!this.animateDecompButton){
