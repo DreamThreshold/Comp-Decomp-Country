@@ -292,7 +292,9 @@ button{
   grid-area: 2 / 1 / 3 / -1; */
   grid-column: 1 / -1;
   grid-row: 2 / 3;
-  overflow-y: auto; /* allows scrolling */
+  /* allows scrolling */
+  /* overflow-y: auto;  */
+  overflow-y: hidden;
   overflow-x: hidden;
 }
 /* for when the menu is open */
@@ -345,10 +347,12 @@ button{
   display: flex;
   /* display: grid;
   place-content: stretch; */
+  display: grid;
   flex-direction: row;
   flex-wrap: wrap;
-  width: 100%;;
-  /* overflow-y: scroll; */
+  width: 100%;
+  grid-template-columns: repeat(4, 1fr);
+  overflow-y: scroll;
   /* align-content: stretch; */
   scroll-snap-type: both proximity;
 }
@@ -357,10 +361,11 @@ button{
   /* display: grid;
   place-content: stretch; */
   grid-auto-flow: column;
-  grid-template-rows: repeat(16, 1fr);
+  grid-template-rows: repeat(16, 8ch);
   flex-wrap: wrap;
   height: 100%;;
-  overflow-x: scroll;
+  overflow-x: auto;
+  overflow-y: auto;
   /* align-content: stretch; */
   scroll-snap-type: both proximity;
 }
@@ -372,13 +377,13 @@ button{
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
-  width: 6.25%; /* works ok */
-  width: 25%;
+  /* width: 6.25%; 
+  width: 25%; */
 }
 /* for actual <canvas> element */
 .tile_item{
-  max-width: 100%;
-  min-height: 100%;
+  /* max-width: 100%;
+  min-height: 100%; */
   aspect-ratio: 1 / 1;
   image-rendering: pixelated;
   border: 1px solid rgba(255,0,0,0.25);
@@ -392,21 +397,35 @@ button{
 
   flex-grow: 1;
   aspect-ratio: 1 / 1;
-  width: 10ch;
+  /* width: 10ch; */
   /* height: 10ch;  */
-  display: grid;
+  /* display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
   place-items: stretch;
-  grid-gap: 0;
+  grid-gap: 0; */
   aspect-ratio: 1 / 1;
   image-rendering: pixelated;
   border: 1px solid rgba(0,255,0,0.5);
 
-
 }
 .metatile_wrapper_viewer{
-  width: 25%; /* works ok */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  place-items: stretch;
+  grid-auto-flow: row;
+  grid-gap: 0;
+}
+
+.level_metatile_wrapper{
+  flex-grow: 1;
+  aspect-ratio: 1 / 1;
+  width: 8ch;
+  height: 8ch;
+  aspect-ratio: 1 / 1;
+  image-rendering: pixelated;
+  border: 1px solid rgba(0,255,0,0.5);
 }
 
 .panel_inner_palette{
@@ -429,7 +448,7 @@ button{
 }
 .color_item{
   flex-grow: 1;
-  aspect-ratio: 1 / 1;
+  /* aspect-ratio: 1 / 1; */
   /* width: 5ch; */
   background-color: rgba(0,0,0,0);
 
@@ -511,7 +530,10 @@ button{
 
     /* transition: grid-template-rows 1s ease; */
 }
-
+.hex_content_bitplane{
+  grid-column: 1 / -1;
+  grid-template-rows: 100%; /*HACK: assumes viewing only 32 bytes */
+}
 
 .byte_group{
   /* position:absolute; */
@@ -548,33 +570,33 @@ button{
 
 .g32l{
     scroll-snap-align: start;
-    /* display: grid; */
+    display: grid;
     grid-column: 1 / 2;
     grid-row: 1;
-    /* grid-template-columns: subgrid;
+    grid-template-columns: subgrid;
     grid-auto-flow: row;
     align-items: start;
-    justify-items: center; */
+    justify-items: center;
   min-width:fit-content;
-    position: relative;
+    /* position: relative; */
 }
 
 .g32r{
     scroll-snap-align: start;
-    /* display: grid; */
+    display: grid;
     grid-column: 2 / 3;
     grid-row: 1;
-    /* grid-template-columns: subgrid; */
-    /* grid-auto-flow: row; */
-    /* align-items: start; */
-    /* justify-items: center; */
+    grid-template-columns: subgrid; 
+    grid-auto-flow: row; 
+    align-items: start;
+    justify-items: center;
   min-width:fit-content;
-    position: relative;
+    /* position: relative; */
 }
 .g32_item{
-  position:absolute;
+  /* position:absolute;
   transform-origin: center;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%,-50%); */
 }
 .g32l_offset_sometimes{}
 .g32l_offset_sometimes_b16{opacity:0;}
@@ -582,15 +604,15 @@ button{
 
 .g32b{
     scroll-snap-align: start;
-    /* display: grid; */
+    display: grid;
     grid-column: 3 / 4;
     grid-row: 1;
-    /* grid-template-columns: subgrid; */
-    /* grid-auto-flow: row; */
-    /* align-items: start; */
-    /* justify-items: center; */
+    grid-template-columns: subgrid;
+    grid-auto-flow: row;
+    align-items: start;
+    justify-items: center;
     overflow: hidden;
-    position: relative;
+    /* position: relative; */
 }
 
 .g32bg{
@@ -931,7 +953,7 @@ end of animation classes
   height: 100%;
   /* max-height: 15em; */
   /* height: 20em;  */
-  /* overflow-y:scroll; */
+  overflow-y:auto;
   font-family:Arial, Helvetica, sans-serif;
   line-height: 1.5em;
   padding: 1ch;
@@ -2512,10 +2534,10 @@ class Panel {
                       <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
                     </ul>
                   </li>
-                  <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to have it appear in the bitplane viewer and tileset viewer.</li>
+                  <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to have it appear in the bitplane viewer and tileset viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are different ways to convert the colors.)</li>
                   <li> <b>Tileset Viewer</b>. View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
                   <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. If a tileset viewer panel is present, click a tile within it to have highlight all instances of that tile within the metatiles. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
-                  <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently limited to only part of the level, for app performance reaons, and currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
+                  <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
                 </ul>
                 <br>
                 Most features require uploading a file to the relevant file input panels on the page.
@@ -2563,6 +2585,18 @@ class Panel {
             // headerHeight += this.input.style.height;
 
             // old way had no break; flow into hexviewer
+
+            // give some time, then load stored data if it exists
+            if (sessionStorage.getItem(this.nameValid+'_source')) 
+              setTimeout( ()=> {
+                this.source = JSON.parse( sessionStorage.getItem(this.nameValid+'_source') );
+                // special handling
+                this.source.data = Object.entries(this.source.data).map(d=>d[1]) ; 
+                this.source.panel = this;
+                this.panelContent.innerHTML = '<i>Retrieved "'+this.source.filename+'" from browser session storage.<br>(Close & reopen page to clear)</i>';
+                this.propagateSource();
+              }, 1000);
+            
             break;
 
         case "bitplaneViewer":
@@ -2686,7 +2720,7 @@ class Panel {
 
             this.panelContent.innerHTML +=
                 `<div class="hex_header">${offsetsTop}</div>
-                <div class="hex_content"
+                <div class="hex_content hex_content_bitplane"
                  style="grid-template-rows: 100%;"></div>`;
                  //NOTE: need this grid-template-rows: 100%;  so that bp viewer doesn't
                  // overflow/scroll for wide aspect ratios.
@@ -2833,20 +2867,57 @@ class Panel {
           break;
 
         case "tilesetViewer":
-          this.inner.classList.add("panel_inner_tileset");
-          this.panelContent.innerHTML += `<div class="tileset_content"></div>`;
+          // this.inner.classList.add("panel_inner_tileset");
+          // this.panelContent.innerHTML += `<div class="tileset_content"></div>`;
 
-          break;
+          // break;
 
         case "metatilesViewer":
+          this.settings['Number of Columns'] = {value:4};
+
           this.inner.classList.add("panel_inner_tileset");
-          this.panelContent.innerHTML += `<div class="tileset_content"></div>`;
+          this.panelContent.innerHTML += `\
+            <div class="tileset_content">
+              <div class="grid_placeholder" style="grid-column: 1 / -1; grid-row: 1;">
+            </div>`;
+            // this placeholder will help maintain the size of the grid even when we remove elements from it, so the scrollbar will be accurate
+
+          // add scroll tracker to hexContent
+          this.scrolling = false;
+          this.scrollGroup = 0;
+          this.groupSize = 1;
+          this.inner.querySelector(".panel_content > .tileset_content").addEventListener("scroll", (event)=>{
+
+                  console.log('tileset scroll event listener');
+                  if (!this.scrolling){
+                    requestAnimationFrame( ()=>{
+                    // scroll updating, with some debouncing.
+                      this.scrolling = true;
+                      this.tileScroll();
+                      // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+                    } );
+                  }
+              });
 
           break;
 
         case "levelMapViewer":
           this.inner.classList.add("panel_inner_tileset");
           this.panelContent.innerHTML += `<div class="levelMap_content"></div>`;
+
+          // add scroll tracker to hexContent
+          this.scrollGroup = {x:0,y:0};
+          this.inner.querySelector(".panel_content > .levelMap_content").addEventListener("scroll",
+                (event)=>{
+                  if (!this.scrolling){
+                    requestAnimationFrame( ()=>{
+                    // scroll updating, with some debouncing.
+                      this.scrolling = true;
+                      this.lvlScroll();
+                      // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+                    } );
+                  }
+              });
 
           break;
     }
@@ -3163,9 +3234,10 @@ class Panel {
 
   getByteLocationFromOffset( byteOffset, subPos = 0, bitPrecision='byte'){
     // byte node, the div containing the offset and all sub-characters (bytes, nibbles, or bits)
-    // let bnode = this.inner.querySelector(`.panel_content > .hex_content > .byte_group > #byte_${hex(byteOffset,6)}`);
+    let bnode = this.inner.querySelector(`.panel_content > .hex_content > .byte_group > #byte_${hex(byteOffset,6)}`);
     // // the sub-node: 'byte', 'nibble', 'bit'
-    let snode = bnode.querySelector(`.${bitPrecision}_${subPos}`);
+    var snode;
+    if (bnode) snode = bnode.querySelector(`.${bitPrecision}_${subPos}`);
     // // calculate the vertical and horizontal offsets from hex_content's top
     // // (doesn't factor in current scroll height)
     // // let numberOfRows = Math.ceil( this.source.data.length / this.settings['Number of Columns'].value );
@@ -3521,60 +3593,294 @@ class Panel {
 
     this.scrolling = false; // say we're done
 
-    // // if we're outside the current group, find which one we're in.
-    // // Assumes all groups are the same height.
-    // if ( ( windowScrollTop > groupBottom ) || ( windowScrollTop < groupTop ) ) {
+  }
 
-    //   // New group based on scroll position, limited to possible groups' range,
-    //   // because sometimes the scroll position seems to jump impossibly past the end,
-    //   this.scrollGroup = Math.min(Math.max(Math.floor(windowScrollTop/groupHeight),0),totalGroups-1);
+  tileScroll(){
+    const start = Date.now();
 
-    //   // If there was a change:
-    //   let added = [], removed = [];
+    // var byteLocation = this.selectHexData( byteOffset);
+    // var top = byteLocation.fromTop;
 
-    //   // now that we have the new group,
-    //   // check that all groups within a 3-tall window of it are present, if within possible range.
-    //   for (let g=this.scrollGroup-1; g<this.scrollGroup+2; g++){
-    //     // if it's even within range:
-    //     if ( (g>-1) && (g<totalGroups) ){
-    //       // if it doesn't yet exist, create it:
-    //       var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
-    //       if ( !current ){
-    //         this.generateHexHTML( this.source.data, g*gnum, gnum);
-    //         // console.log(`added group ${g} of ${totalGroups}.`);
-    //         added.push(g);
-    //       }
-    //     }
-    //   }
-
-    //   // remove previous.
-    //   for (let g = oldGroup-1; g <= oldGroup+1; g++){
-    //     // if it's even within possible range:
-    //     if ( ( g >= 0 ) && ( g < totalGroups ) ){
-    //       // if it exists, and isn't within the new group's range, remove it:
-    //       var current = this.inner.querySelector(`.panel_content > .hex_content > #group_${g}`);
-    //       var outOfRange = (g < (this.scrollGroup-1)) || (g > (this.scrollGroup+1));
-    //       // if (outOfRange) console.log(`group ${g} is out of range of group ${this.scrollGroup}`);
-    //       if ( current && outOfRange){
-    //         current.remove();
-    //         // console.log(`...removed group ${g}.`);
-    //         removed.push(g);
-    //       } else{
-    //         // console.log(`...group ${g} not removed`);
-    //         0;
-    //       }
-    //     }
-    //   }
-
-    //   let existing = Array.from(this.inner.querySelectorAll(`.panel_content > .hex_content > div`));
-
-    //   console.log( `scroll : top ${windowScrollTop} | Group ${oldGroup} -> ${this.scrollGroup}: ${groupTop} <-> ${groupBottom} | [ ${existing.map(d=>d.id.split("_")[1]).join(", ")} ] +[${added.join(",")}] -[${removed.join(",")}] (${totalGroups} total)` );
-
-      // this.updateLines();
+    // this is usually a separate function like this.getGroupOffsetFromByteLocation()  
+    // function getTilePosition(){
+    //   // assumes there's no horizontal scrolling.
 
     // }
 
+    console.log("tileScroll()");
+
+    // batch DOM reads/writes for performance
+    // / reads:
+    let hc = this.inner.querySelector(".panel_content > .tileset_content");
+    let windowHeight = hc.getBoundingClientRect().height; // performance issue?
+    let windowWidth = hc.getBoundingClientRect().width;
+    let windowScrollTop = hc.scrollTop;
+    let tileHeight = windowWidth/this.settings['Number of Columns'].value;
+
+    let rowHeight =  hc.querySelector(`.tile_item`).getBoundingClientRect().height;
+
+    // Convert the current scroll top to the rounded-to-row-start offset
+    var currentOffset = Math.floor(this.settings['Number of Columns'].value*windowScrollTop/rowHeight);
+    // var currentOffsetGroup = this.groupSize * Math.floor( currentOffset/this.groupSize );
+    // var currentOffsetGroup = this.getGroupOffsetFromByteLocation( windowScrollTop );
+
+    // var currentGroup = 
+
+    if ( currentOffset == this.scrollGroup ) {
+      this.scrolling = false;
+      return 0;
+    }
+
+    var totalRows = Math.ceil(this.source.data.length/this.settings['Number of Columns'].value);
+
+    // this.scrollGroup = currentOffsetGroup;
+
+    // the scroll buffer top is max(current scroll - window height, 0)
+    var bufferTopOffset = Math.max( Math.floor(this.settings['Number of Columns'].value*( windowScrollTop - windowHeight )/rowHeight), 0);
+
+    // var bufferTopOffsetGroup = this.groupSize * Math.floor( bufferTopOffset/this.groupSize );
+
+    // the scroll buffer bottom is min(current scroll + 2*window height, numRows)
+    
+    
+    var bufferBottomOffset = Math.min( Math.floor(this.settings['Number of Columns'].value*( windowScrollTop + (2*windowHeight))/rowHeight)-1, this.source.data.length-1);
+
+    // Math.min( this.getGroupOffsetFromByteLocation( windowScrollTop + (2*windowHeight) ), this.getNumberOfCells()-1 );
+    // var bufferBottomOffsetGroup = this.groupSize * Math.floor( bufferBottomOffset/this.groupSize );
+
+    console.log(`Window top: ${windowScrollTop}, height ${windowHeight}; Scroll buffer from ${bufferTopOffset} |<-- ${currentOffset} [${currentOffset}] -->| ${bufferBottomOffset} (window height ${windowHeight}).`);
+
+    const setup = Date.now()-start;
+
+    var removes = [];
+    var adds = [];
+
+    // look at existing and remove if they're outside our window + buffers
+    // .metatile_wrapper .metatile_wrapper_viewer    (no id)
+    // .tile_wrapper  data-tile-index    (1-based)    (no id)
+    Array.from(hc.querySelectorAll(`.tile_item`)).forEach(
+      (d,i)=>{
+        let ofs = (d.getAttribute("data-tile-index")*1)-1; // from 1-based to 0-based
+        // console.log(d);
+        if ( (ofs < bufferTopOffset) || (ofs > bufferBottomOffset) ) removes.push(d);
+      }
+    );
+
+    const deleted = Date.now()-start;
+    var existingCount = 0;
+    // loop through all of what we should have, 
+    for ( let i=bufferTopOffset; i<=bufferBottomOffset; i+=this.groupSize){
+      // see if it exists
+      if ( hc.querySelector(`#tile_item_${i+1}`) ){
+        existingCount++;
+      } else{
+        adds.push(i);
+        
+      }
+
+    }
+    console.log(existingCount+" groups were already existing.");
+
+    adds.forEach(index => {
+      if ( this.kind=="tilesetViewer" ) this.generateTilesetHTML( this.source.data, index, this.groupSize);
+      if ( this.kind=="metatilesViewer" ) this.generateMetatilesetHTML( this.source.data, index, this.groupSize);
+    });
+    removes.forEach(d=>d.remove());
+
+    // // update the "before" padding:
+    // let before = hc.querySelector(`.grid_before`);
+    // let precedingRows = Math.floor(bufferTopOffset/this.settings['Number of Columns'].value)-1;
+    // before.style.gridRow = `1 / ${precedingRows+1}`;
+    // before.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${precedingRows}`;
+
+    // // update the "after" padding:
+    // let after = hc.querySelector(`.grid_after`);
+    // let firstRowOfAfter = ((bufferBottomOffset+this.groupSize)/this.settings['Number of Columns'].value) + 1; // 1-based
+    // let finalRow = Math.floor((this.source.data.length-1)/this.settings['Number of Columns'].value) + 1;
+
+    // // let subsequentRows = Math.floor(bufferTopOffset/this.settings['Number of Columns'].value)-1;
+    // after.style.gridRow = `${firstRowOfAfter} / ${finalRow}`;
+    // after.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${finalRow - firstRowOfAfter}`;
+
+
+    console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
+
+    const added = Date.now()-start;
+
+    // this.setPanelContentRows();
+
+    // const setPanelRows = Date.now()-start;
+
+    console.log(`hexScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
+
+    this.scrolling = false; // say we're done
+
+
   }
+  initMetatiles(){
+    console.log('init metatiles');
+    this.source.rawPixels = this.source.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
+    // generate canvas nodes?
+    this.source.canvasNodes = Array(this.source.data.length);
+
+    // update the placeholder to reflect rumber of rows.
+    let hc = this.inner.querySelector(".panel_content > .tileset_content");
+    let placeholder = hc.querySelector(`.grid_placeholder`);
+    let finalRow = Math.floor((this.source.data.length-1)/this.settings['Number of Columns'].value) + 1; // 1-based
+    placeholder.style.gridRow = `1 / ${finalRow}`;
+    placeholder.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${finalRow}`;
+    placeholder.style.zIndex = "-1";
+  }
+  initTiles(){
+    console.log('init tiles');
+    // this.source.rawPixels = this.source.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
+    this.source.rawPixels = this.source.data.map(tile=>tile.map(row=>row.map(colorIndex=>this.palette[colorIndex])));
+    // generate canvas nodes?
+    this.source.canvasNodes = Array(this.source.data.length);
+
+    // update the placeholder to reflect rumber of rows.
+    let hc = this.inner.querySelector(".panel_content > .tileset_content");
+    let placeholder = hc.querySelector(`.grid_placeholder`);
+    let finalRow = Math.floor((this.source.data.length-1)/this.settings['Number of Columns'].value) + 1; // 1-based
+    placeholder.style.gridRow = `1 / ${finalRow}`;
+    placeholder.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${finalRow}`;
+    placeholder.style.zIndex = "-1";
+
+  }
+  initLvl(){
+    // initializes the offset values and strings that we'll probably use later
+    console.log("init lvl");
+    
+    // rearrange and extract raw pixel data so we don't have to keep doing it
+    this.source.rawPixels = this.source.data.map(mt=>prepMetatile(mt,this.palette));
+    // generate canvas nodes?
+    this.source.canvasNodes = Array(this.source.data.length);
+
+    let rows = 16;
+    let cols = Math.ceil(this.source.data.length/rows);
+
+    let lc = this.inner.querySelector(".panel_content > .levelMap_content");
+    lc.style.gridTemplateColumns = 'repeat('+cols+', 8ch)';
+
+    
+    // this.source.hexStrings = this.source.data.map((d,i)=>hex(d,2));
+    // this.source.binStrings = this.source.data.map((d,i)=>binar(d,8));
+    // this.source.offsets = this.source.data.map( (d,i) => i );
+    // this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
+
+    
+  }
+
+  lvlScroll(){
+
+    console.log('lvlScroll()');
+     
+    // this is called within an event listener of the hex_content being scrolled
+    const start = Date.now();
+
+    // var byteLocation = this.selectHexData( byteOffset);
+    // var top = byteLocation.fromTop;
+
+    // batch DOM reads/writes for performance
+    // / reads:
+    let lc = this.inner.querySelector(".panel_content > .levelMap_content");
+    let windowHeight = lc.getBoundingClientRect().height; // performance issue?
+    let windowScrollTop = lc.scrollTop;
+    let windowWidth = lc.getBoundingClientRect().width; // performance issue?
+    let windowScrollLeft = lc.scrollLeft;
+
+
+    // query any metatile; they should all be the same width and height.
+    let mt = this.inner.querySelector(".panel_content > .levelMap_content > .level_metatile_wrapper");
+    let mtWidth = mt.getBoundingClientRect().width
+    let mtHeight = mt.getBoundingClientRect().height;
+
+
+    // Convert the current scroll top to the rounded-to-row-start offset
+    var currentOffset = {
+      x: Math.floor(windowScrollLeft/mtWidth), 
+      y: Math.floor(windowScrollTop/mtHeight)
+    };
+    console.log(currentOffset);
+    
+    if ( JSON.stringify(currentOffset)==JSON.stringify(this.scrollGroup)) {
+      this.scrolling = false;
+      return 0;
+    }
+
+    // otherwise, continue
+    this.scrollGroup = currentOffset;
+
+    let numRows = 16; // placeholder... different for vertical levels
+    let numCols = Math.ceil(this.source.data.length/numRows);
+
+    var buffer = {
+      left: Math.max( Math.floor( (windowScrollLeft-windowWidth) / mtWidth), 0 ),
+      right: Math.min( Math.floor( (windowScrollLeft+(2*windowWidth)) / mtWidth), numCols-1),
+
+      top: Math.max( Math.floor( (windowScrollTop-windowHeight) / mtHeight), 0 ),
+      bottom: Math.min( Math.floor( (windowScrollTop+(2*windowHeight)) / mtHeight), numRows-1),
+
+    }
+    console.log(buffer);
+
+    const setup = Date.now()-start;
+
+    var removes = [];
+    var adds = [];
+
+    // look at existing and remove if they're outside our window + buffers
+    Array.from(lc.querySelectorAll(`.level_metatile_wrapper`)).forEach(
+      (d,i)=>{
+        let coords = d.getAttribute("data-coordinates").split("_"); // [x, y]
+        // console.log(d);
+        // if ( (ofs < bufferTopOffsetGroup) || (ofs > bufferBottomOffsetGroup) ) removes.push(d);
+        if (  (coords[0] < buffer.left) || 
+              (coords[0] > buffer.right) || 
+              (coords[1] < buffer.top) || 
+              (coords[1] > buffer.bottom) ) removes.push(d);
+      }
+    );
+
+    const deleted = Date.now()-start;
+    var existingCount = 0;
+    // loop through all of what we should have, 
+    // for ( let i=bufferTopOffsetGroup; i<=bufferBottomOffsetGroup; i+=this.groupSize){
+    //   // see if it exists
+    //   if ( hc.querySelector(`#group_${hex(i,6)}`) ){
+    //     existingCount++;
+    //   } else{
+    //     adds.push(i);
+        
+    //   }
+
+    // }
+    for (let i = buffer.left; i <=buffer.right; i++)
+      for (let j = buffer.top; j <=buffer.bottom; j++)
+        if ( lc.querySelector('#metatile_'+i+'_'+j) ){
+          existingCount++;
+        } else{
+          adds.push( (i*numRows) + j );
+        }
+
+    console.log(existingCount+" groups were already existing.");
+
+    adds.forEach(index=>this.generateLevelMapHTML( this.source.data, index, 1));
+    removes.forEach(d=>d.remove());
+    console.log(`Added: ${adds.join()}\nRemoved: ${removes.map(d=>d.id.substr(9)).join()}`);
+    const added = Date.now()-start;
+
+    // this.setPanelContentRows();
+    
+    // const setPanelRows = Date.now()-start;
+
+    console.log(`lvlScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
+
+    this.scrolling = false; // say we're done
+
+  }
+
+
 
   generateBitplaneHTML(input = null, offset=0, mode=null, length=32, replace=[]){
     // does main work for generating hex editor-style view and bp viewer ui
@@ -3966,28 +4272,52 @@ replace].forEach(d=>console.log(d));
 
   }
 
-  generateTilesetHTML(input = null){
+  generateTilesetHTML(input = null, startIndex=0, length=24){
+    /*
+    common btwn tiles and metatiles
+
+    tileset_content
+    tile_item
+    data-tile-index
+    #tile_item_${i+1}
+  */
+
+  
+    var tilesPerRow = this.settings['Number of Columns'].value;
+
     let tilesetContent = this.panelContent.querySelector(".tileset_content");
-    tilesetContent.innerHTML = ""; //clear all content first
-    tilesetContent.style.maxHeight = "15em";
+    // tilesetContent.innerHTML = ""; //clear all content first
+    // tilesetContent.style.maxHeight = "15em";
     // console.log("this.inner");
     // console.log(this.inner);
     // console.log("tileset content");
     // console.log(tilesetContent);
     var count = 1;
-    for (let tile of input){
+    for (let i=startIndex;i<startIndex+length;i++){
 
+      let tile = input[i];
+      count = i+1; // count is 1-based, i is 0-based
       var wrapper = document.createElement("div");
       // canvas.id = "canvas";
       wrapper = tilesetContent.appendChild(wrapper);
-      wrapper.className = "tile_wrapper";
+      wrapper.classList.add("tile_wrapper");
+      wrapper.classList.add("tile_item");
+      
       let title = `Tile ${count}\n(Click to view bitplanes)`;
+      console.log("tileset content: "+title);
       wrapper.title = title;
-      if (count==1){
-        console.log(title);
-        console.log(wrapper);
-      }
+      // if (count==1){
+      //   console.log(title);
+      //   console.log(wrapper);
+      // }
       wrapper.setAttribute("data-tile-index", count);
+      wrapper.id = `tile_item_${count}`;
+      let y = Math.floor(i/tilesPerRow);
+      let x = i%tilesPerRow;
+      wrapper.style.gridRow = ''+(y+1);
+      wrapper.style.gridColumn = ''+(x+1);
+
+
 
       // add event listener for
       // opening this tile's data in the linked bitplane viewer
@@ -4018,8 +4348,31 @@ replace].forEach(d=>console.log(d));
           updateBitplaneSeek(this.links[2].inner, this.links[2], 0,
             tileIndex )
           this.selectedTile = tileIndex;
-          // this.links[0].scrollToTile( this.selectedTile );
+          // // this.links[0].scrollToTile( this.selectedTile );
 
+
+
+          // // new method: affects normal hex viewer
+          // // 
+          // if ( !this.links[2].settings.bitplanes){
+          //   this.links[2].settings.bitplanes = true;
+          //   this.links[2].setPanelColumns(); // need to implement the bitplane column check in setPanelColumns
+          // }
+          
+          // // set rows to 16 if not already
+          // if ( this.links[2].settings['Number of Columns'].value != 1) {
+          //   this.links[2].settings['Number of Columns'].value = 1;
+          //   // set height of 16 rows to 100%...?
+
+          // }
+          // // generate the bitplanes
+          // let bitplanesDiv = this.links[2].inner.querySelector(".panel_content > .hex_content > .right_group > .bpsvg");
+          // if (bitplanesDiv) bitplanesDiv.remove();
+          // let rightGroupId = this.links[2].groupSize / ...?
+          // scroll to it
+          this.links[0].inner.querySelector(".panel_content > .hex_content").scrollTo(
+            {top: this.links[0].getByteLocationFromOffset( (tileIndex-1)*32).byte.fromTop, behavior:"smooth"}
+          );
         }
 
 
@@ -4046,55 +4399,171 @@ replace].forEach(d=>console.log(d));
 
       });
 
-      display( [tile],  wrapper, this.palette, 1 ) ;
+      // add canvas image
+      if (this.source.canvasNodes[i]){
+        wrapper.appendChild(this.source.canvasNodes[i]);
+        continue; // skip if we already have it
+      }
+
+      // add actual canvas
+      let canvas = displayRaw( this.source.rawPixels[i],  wrapper ) ;
+      canvas.style.width='100%';
+      canvas.style.height='100%';
+      this.source.canvasNodes[i] = canvas;
       count++;
     }
   }
 
-  generateMetatilesetHTML(input = null){
+  generateMetatilesetHTML(input = null, startIndex=0, length=24){
+    
+      /*
+      common btwn tiles and metatiles
+      
+      tileset_content
+      tile_item
+      data-tile-index
+      #tile_item_${i+1}
+    */
+
+    
     let tilesetContent = this.panelContent.querySelector(".tileset_content");
 
-    let mtCount = 1;
-    for (let mt of input){
+    // var mtCount = 1;
+    // for (let i=startIndex;i<startIndex+length;i++){
+    // // for (let mt of input){
+    //   let mt = input[i];
+    //   mtCount = i+1;
 
-      let metatileWrapper = tilesetContent.appendChild( document.createElement("div"));
+    //   let metatileWrapper = tilesetContent.appendChild( document.createElement("div"));
+    //   metatileWrapper.className = "metatile_wrapper";
+    //   metatileWrapper.classList.add("metatile_wrapper_viewer");
+    //   metatileWrapper.classList.add("tile_item");
+    //   metatileWrapper.setAttribute("data-tile-index", mtCount);
+    //   metatileWrapper.id = `tile_item_${i+1}`;
+
+    //   for (let st of mt) {
+    //     let pidx = st.paletteIndex*16;
+    //     let title = `Metatile ${mtCount}\n\nTile ${st.tileIndex+1}\nVertical Flip: ${st.vflip?"yes":"no"}\nHorizontal Flip: ${st.hflip?"yes":"no"}`;
+    //     // Note that tile index is 1-based indexing, palette is 0-based
+    //     let classes = [`metatile_subtile_tile_index_${st.tileIndex+1}`, `metatile_subtile_palette_index_${st.paletteIndex}`];
+    //     display( [st.colorIndices],  metatileWrapper, this.palette.slice(pidx,pidx+16), 1, title, classes );
+
+    //   }
+    //   mtCount++;
+    // }
+
+    var mtsPerRow = this.settings['Number of Columns'].value;
+
+    for (let i=startIndex; i<startIndex+length; i++){
+      
+      // let lt = input[i];
+      var mt = input[i];
+      // lt.metatile;
+      // let vf = lt.vflip;
+      // let hf = lt.hflip;
+      let y = Math.floor(i/mtsPerRow);
+      let x = i%mtsPerRow;
+
+      console.log("generate metatiles: "+(i+1));
+
+      // wrapper
+      let metatileWrapper = tilesetContent.appendChild( document.createElement("div") );
       metatileWrapper.className = "metatile_wrapper";
       metatileWrapper.classList.add("metatile_wrapper_viewer");
+      metatileWrapper.classList.add("tile_item");
+      metatileWrapper.setAttribute("data-tile-index", i+1);
+      metatileWrapper.id = `tile_item_${i+1}`;
+      metatileWrapper.style.gridColumn = x+1;
+      metatileWrapper.style.gridRow = y+1;
 
+      // add canvas image
+      if (this.source.canvasNodes[i]){
+        metatileWrapper.appendChild(this.source.canvasNodes[i]);
+        continue; // skip if we already have it
+      }
+
+
+      // add overlay ( for grid + tooltips)
+      let sti = 0;
       for (let st of mt) {
         let pidx = st.paletteIndex*16;
-        let title = `Metatile ${mtCount}\n\nTile ${st.tileIndex+1}\nVertical Flip: ${st.vflip?"yes":"no"}\nHorizontal Flip: ${st.hflip?"yes":"no"}`;
+        let title = `Metatile ${i+1}\n\nTile ${st.tileIndex+1}\nVertical Flip: ${st.vflip?"yes":"no"}\nHorizontal Flip: ${st.hflip?"yes":"no"}`;
         // Note that tile index is 1-based indexing, palette is 0-based
         let classes = [`metatile_subtile_tile_index_${st.tileIndex+1}`, `metatile_subtile_palette_index_${st.paletteIndex}`];
-        display( [st.colorIndices],  metatileWrapper, this.palette.slice(pidx,pidx+16), 1, title, classes );
-
+        let subgridItem = metatileWrapper.appendChild( document.createElement("div") );
+        subgridItem.classList.add(...classes);
+        subgridItem.title = title;
+        let yy = Math.floor(sti/4);
+        let xx = sti%4;
+        subgridItem.style.gridRow = ''+(yy+1);
+        subgridItem.style.gridColumn = ''+(xx+1);
+        subgridItem.style.height = '100%';
+        subgridItem.style.width = '100%';
+        subgridItem.style.zIndex = '10';
+        subgridItem.style.cursor = 'pointer';
+        subgridItem.style.border = '1px solid yellow';
+        sti++;
       }
-      mtCount++;
+
+      // let cssflip = `${hf?'scaleX(-1) ':''}${vf?'scaleY(-1) ':''}`;
+      // metatileWrapper.style.transform = cssflip;
+      
+      this.source.canvasNodes[i] = displayRaw( this.source.rawPixels[i],  metatileWrapper );
+      // this.source.canvasNodes[i].style.gridArea = 'span 4 / span 4';
+      this.source.canvasNodes[i].style.gridRow = '1 / -1';
+      this.source.canvasNodes[i].style.gridColumn = '1 / -1';
+
+      // if (vf || hf) console.log(`Level metatile ${count} should be flipped ${cssflip}.`)
+      // count++;
+      // if (count >= cutoff) break;
     }
+
   }
 
-  generateLevelMapHTML(input = null){
-    console.log("Generating level map (${input.length} metatiles)...");
+  generateLevelMapHTML(input = null, indexOffset=0, length=256){
+    // console.log(`Generating level map (${input.length} metatiles)...`);
     let tilesetContent = this.panelContent.querySelector(".levelMap_content");
 
-    let cutoff = 16*16;
-    let count = 0;
-    for (let lt of input){
+    let cutoff = length; //16*16;
+    // let count = 0;
+    let mtsPerCol = 16;
+
+    for (let i=indexOffset; i<indexOffset+length; i++){
+      
+      let lt = input[i];
       let mt = lt.metatile;
       let vf = lt.vflip;
       let hf = lt.hflip;
+      let x = Math.floor(i/mtsPerCol);
+      let y = i%mtsPerCol;
       let metatileWrapper = tilesetContent.appendChild( document.createElement("div") );
-      metatileWrapper.className = "metatile_wrapper";
+      metatileWrapper.className = "level_metatile_wrapper";
+      metatileWrapper.setAttribute("data-coordinates", x+'_'+y); // 0-based
+      metatileWrapper.id = 'metatile_'+x+'_'+y;
+      metatileWrapper.style.gridColumn = x+1;
+      metatileWrapper.style.gridRow = y+1;
 
-      for (let st of mt) {
-        let pidx = st.paletteIndex*16;
-        display( [st.colorIndices],  metatileWrapper, this.palette.slice(pidx,pidx+16), 1 );
+      if (this.source.canvasNodes[i]){
+        metatileWrapper.appendChild(this.source.canvasNodes[i]);
+        continue; // skip if we already have it
       }
-      let cssflip = `${hf?'scaleX(-1) ':''}${vf?'scaleY(-1) ':''}`;
-      metatileWrapper.style.transform = cssflip;
+
+      // old method; individual canvas per subtile
+      // for (let st of mt) {
+      //   let pidx = st.paletteIndex*16;
+      //   display( [st.colorIndices],  metatileWrapper, this.palette.slice(pidx,pidx+16), 1 );
+      // }
+      // new method; one canvas per metatile
+      
+
+      // let cssflip = `${hf?'scaleX(-1) ':''}${vf?'scaleY(-1) ':''}`;
+      // metatileWrapper.style.transform = cssflip;
+      
+      this.source.canvasNodes[i] = displayRaw( this.source.rawPixels[i],  metatileWrapper );
+
       // if (vf || hf) console.log(`Level metatile ${count} should be flipped ${cssflip}.`)
-      count++;
-      if (count >= cutoff) break;
+      // count++;
+      // if (count >= cutoff) break;
     }
 
   }
@@ -6541,7 +7010,7 @@ replace].forEach(d=>console.log(d));
         // if we have source compressed graphics (ignore for calls from others )
         if (this.links[0].source && !this.source ){
           this.source = {
-              name: "Decompressed from "+this.links[0].source.file.name,
+              name: "Decompressed from "+this.links[0].source.filename,
               kind: "bytes",
               data: dkc1decompress( Array(...this.links[0].source.data) ),
               panel: this,
@@ -6558,7 +7027,7 @@ replace].forEach(d=>console.log(d));
 
           // download setup
           if (!this.downloadButton){
-            let downloadFileName = this.links[0].source.file.name.replace(".bin","_Decompressed.bin");
+            let downloadFileName = this.links[0].source.filename.replace(".bin","_Decompressed.bin");
             this.generateDownloadButton(
               this.source.data, downloadFileName,
               "Download Decompressed Graphics File (.bin)");
@@ -6590,7 +7059,7 @@ replace].forEach(d=>console.log(d));
         
         if (this.links[0].source && !this.source){
           this.source = {
-              name: this.links[0].source.file.name,
+              name: this.links[0].source.filename,
               kind: "bytes",
               data: Array(...this.links[0].source.data),
               panel: this,
@@ -6607,7 +7076,7 @@ replace].forEach(d=>console.log(d));
 
           // // download setup
           // // if (!this.downloadButton){
-          // //   let downloadFileName = this.links[0].source.file.name;
+          // //   let downloadFileName = this.links[0].source.filename;
           // //   this.generateDownloadButton(
           // //     this.source.data, downloadFileName,
           // //     "Download Original Compressed Data File (.bin)");
@@ -6665,7 +7134,7 @@ replace].forEach(d=>console.log(d));
 
       case "paletteViewer":
         this.source = {
-            name: "Decompressed from "+this.links[0].source.file.name,
+            name: "Decompressed from "+this.links[0].source.filename,
             kind: "bytes",
             data: palette2rgb( this.links[0].source.data ),
             panel: this,
@@ -6675,13 +7144,13 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "tilesetViewer":
-        break;
+        
         // de-intertwine the bitplanes, show tilesets
         // (only if we have actual data (this.links[0]), not just palette (this.links[1]) )
         //TODO: better way to source filename
-        if (this.links[0].source){
+        if (this.links[0].source && !this.generated){
           this.source = {
-              name: "De-intertwined from "+this.links[0].source.from.source.file.name,
+              name: "De-intertwined from "+this.links[0].source.from.source.filename,
               kind: "tiles",
               data: unbitplane( this.links[0].source.data ),
               panel: this,
@@ -6691,7 +7160,10 @@ replace].forEach(d=>console.log(d));
           // if (this.links[1].source){
           //   this.palette =  this.links[1].source.data ;
           // }
+          // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
+          this.initTiles();
           this.generateTilesetHTML( this.source.data);
+          this.generated = true;
         }
         break;
 
@@ -6703,7 +7175,7 @@ replace].forEach(d=>console.log(d));
         if  (this.links[0].source && this.links[1].source && this.links[2].source ){
           console.log(`Building metatiles...`);
           this.source = {
-              name: "Metatiles built from "+this.links[2].source.file.name,
+              name: "Metatiles built from "+this.links[2].source.filename,
               kind: "metatiles",
               data: metatile( this.links[1].source.data, this.links[2].source.data ), /* tiles, tilemap32  */
               panel: this,
@@ -6713,6 +7185,8 @@ replace].forEach(d=>console.log(d));
           if (this.links[0].source){
             this.palette =  this.links[0].source.data;
           }
+          this.initMetatiles();
+          // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
           this.generateMetatilesetHTML( this.source.data);
         }
         break;
@@ -6725,7 +7199,7 @@ replace].forEach(d=>console.log(d));
         if  (this.links[0].source && this.links[1].source && this.links[2].source ){
           console.log(`Building level map...`);
           this.source = {
-              name: "Levels built from "+this.links[2].source.file.name,
+              name: "Levels built from "+this.links[2].source.filename,
               kind: "metatiles",
               data: levelMap( this.links[1].source.data, this.links[2].source.data ), /* metatiles, level map  */
               panel: this,
@@ -6735,6 +7209,7 @@ replace].forEach(d=>console.log(d));
           if (this.links[0].source){
             this.palette =  this.links[0].source.data;
           }
+          this.initLvl();
           this.generateLevelMapHTML( this.source.data);
         }
         break;
@@ -6780,12 +7255,19 @@ function fileInput(e, ui, panel){
 
         panel.source = {
             name: "Raw data from "+file.name,
+            filename: file.name,
             kind: "bytes",
             data: new Uint8Array( e.target.result),
-            panel: panel,
-            file: file
+            // panel: panel,
+            // file: file
         };
 
+
+        
+        // save to local browser session storage
+        sessionStorage.setItem( panel.nameValid+'_source', JSON.stringify(panel.source) );
+
+        panel.source.panel = panel; // do this after to avoid cyclic objects
         // panel.generateHexHTML( panel.source.data );  // comment out for speed
 
 
@@ -7097,18 +7579,18 @@ class UImodel {
 //
 
 // let c0 = 2, c1 = 11, c2 = 20, c3=29;
-let c0 = 2, c1 = 12, c2 = 33, c3=40;
-let cx = 33;
-let dx = 33+5;
-let d0 = c1-1, d1 = c2-1, d2=c3-1, d3=42;
+let c0 = 2, c1 = 8, c2 = 16, c3=24;
+let cx = 16;
+let dx = 16+5;
+let d0 = c1-1, d1 = c2-1, d2=c3-1, d3=31;
 //              _, kind,                  rows        cols     name=null, link
 var inputPanel = ["fileIn",                1,  3,    c0, d0,  "Input - Compressed Data"];
 var compHexPanel = ["hexViewerComp",       1, 14,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
 var paletteInputPanel = ["fileIn",        16, 18,    cx, dx,  "Input - Palette"];  //  2
 var paletteViewer = ["paletteViewer",      2,  6,    c3, d3,  "Palette", [2]]; // 3
 var decompHexPanel = ["hexViewer",        15, 27,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
-var bitplanePanel = ["bitplaneViewer",     2, 27,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
-var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [4, 3, 5]]; //  6
+var bitplanePanel = ["bitplaneViewer",     2, 14,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
+var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [4, 3, 5]]; //  6   4, 3, 5
 var metatilemapInputPanel = ["fileIn",    19, 21,    cx, dx,  "Input - Tilemap32 (Metatiles)"]; //  7
 var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input
 var levelMapInputPanel = ["fileIn",       22, 24,    cx, dx,  "Input - Level Map"]; //  9
@@ -7378,6 +7860,39 @@ function palette2rgb(inp, offset=0){
   return output;
 }
 
+function displayRaw(dat, parent, sc=1){
+  
+  // console.log(dat);
+  var canvas = document.createElement("canvas");
+  // canvas.id = "canvas";
+  canvas = parent.appendChild(canvas);
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  
+  var w = dat.length;
+  var h = dat[0].length;
+
+  canvas.width = sc * w;
+  canvas.height = sc * h;
+
+  var ctx = canvas.getContext("2d");
+
+  for (let rowIndex = 0; rowIndex < dat.length; rowIndex++){
+  
+    for (let columnIndex = 0; columnIndex < dat[rowIndex].length; columnIndex++){
+
+      // let fill = "#"+pal[ dat[tileIndex][rowIndex][columnIndex] ].map(d => hex(d)).join("")+"ff";
+
+      ctx.fillStyle = `rgb(${dat[rowIndex][columnIndex].join()})`;
+      ctx.fillRect(columnIndex*sc, rowIndex*sc, sc, sc);
+
+      // rowstr+="R_"+rowIndex+";C_"+columnIndex+":_"+fill;
+      // console.log([rowIndex*sc, tileIndex*8*sc + rowIndex*sc, sc, sc]);
+    }
+  }
+
+  return canvas;
+}
 
 function display(dat, parent, palette, sc=1, title=null, classes=null){
     // use canvas to display image. Maybe try integrer scaling, and pixel-rendering CSS stuff for better look.
@@ -7437,6 +7952,58 @@ function display(dat, parent, palette, sc=1, title=null, classes=null){
     return canvas;
 
 }
+
+// sort of a wrapper
+function transpose(a){
+  return a.map((_,i) => a.map(r=>r[i]));
+}
+function wrapColumns(a,columns){
+  b = [];
+  while(a.length) b.push(a.splice(0,columns));
+  return b;
+}
+function wrapRows(a,rows){
+  // kind of a lazy wrapper
+  return transpose( wrapColumns(a, rows) );
+}
+function block(a){
+  // converts an M x N x m x n array to M*n x N*n
+  // assumes all sub-arrays are same size 
+  // (though M,N,m, and n can all be different from each other)
+  // let i = a.length*a[0][0].length, j = a[0].length*a[0][0][0].length;
+  let Mm = a.reduce((s,d,i)=>s+=d[0].length, 0);
+  let Nn = a[0].reduce((s,d,i)=>s+=d[0].length, 0)
+  b = Array.from(Array(Mm).keys()).map(_=>[]);
+  let i = 0;
+  a.forEach((R,I)=>{
+    R.forEach( (subm,J) => subm.forEach((r,ii) => b[i+ii].push(...r) ) );
+    i+=R[0].length;
+  });
+  return b;
+}
+ 
+function prepMetatile(mt,pal){
+  mt = {...mt}; // hopefully breaks reference because we'll be reversing and stuff
+  // first, create the merged 32x32 px 2d array.
+  // we will flip the sub tiles while here.
+  var px = [  [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], 
+              [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], ];
+
+  //NOTE: subtile.vflip and hflip were already done by this point.
+  // if we needed to do them again for some reason:
+  // if (st.vflip) st.colorIndices.slice().reverse(); // already flipped in metatile object
+  // row = st.hflip ? row.slice().reverse() : row.slice(); // already flipped in metatile object
+
+  mt.metatile.forEach( (st,sti)=>{
+    let p = (st.paletteIndex<<4); // *16
+    let stro = (sti>>2)<<3; // 0, 8, 16, or 24
+    st.colorIndices.forEach( (row,ri) => px[stro+ri].push( ...row.map(co=>pal[p+co]) ) );
+  });
+  if (mt.vflip) px.reverse();
+  if (mt.hflip) px.forEach((d,i)=>px[i]=d.slice().reverse());
+  return px;
+}
+// prepMetatile(mts[0],pall);
 
 //
 function metatile(tiles, tilemap32){
