@@ -968,7 +968,12 @@ ul{
 
 
 
-
+.byte{
+  grid-column: span 9;
+  place-content: center;
+  place-items: center;
+  text-align: center;
+}
 
 /* NEW simplified hex viewer classes */
 .hex_panel_content{
@@ -2776,7 +2781,7 @@ class Panel {
             this.panelContent.classList.add("hex_panel_content");
 
             // Add details about Line Height to settings:
-            this.settings['Line Height'] = {value:6};
+            this.settings['Line Height'] = {value:2};
 
             // Add a byte-width change button to settings:
             this.settings['Number of Columns'] = {value:16};
@@ -3366,8 +3371,8 @@ class Panel {
     this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
 
     
-    console.log('hex data:');
-    console.log(this.source.hexStrings);
+    // console.log('hex data:');
+    // console.log(this.source.hexStrings);
   }
 
   generateHexHTML( input = null, offset=0, length=this.groupSize){
@@ -3484,19 +3489,29 @@ class Panel {
 
       bytes += `</div>`; // close byte_container
 
+      // close the group if it will be the last, or if this byte concludes the group
       if ( (((i+1)%this.groupSize)==0) || ((i+1)==end) ) {
+
+        // first, add some placeholders if there would be empty space after
+        if ( ((i+1)==end) && (((i+1)%this.groupSize)!=0)){
+          for (let j=0; j<(this.groupSize-((i+1)%this.groupSize)); j++) bytes += `<div class="byte_placeholder" style="display:grid; grid-column: span 11; grid-template-columns: subgrid;""></div>`;
+        }
+
+        // now add all bytes to the gorup
         group.innerHTML = bytes;
         bytes = '';
         hexContent.appendChild(group);
         group = undefined;
 
-        let rightItem = document.createElement('div');
-        rightItem.id = `right_group_${this.source.offsetsHexStrings[i]}`;
-        rightItem.classList = ["right_group"];
-        rightItem.style.gridRow = `${gridRow} / span 2`;
-        rightItem.style.position = 'relative';
-        rightItem.innerHTML = `<div style="position:absolute; height: 50%; top: 25%;background-color: hsl(${Math.round(Math.random()*360)}deg, 80%, 20%);" ></div>`;
-        hexContent.appendChild(rightItem);
+        // this is an example for how we'd add right_group containers.
+        // they can span as many byte groups as needed in order to align with their left-side data
+        // let rightItem = document.createElement('div');
+        // rightItem.id = `right_group_${this.source.offsetsHexStrings[i]}`;
+        // rightItem.classList = ["right_group"];
+        // rightItem.style.gridRow = `${gridRow} / span 2`;
+        // rightItem.style.position = 'relative';
+        // rightItem.innerHTML = `<div style="position:absolute; height: 50%; top: 25%;background-color: hsl(${Math.round(Math.random()*360)}deg, 80%, 20%);" ></div>`;
+        // hexContent.appendChild(rightItem);
 
       }
     }
@@ -3561,7 +3576,7 @@ class Panel {
       (d,i)=>{
         let ofs = d.getAttribute("data-offset")*1;
         // console.log(d);
-        if ( (ofs < bufferTopOffsetGroup) || (ofs > bufferBottomOffsetGroup) ) removes.push(d);
+        if ( ((ofs < bufferTopOffsetGroup) || (ofs > bufferBottomOffsetGroup)) && !d.classList.contains("keep_loaded") ) removes.push(d);
       }
     );
 
@@ -4501,7 +4516,7 @@ replace].forEach(d=>console.log(d));
         subgridItem.style.width = '100%';
         subgridItem.style.zIndex = '10';
         subgridItem.style.cursor = 'pointer';
-        subgridItem.style.border = '1px solid yellow';
+        // subgridItem.style.border = '1px solid yellow';
         sti++;
       }
 
@@ -4706,12 +4721,14 @@ replace].forEach(d=>console.log(d));
     // check where the offset would be:
     // (doesn't directly query, because html node might not exist yet, for performance reasons,
     // so we look at the first we can find )
-    let g32Height = hc.querySelector("div > .hex_g32").getBoundingClientRect().height;
-    let offsetPos = (g32Height*(offset>>5)); // relative to top of its container, NOT the window
-    let rowHeight = (this.settings['Number of Columns'].value==16) ? g32Height/2 : g32Height;
+    // let g32Height = hc.querySelector("div > .hex_g32").getBoundingClientRect().height;
+    // let offsetPos = (g32Height*(offset>>5)); // relative to top of its container, NOT the window
+    // let rowHeight = (this.settings['Number of Columns'].value==16) ? g32Height/2 : g32Height;
+    let rowHeight = hc.querySelector(".byte_group > .byte_container").getBoundingClientRect().height;
     // if we're in the second row, add a rowHeight
     //TODO: make more modular for arbitrary col widths?
-    if ( (this.settings['Number of Columns'].value==16) && (((offset/16)%2)>=1) ) offsetPos += g32Height/2;
+    // if ( (this.settings['Number of Columns'].value==16) && (((offset/16)%2)>=1) ) offsetPos += g32Height/2;
+    let offsetPos = rowHeight * Math.floor(offset/this.settings['Number of Columns'].value); // relative to top of its container, NOT the window
     //
     var outs = {
       position: offsetPos,
@@ -5379,6 +5396,7 @@ replace].forEach(d=>console.log(d));
         }
 
       },
+
       initDecomp: function(comp, decomp){
         // comp and decomp arguments are the compressed and decompressed panels
         // we create compContent and decompContent from their hex_content
@@ -5460,11 +5478,11 @@ replace].forEach(d=>console.log(d));
         this.detailsTime = 5.5;
         this.scrollTime = 0.2;//1; // time to give to scroll during details div
 
-        // this.riseTime = 0.15;
-        // this.staggerTime = 0.2;
-        // this.moveTime = 0.3;
-        // this.detailsTime = 5.5;
-        // this.scrollTime = 1; // time to give to scroll during details div
+        this.riseTime = 0.15;
+        this.staggerTime = 0.2;
+        this.moveTime = 0.3;
+        this.detailsTime = 5.5;
+        this.scrollTime = 1; // time to give to scroll during details div
 
 
         this.bblTime = Math.min(this.riseTime, this.staggerTime)/2;
@@ -5478,20 +5496,22 @@ replace].forEach(d=>console.log(d));
         };
 
         // set all decomp to invisible
-        Array.from(this.decompContent.querySelectorAll("div .hex_g32 div .hex_byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
+        Array.from(this.decompContent.querySelectorAll(".byte_group > .byte_container > .byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
+        // save the invisibilty somewhere so future-generated bytes are also invisible?
 
         // circle the words of the LUT.
-        Array.from(this.compContent.querySelectorAll("div .hex_g32 div .hex_byte")).slice(0,128).forEach((d,i)=> {
-          d.style.border = '2px solid';
+        for (let i=0; i<128; i++){
+          let lutEntry = this.compContent.querySelector(`.byte_group > #byte_${hex( i, 6 )} > .byte`);
+          console.log(`.byte_group > #byte_${hex( i, 6 )} > .byte`);
+          lutEntry.style.border = '2px solid';
           if (i%2) { // right side
-            d.style.borderRadius = `0 ${this.corner} ${this.corner} 0`;
-            d.style.borderLeft = "none";
+            lutEntry.style.borderRadius = `0 ${this.corner} ${this.corner} 0`;
+            lutEntry.style.borderLeft = "none";
           } else{    // left side of bubble
-            d.style.borderRadius = `${this.corner} 0 0 ${this.corner}`;
-            d.style.borderRight = "none";
+            lutEntry.style.borderRadius = `${this.corner} 0 0 ${this.corner}`;
+            lutEntry.style.borderRight = "none";
           }
-
-        });
+        }
 
         // begin iterations
         this.decompSpan();
@@ -5622,6 +5642,7 @@ replace].forEach(d=>console.log(d));
 
         });
       },
+
       cloneAndMove: function(){
         // console.log(`Starting cloneAndMove with ${this.moveBuffer.length} remaining bytes in moveBuffer`);
 
@@ -5844,7 +5865,7 @@ replace].forEach(d=>console.log(d));
           // if we are going to scroll, so we have to check
           // where it will be once we scroll.
 
-          let toDiv = this.decompContent.querySelector(`div > #g0x${hex( 32*((this.decompIndex+i)>>5), 6 )} div #byte_${hex( (this.decompIndex+i), 6 )}`);
+          let toDiv = this.decompContent.querySelector(`.byte_group > #byte_${hex( (this.decompIndex+i), 6 )} > .byte`);
           let toDivBbox = toDiv.getBoundingClientRect();
           //
           let hcTop = this.decompContent.getBoundingClientRect().y;
@@ -6131,7 +6152,9 @@ replace].forEach(d=>console.log(d));
 
       },
 
+
       decompSpan: function(){
+
         var nm = 'decomp span '+this.decompSpanCount; 
         this.debug.times = { };
         this.debug.times[nm] = {start:Date.now()};
@@ -6261,6 +6284,74 @@ replace].forEach(d=>console.log(d));
         this.modeColor = this.bgColors[this.mode]; // color of this mode
 
         
+        // determine which bytes we will need to interact with during this span, 
+        // load them and keep them loaded for now.
+        var compBytes = [], decompBytes = [];
+        switch(this.mode){
+          case 0:
+            // copy: 
+            // comp: cmd, following n bytes
+            // decomp: next n bytes
+            compBytes = [this.compIndex];
+            for (let i = 0; i<this.n; i++) compBytes.push(this.compIndex+1+i);
+            for (let i = 0; i<this.n; i++) decompBytes.push(this.decompIndex+i);
+            break;
+          case 1:
+            // RLE:
+            // comp: cmd, following 1 byte
+            // decomp: next n bytes
+            compBytes = [this.compIndex, this.compIndex+1];
+            for (let i = 0; i<this.n; i++) decompBytes.push(this.decompIndex+i);
+            break;
+          case 2:
+            // history
+            // comp: cmd, following 2 bytes
+            // decomp: n bytes starting at address, n bytes starting at decompIndex
+            compBytes = [this.compIndex, this.compIndex+1, this.compIndex+2];
+            for (let i = 0; i<this.n; i++) decompBytes.push(this.address+i);
+            for (let i = 0; i<this.n; i++) decompBytes.push(this.decompIndex+i);
+
+            break;
+          case 3:
+            // LUT
+            // comp: cmd, 2 bytes at LUT address
+            // decomp: following 2 bytes
+            compBytes = [this.compIndex, this.address, this.address+1];
+            decompBytes = [this.decompIndex, this.decompIndex+1];
+            break;
+        }
+        var compGroups = {}, decompGroups = {};
+        // comp
+        // reduce to only the unique groups (avoid duplicates)
+        for (let offset of compBytes) 
+          compGroups[`#group_${hex(this.comp.groupSize*Math.floor(offset/this.comp.groupSize),6)}`] = this.comp.groupSize*Math.floor(offset/this.comp.groupSize);
+        // now add if needed; either way, mark as "keep_loaded" class
+        for (let groupName in compGroups) {
+          let group = compGroups[groupName];
+          if (!this.compContent.querySelector(groupName)) {
+            this.comp.generateHexHTML(this.comp.source.data, group*1);
+            console.log('added '+groupName);
+          }
+          this.compContent.querySelector(groupName).classList.add("keep_loaded");
+        }
+        // decomp
+        // reduce to only the unique groups (avoid duplicates)
+        for (let offset of decompBytes) 
+          decompGroups[`#group_${hex(this.decomp.groupSize*Math.floor(offset/this.decomp.groupSize),6)}`] = this.decomp.groupSize*Math.floor(offset/this.decomp.groupSize);
+        // now add if needed; either way, mark as "keep_loaded" class
+        for (let groupName in decompGroups) {
+          let group = decompGroups[groupName];
+          if (!this.decompContent.querySelector(groupName)) {
+            this.decomp.generateHexHTML(this.decomp.source.data, group*1);
+            // set all new decomp to invisible
+            Array.from(this.decompContent.querySelectorAll(groupName+" > .byte_container > .byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
+            console.log('added '+groupName);
+          }
+          console.log(groupName);
+          this.decompContent.querySelector(groupName).classList.add("keep_loaded");
+        }
+
+
         this.debug.header = `------------\n Decomp span ${this.decompSpanCount}\n mode ${this.mode}\n n ${this.n}\ncomp index ${this.compIndex}\ndecomp index ${this.decompIndex}\n------------\n`;
         // console.log(this.debug.header);
 
@@ -6270,7 +6361,12 @@ replace].forEach(d=>console.log(d));
         // Create the Details div, a grid that will animate to show the breakdown of the command byte
         //
         // get the command byte html div so we can find its properties and line up our details html div to it
-        let cmd = this.compContent.querySelector(`div > #g0x${hex( 32*(this.compIndex>>5), 6 )} div #byte_${hex( this.compIndex, 6 )}`); // actual div node
+        // console.log(compGroups);
+        // console.log(this.compContent.childNodes);
+        // console.log(decompGroups);
+        // console.log(this.decompContent.childNodes);
+        // console.log(`.byte_group > #byte_${hex( this.compIndex, 6 )} > .byte`);
+        let cmd = this.compContent.querySelector(`.byte_group > #byte_${hex( this.compIndex, 6 )} > .byte`); // actual div node
 
         let cmdBbox = cmd.getBoundingClientRect();
         // set up dimensions
@@ -6309,8 +6405,8 @@ replace].forEach(d=>console.log(d));
         // this.details = details;
 
         //
-        var cmd1 = this.compContent.querySelector(`div > #g0x${hex( 32*((1+this.compIndex)>>5), 6 )} div #byte_${hex( (1+this.compIndex), 6 )}`);
-        var cmd2 = this.compContent.querySelector(`div > #g0x${hex( 32*((2+this.compIndex)>>5), 6 )} div #byte_${hex( (2+this.compIndex), 6 )}`);
+        var cmd1 = this.compContent.querySelector(`.byte_group > #byte_${hex( (1+this.compIndex), 6 )} > .byte`);
+        var cmd2 = this.compContent.querySelector(`.byte_group > #byte_${hex( (2+this.compIndex), 6 )} > .byte`);
 
         // now fill out the details div with contents.
         // let bgc = `background-color: rgba(${this.modeColor.map(d=>d*0.25)},1); `;
@@ -6373,7 +6469,7 @@ replace].forEach(d=>console.log(d));
           var panelContent = (this.mode==2) ? this.decompContent : this.compContent;
           var contentBbox = panelContent.getBoundingClientRect();
           // console.log('addressByte selector: '+`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
-          var addressByte = panelContent.querySelector(`div > #g0x${hex( 32*(this.address>>5), 6 )} div #byte_${hex( this.address, 6 )}`);
+          var addressByte = panelContent.querySelector(`.byte_group > #byte_${hex( this.address, 6 )} > .byte`);
           var addrByteBbox = addressByte.getBoundingClientRect();
           var deltay = 0;
 
@@ -6839,7 +6935,7 @@ replace].forEach(d=>console.log(d));
               for (let j = b; j>0; j--){
                 batch.push(
                   clonePanelContent.querySelector(
-                    `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
+                    `.byte_group > #byte_${hex( cloneOffset, 6 )} > .byte`
                   )
                 );
               }
@@ -6853,9 +6949,10 @@ replace].forEach(d=>console.log(d));
             // move all in series.
             for (let i = a; i>0; i--){
               for (let j = b; j>0; j--){
+                // `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
                 this.moveBuffer.push(
                   [ clonePanelContent.querySelector(
-                    `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
+                    `.byte_group > #byte_${hex( cloneOffset, 6 )} > .byte`
                   ) ]
                 );
               }
@@ -7104,7 +7201,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "bitplaneViewer":
-        // break;
+        break;
 
         // decompress
         // if we have source compressed graphics (ignore for calls from others )
@@ -7144,7 +7241,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "tilesetViewer":
-        
+        break;
         // de-intertwine the bitplanes, show tilesets
         // (only if we have actual data (this.links[0]), not just palette (this.links[1]) )
         //TODO: better way to source filename
@@ -7168,6 +7265,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "metatilesViewer":
+        break;
         // create the 32x32 pixel meta tiles, composed of 4x4 tiles of 8x8 pixels, from tileset
         // (only if we palette (this.links[0]), tile data (this.links[1]), AND metatile32 map (this.links[2]) )
         //TODO: better way to source filename
