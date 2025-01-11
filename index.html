@@ -490,6 +490,16 @@ button{
   overflow: hidden;
 }
 
+.hex_header_bitplane{
+  
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: 1fr;  
+  grid-column: 1 / -1;
+  font-weight: 900;
+  overflow: hidden;
+}
+
 .hex_header > div{
   text-align: center;
 }
@@ -511,7 +521,7 @@ button{
 
     grid-auto-flow: row;
     grid-template-columns: 18fr 0fr; */
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
     /* grid-row: 3 / 4; */
     grid-template-columns: subgrid;
     /* grid-template-rows: 100%; /*HACK: assumes viewing only 32 bytes */
@@ -533,6 +543,8 @@ button{
 .hex_content_bitplane{
   grid-column: 1 / -1;
   grid-template-rows: 100%; /*HACK: assumes viewing only 32 bytes */
+  
+  scrollbar-gutter: unset;
 }
 
 .byte_group{
@@ -545,7 +557,7 @@ button{
 
   grid-template-columns: subgrid; 
   /* grid-column: 1 / -1; */
-  grid-column: 1 / -2;
+  grid-column: 2 / -2;
 
 }
 .right_group{
@@ -2390,7 +2402,7 @@ class Panel {
           edge.classList.add("panel_edge");
           edge.style.gridRow = `${i} / ${i+1}`;
           edge.style.gridColumn = `${j} / ${j+1}`;
-          edge.title = `row ${i} / col ${j}`;
+          // edge.title = `row ${i} / col ${j}`; // debug
         }
         if ( (i==3) && (j==3) ){
           edge.style.cursor = "se-resize";
@@ -2528,24 +2540,24 @@ class Panel {
                 <ul>
                   <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.<br>
                     <ul>
-                      <li> After uploading valid compressed data, if there is a hex viewer panel for decompressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These game files used many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
+                      <li> After uploading valid compressed data, if there is a hex viewer panel for <i>de</i>compressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These graphics files contain many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
                     </ul>
                   </li>
                   <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
                     <ul>
                       <li> Upload a file to "Input - Compressed Data" to get started. This expects a .bin file that you might get in a disassembly of the game, usually in the "graphics/compressed" folder. Or, copy the hex values from the relevant offset of your ROM to a new file.</li>
-                      <li> After uploading valid data, the bitplane diagram should appear, showing the first tile. In the diagram, you can see how the 32 bytes of data go comprise foir bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
+                      <li> After uploading valid data, the bitplane diagram should appear, showing the first tile. In the diagram, you can see how the 32 bytes of data comprise the four bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
                       <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out.</li>
                       <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
                     </ul>
                   </li>
-                  <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to have it appear in the bitplane viewer and tileset viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are different ways to convert the colors.)</li>
+                  <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to assign it to the indexed tile in the bitplane viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are different ways to convert the colors.)</li>
                   <li> <b>Tileset Viewer</b>. View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
-                  <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. If a tileset viewer panel is present, click a tile within it to have highlight all instances of that tile within the metatiles. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
+                  <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
                   <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
                 </ul>
                 <br>
-                Most features require uploading a file to the relevant file input panels on the page.
+                Most features require uploading a file to the relevant file input panels on the page. Data will be persist through page refreshes, but not page closes.
               </p>
               <br>
                 Panels can be:<br>
@@ -2559,7 +2571,7 @@ class Panel {
 
               <br><br>
               <p>
-                The app is at an early stage, but was released to celebrate DKC's 30th anniversary. The goal is to de-mystify DKC hacking and to provide even more appreciation for what Rare developed in the 1990s. Works best in a full screen window, tested most thoroughly with firefox. You can expect more features for visualizing, documenting, and hacking the DKC series soon. Thanks!
+                The app's first release was made to celebrate DKC's 30th anniversary. The goal is to de-mystify DKC hacking and to provide even more appreciation for what Rare developed in the 1990s. More features will continue to be added. Works best in a full screen window, tested most thoroughly with firefox. You can expect more features for visualizing, documenting, and hacking the DKC series soon. Thanks!
               </p>
               <br><br>
               <p>
@@ -2724,7 +2736,7 @@ class Panel {
               </div>`;
 
             this.panelContent.innerHTML +=
-                `<div class="hex_header">${offsetsTop}</div>
+                `<div class="hex_header hex_header_bitplane">${offsetsTop}</div>
                 <div class="hex_content hex_content_bitplane"
                  style="grid-template-rows: 100%;"></div>`;
                  //NOTE: need this grid-template-rows: 100%;  so that bp viewer doesn't
@@ -2781,7 +2793,7 @@ class Panel {
             this.panelContent.classList.add("hex_panel_content");
 
             // Add details about Line Height to settings:
-            this.settings['Line Height'] = {value:2};
+            this.settings['Line Height'] = {value:3};
 
             // Add a byte-width change button to settings:
             this.settings['Number of Columns'] = {value:16};
@@ -3325,14 +3337,24 @@ class Panel {
     var panelContent = this.inner.querySelector(".panel_content");
     // panelContent.style.gridTemplateColumns = `2fr repeat(16, 1fr) 0fr repeat(16, 1fr) 0fr`;
     var offsetsWidthString = '7ch';
-    var leftbar = '0ch', rightbar = '6ch'; // if we want additional NON-SCROLLING side bars
+    // if we want additional SCROLLING columns
+    // note: 17px is Windows scrollbar width... 
+    //TODO: better system for preventing scrollbar covering content.
+    var leftbar = '0ch', rightbar = '17px'; 
+    //NOTE: hex_header and byte_group span grid-column 2 / -2.
+    // if we want to add additional columns,
+    // we'd change those two classes to 3 / -3, or 3 / -4, etc.
+    // if we want NON-scrolling columns, we'd need to change 
+    // hex_content from grid-column: 1 / -1 to 2 / -2, etc.
+    let byteSpacing = '0ch';
+    let nibbleSpacing = '0ch';
     panelContent.style.gridTemplateColumns = [
       leftbar, 
       ...Array.from(Array(this.settings['Number of Columns'].value).keys()).flatMap((d,i)=>[
           i==0 ? offsetsWidthString : '0fr', 
-          '1fr',
+          byteSpacing,
           '1fr', '1fr', '1fr', '1fr', 
-          '1fr',
+          nibbleSpacing,
           '1fr', '1fr', '1fr', '1fr', 
       ]), 
       rightbar
@@ -3350,7 +3372,7 @@ class Panel {
       (d,i)=>[
         `<div style="grid-column: span 1;min-width:0ch;" >${ i==0 ? 'OFFSET' : ''}</div>`, 
         `<div style="grid-column: span 1; min-width:0ch;"></div>`,
-        `<div style="grid-column: span 9;background:black;">${ hex(i, i>>4?2:1)}</div>`, 
+        `<div style="grid-column: span 9;">${ hex(i, i>>4?2:1)}</div>`, 
       ]
     ).join(``);
     console.log('hex header generated');
@@ -3370,7 +3392,9 @@ class Panel {
     this.source.offsets = this.source.data.map( (d,i) => i );
     this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
 
-    
+    // save the html nodes?
+    this.source.groupNodes = Array(Math.ceil(this.source.data.length/this.groupSize));
+
     // console.log('hex data:');
     // console.log(this.source.hexStrings);
   }
@@ -3421,7 +3445,8 @@ class Panel {
       // let modes = ['byte','nibble','bit'];
 
       // let gridRow = 1+(i>>bitShift); // essentially floor divides
-      let gridRow = 1+Math.floor(i/this.groupSize);
+      let groupIndex = Math.floor(i/this.groupSize);
+      let gridRow = 1+groupIndex;
       let rowPerByteContainer = modes.length;
       // let top = 100*(i>>bitShift)/numRows;
 
@@ -3470,7 +3495,7 @@ class Panel {
         switch (mode){
 
           case 'byte':
-            bytes += `<div class="byte" style="display: grid; grid-row: ${row}; grid-column: span 9;">${this.source.hexStrings[i]}</div>`;
+            bytes += `<div class="byte" style="display: grid; grid-row: ${row}; grid-column: span 9;${this.byteColor?'color:'+this.byteColor:''}">${this.source.hexStrings[i]}</div>`;
             break;
 
           case 'nibble':
@@ -3500,8 +3525,10 @@ class Panel {
         // now add all bytes to the gorup
         group.innerHTML = bytes;
         bytes = '';
-        hexContent.appendChild(group);
-        group = undefined;
+        // and append the goup to the page
+        group = hexContent.appendChild(group);
+        this.source.groupNodes[groupIndex] = group; // save
+        if (!((i+1)==end)) group = undefined; // clear if there are more
 
         // this is an example for how we'd add right_group containers.
         // they can span as many byte groups as needed in order to align with their left-side data
@@ -3527,7 +3554,7 @@ class Panel {
     // hexContent.innerHTML += html;
 
     // console.log("generateHexHTML: "+(Date.now()-startTime));
-
+    return group; // will return the last group
   }
 
   hexScroll(){
@@ -3595,8 +3622,17 @@ class Panel {
     }
     console.log(existingCount+" groups were already existing.");
 
-    adds.forEach(index=>this.generateHexHTML( this.source.data, index, this.groupSize));
+    adds.forEach((index)=>{
+      let groupIndex = Math.floor(index/this.groupSize)
+      if (this.source.groupNodes[groupIndex]){
+        this.source.groupNodes[groupIndex] = hc.appendChild( this.source.groupNodes[groupIndex]);
+      } else {
+        this.generateHexHTML( this.source.data, index, this.groupSize);
+      }
+    });
+
     removes.forEach(d=>d.remove());
+
     console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
     const added = Date.now()-start;
 
@@ -4501,15 +4537,15 @@ replace].forEach(d=>console.log(d));
       // add overlay ( for grid + tooltips)
       let sti = 0;
       for (let st of mt) {
+        let yy = Math.floor(sti/4);
+        let xx = sti%4;
         let pidx = st.paletteIndex*16;
-        let title = `Metatile ${i+1}\n\nTile ${st.tileIndex+1}\nVertical Flip: ${st.vflip?"yes":"no"}\nHorizontal Flip: ${st.hflip?"yes":"no"}`;
+        let title = `Metatile ${i+1}\n\nSub-tile (${xx+1},${yy+1}) [${1+sti} of 16] \nTile ${st.tileIndex+1}\nVertical Flip: ${st.vflip?"yes":"no"}\nHorizontal Flip: ${st.hflip?"yes":"no"}`;
         // Note that tile index is 1-based indexing, palette is 0-based
         let classes = [`metatile_subtile_tile_index_${st.tileIndex+1}`, `metatile_subtile_palette_index_${st.paletteIndex}`];
         let subgridItem = metatileWrapper.appendChild( document.createElement("div") );
         subgridItem.classList.add(...classes);
         subgridItem.title = title;
-        let yy = Math.floor(sti/4);
-        let xx = sti%4;
         subgridItem.style.gridRow = ''+(yy+1);
         subgridItem.style.gridColumn = ''+(xx+1);
         subgridItem.style.height = '100%';
@@ -5495,15 +5531,37 @@ replace].forEach(d=>console.log(d));
           times: {}
         };
 
-        // set all decomp to invisible
+        // set all loaded decomp to invisible
         Array.from(this.decompContent.querySelectorAll(".byte_group > .byte_container > .byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
-        // save the invisibilty somewhere so future-generated bytes are also invisible?
+        // set all previously-generated-butnot-loaded decomp to invisible
+        this.decomp.source.groupNodes.forEach(
+          groupNode=>groupNode.querySelectorAll(".byte_container > .byte").forEach(
+            d=>d.style.color = "var(--textColorTransparent)"
+          )
+        );
+
+        
+        // save the invisibilty here so future-generated bytes are also invisible
+        this.decomp.byteColor = "var(--textColorTransparent)"; 
 
         // circle the words of the LUT.
+        //NOTE: somewhat complicated to check if existing/generated
+        var targetGroupNode;
         for (let i=0; i<128; i++){
-          let lutEntry = this.compContent.querySelector(`.byte_group > #byte_${hex( i, 6 )} > .byte`);
+          let groupIndex = Math.floor(i/this.comp.groupSize);
+          
+            if (this.comp.source.groupNodes[groupIndex]){
+              targetGroupNode = this.comp.source.groupNodes[groupIndex];
+            } else {
+              targetGroupNode = this.compContent.querySelector(`group_${this.source.offsetsHexStrings[i]}`);
+              // if we didn't find anything (shouldn't happen except with very small group sizes...?)
+              if (!targetGroupNode) {
+                targetGroupNode = this.comp.generateHexHTML(this.comp.source.data, groupIndex*this.comp.groupSize);
+              }
+            }
+          let lutEntry = targetGroupNode.querySelector(`#byte_${hex( i, 6 )} > .byte`);
           console.log(`.byte_group > #byte_${hex( i, 6 )} > .byte`);
-          lutEntry.style.border = '2px solid';
+          lutEntry.style.border = '1px solid';
           if (i%2) { // right side
             lutEntry.style.borderRadius = `0 ${this.corner} ${this.corner} 0`;
             lutEntry.style.borderLeft = "none";
@@ -5513,10 +5571,33 @@ replace].forEach(d=>console.log(d));
           }
         }
 
+        // scroll both panels to the start if needed
+        //NOTE: this is copied almost verbatim from end of cloneAndMove, could be made its own function?
+        // see if we need to return the hex_content positions before the next span:
+        // bc we possibly got messed up by a previous LUT mode scroll
+        var cmdOffsetPos = this.comp.checkOffsetPosition( this.compIndex, 2, 2 );
+        if (!cmdOffsetPos.inView) this.scrollContent(
+          this.compContent, 
+          this.compContent.scrollTop, cmdOffsetPos.position-cmdOffsetPos.topMargin, 
+          this.scrollTime ); 
+
+        // Do the same for decomp... although we still have the problem with decomp where it might not look clear if
+        // history mode bytes are higher up than the current decompIndex
+        var outOffsetPos = this.decomp.checkOffsetPosition( this.decompIndex, 2, 2 );
+        if (!outOffsetPos.inView) this.scrollContent(
+          this.decompContent, 
+          this.decompContent.scrollTop, outOffsetPos.position-outOffsetPos.topMargin, 
+          this.scrollTime ); 
+
+        setTimeout( ()=>{
+          this.decompSpan();
+        }, (!cmdOffsetPos.inView || !outOffsetPos.inView) ? this.scrollTime*1000 : 0 )
+
         // begin iterations
-        this.decompSpan();
+        // this.decompSpan();
 
       },
+
       scrollContent: function(content, startPos, endPos, duration, delay=0, steps=null, hold=false){
         // wrapper to scroll compContent or decompContent
         let scrollAnim = new Animation();
@@ -6338,11 +6419,20 @@ replace].forEach(d=>console.log(d));
         // reduce to only the unique groups (avoid duplicates)
         for (let offset of decompBytes) 
           decompGroups[`#group_${hex(this.decomp.groupSize*Math.floor(offset/this.decomp.groupSize),6)}`] = this.decomp.groupSize*Math.floor(offset/this.decomp.groupSize);
-        // now add if needed; either way, mark as "keep_loaded" class
+
+        // now add groups if needed; either way, mark as "keep_loaded" class
         for (let groupName in decompGroups) {
+
           let group = decompGroups[groupName];
+
           if (!this.decompContent.querySelector(groupName)) {
-            this.decomp.generateHexHTML(this.decomp.source.data, group*1);
+            let groupIndex = group/this.decomp.groupSize;
+            if (this.decomp.source.groupNodes[groupIndex]){
+              this.decomp.source.groupNodes[groupIndex] = this.decompContent.appendChild( this.decomp.source.groupNodes[groupIndex]);
+            } else {
+              this.decomp.generateHexHTML(this.decomp.source.data, group*1);
+            }
+            
             // set all new decomp to invisible
             Array.from(this.decompContent.querySelectorAll(groupName+" > .byte_container > .byte")).forEach(d=>d.style.color = "var(--textColorTransparent)");
             console.log('added '+groupName);
@@ -7141,8 +7231,8 @@ replace].forEach(d=>console.log(d));
           
           this.setPanelContentRows();
           this.generateHexHeaderHTML();
-          this.generateHexHTML( this.source.data, 0, this.groupSize*2);
-          
+          this.generateHexHTML( this.source.data, 0, this.groupSize*4);
+          this.hexScroll(); // should generate enough to cover the view window
           
 
 
@@ -7188,7 +7278,8 @@ replace].forEach(d=>console.log(d));
           
           this.setPanelContentRows();
           this.generateHexHeaderHTML();
-          this.generateHexHTML( this.source.data, 0, this.groupSize*2);
+          this.generateHexHTML( this.source.data, 0, this.groupSize*4);          
+          this.hexScroll(); // should generate enough to cover the view window
           
           
 
@@ -7201,7 +7292,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "bitplaneViewer":
-        break;
+        // break;
 
         // decompress
         // if we have source compressed graphics (ignore for calls from others )
@@ -7241,7 +7332,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "tilesetViewer":
-        break;
+        // break;
         // de-intertwine the bitplanes, show tilesets
         // (only if we have actual data (this.links[0]), not just palette (this.links[1]) )
         //TODO: better way to source filename
@@ -7265,7 +7356,7 @@ replace].forEach(d=>console.log(d));
         break;
 
       case "metatilesViewer":
-        break;
+        // break;
         // create the 32x32 pixel meta tiles, composed of 4x4 tiles of 8x8 pixels, from tileset
         // (only if we palette (this.links[0]), tile data (this.links[1]), AND metatile32 map (this.links[2]) )
         //TODO: better way to source filename
@@ -7677,23 +7768,23 @@ class UImodel {
 //
 
 // let c0 = 2, c1 = 11, c2 = 20, c3=29;
-let c0 = 2, c1 = 8, c2 = 16, c3=24;
-let cx = 16;
-let dx = 16+5;
-let d0 = c1-1, d1 = c2-1, d2=c3-1, d3=31;
+let c0 = 1, c1 = 6, c2 = 16, c3=27;
+let cx = c2*1;
+let dx = cx+5;
+let d0 = c1, d1 = c2, d2=c3, d3=33;
 //              _, kind,                  rows        cols     name=null, link
 var inputPanel = ["fileIn",                1,  3,    c0, d0,  "Input - Compressed Data"];
-var compHexPanel = ["hexViewerComp",       1, 14,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
-var paletteInputPanel = ["fileIn",        16, 18,    cx, dx,  "Input - Palette"];  //  2
-var paletteViewer = ["paletteViewer",      2,  6,    c3, d3,  "Palette", [2]]; // 3
-var decompHexPanel = ["hexViewer",        15, 27,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
-var bitplanePanel = ["bitplaneViewer",     2, 14,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
-var tilesetViewer = ["tilesetViewer",      7, 12,    c3, d3,  "Tiles", [4, 3, 5]]; //  6   4, 3, 5
-var metatilemapInputPanel = ["fileIn",    19, 21,    cx, dx,  "Input - Tilemap32 (Metatiles)"]; //  7
-var metatilesViewer = ["metatilesViewer", 13, 18,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input
-var levelMapInputPanel = ["fileIn",       22, 24,    cx, dx,  "Input - Level Map"]; //  9
-var levelMapViewer = ["levelMapViewer",   19, 27,    c3, d3,  "Level Map", [3,8,9]]; // 10 paletteViewer, metatilesViewer, fileIn
-var description = ["textDescription",      4, 27,    c0, d0,  "About"]; // 11
+var compHexPanel = ["hexViewerComp",       1, 15,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
+var paletteInputPanel = ["fileIn",         1,  3,    c3, d3,  "Input - Palette"];  //  2
+var paletteViewer = ["paletteViewer",      3,  6,    c3, d3,  "Palette", [2]]; // 3
+var decompHexPanel = ["hexViewer",        15, 28,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
+var bitplanePanel = ["bitplaneViewer",     1, 18,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
+var tilesetViewer = ["tilesetViewer",     18, 29,    c2, d2,  "Tiles", [4, 3, 5]]; //  6   4, 3, 5
+var metatilemapInputPanel = ["fileIn",     6,  8,    c3, d3,  "Input - Tilemap32 (Metatiles)"]; //  7
+var metatilesViewer = ["metatilesViewer",  8, 15,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input
+var levelMapInputPanel = ["fileIn",       15, 17,    c3, d3,  "Input - Level Map"]; //  9
+var levelMapViewer = ["levelMapViewer",   17, 29,    c3, d3,  "Level Map", [3,8,9]]; // 10 paletteViewer, metatilesViewer, fileIn
+var description = ["textDescription",      3, 29,    c0, d0,  "About"]; // 11
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
