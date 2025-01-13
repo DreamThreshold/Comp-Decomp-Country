@@ -532,7 +532,7 @@ button{
 .hex_content_bitplane{
   grid-column: 1 / -1;
   grid-template-rows: 100%; /*HACK: assumes viewing only 32 bytes */
-  
+  font-size: 0.8em;
   scrollbar-gutter: unset;
 }
 

@@ -190,6 +190,7 @@ class Panel {
               break;
   
           case "hexViewerComp":
+          case "hexViewerCompressed":
           case "hexViewer":
               this.selectedTile = 1;
   
@@ -243,7 +244,7 @@ class Panel {
                 this.byteWidthButton.addEventListener("click", (event) => {
                   this.panelContent.classList.toggle("hex_panel_content_32wide");
                   // toggle within settings for refering to elsewhere
-                  this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?1:16;
+                  this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
                   this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
                   this.setPanelContentColumns();
                   this.setPanelContentRows();
@@ -780,6 +781,7 @@ class Panel {
       this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
   
       // save the html nodes?
+      console.log(Math.ceil(this.source.data.length/this.groupSize));
       this.source.groupNodes = Array(Math.ceil(this.source.data.length/this.groupSize));
   
       // console.log('hex data:');
@@ -1644,7 +1646,8 @@ class Panel {
           console.log("beginning download button added... "+Date.now());
           this.downloadButton.addEventListener("click", (event) => {
             console.log("download button clicked. url object:");
-            const dataBlob = new Blob( [data], {type: "application/octet-stream"});
+            //NOTE: if the output isn't uint8, we pobably won't get the file we expect.
+            const dataBlob = new Blob( [new Uint8Array(data)], {type: "application/octet-stream"});
             let urlObject = URL.createObjectURL( dataBlob );
   
             console.log(urlObject);
@@ -1755,7 +1758,7 @@ class Panel {
         wrapper.classList.add("tile_item");
         
         let title = `Tile ${count}\n(Click to view bitplanes)`;
-        console.log("tileset content: "+title);
+        // console.log("tileset content: "+title);
         wrapper.title = title;
         // if (count==1){
         //   console.log(title);
@@ -1796,7 +1799,7 @@ class Panel {
   
             // console.log(`this.links[2]: `);
             // console.log(this.links[2]);
-            this.links[2].updateBitplaneSeek( 0, tileIndex )
+            if (this.links[2]) this.links[2].updateBitplaneSeek( 0, tileIndex );
             this.selectedTile = tileIndex;
             // // this.links[0].scrollToTile( this.selectedTile );
   
@@ -1820,7 +1823,7 @@ class Panel {
             // if (bitplanesDiv) bitplanesDiv.remove();
             // let rightGroupId = this.links[2].groupSize / ...?
             // scroll to it
-            this.links[0].inner.querySelector(".panel_content > .hex_content").scrollTo(
+            if (this.links[0]) this.links[0].inner.querySelector(".panel_content > .hex_content").scrollTo(
               {top: this.links[0].getByteLocationFromOffset( (tileIndex-1)*32).byte.fromTop, behavior:"smooth"}
             );
           }
@@ -2245,13 +2248,13 @@ class Panel {
   
         case "hexViewer":
           // break;
-          // decompress
+          // default is to decompress
           // if we have source compressed graphics (ignore for calls from others )
           if (this.links[0].source && !this.source ){
             this.source = {
                 name: "Decompressed from "+this.links[0].source.filename,
                 kind: "bytes",
-                data: dkc1decompress( Array(...this.links[0].source.data) ),
+                data: chrDecompress( Array(...this.links[0].source.data) ),
                 panel: this,
                 from: this.links[0]
             };
@@ -2265,7 +2268,13 @@ class Panel {
   
             // download setup
             if (!this.downloadButton){
-              let downloadFileName = this.links[0].source.filename.replace(".bin","_Decompressed.bin");
+                var downloadFileName;
+                if (this.links[0].source.filename){
+                    downloadFileName = this.links[0].source.filename.replace(".bin","_Decompressed.bin");
+                } else{
+                    downloadFileName = this.links[0].source.name.replace(".bin","_bin")+"_Decompressed.bin";
+                }
+                
               this.generateDownloadButton(
                 this.source.data, downloadFileName,
                 "Download Decompressed Graphics File (.bin)");
@@ -2341,7 +2350,53 @@ class Panel {
           }
   
           break;
-  
+          case "hexViewerCompressed":
+            // break;
+            // this COMPRESSES an input that is not compressed.
+            // if we have source compressed graphics (ignore for calls from others )
+            if (this.links[0].source && !this.source ){
+              this.source = {
+                  name: "Compressed from "+this.links[0].source.filename,
+                  kind: "bytes",
+                  data: chrCompress( Array(...this.links[0].source.data) ),
+                  panel: this,
+                  from: this.links[0]
+              };
+              
+    
+              // this.generateLineSpacingRange();
+    
+              // this.generateHexHTML( this.source.data, 0, this.groupSize*2 ); // first two groups' worth
+              // // Truncated version for performance
+              // // this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
+    
+              // download setup
+              if (!this.downloadButton){
+                let downloadFileName = this.links[0].source.filename.replace(".bin","_Compressed.bin");
+                this.generateDownloadButton(
+                  this.source.data, downloadFileName,
+                  "Download Compressed Graphics File (.bin)");
+              }
+    
+    
+              // this.updateLines(); // should bring to full height, accurate scrollbar?
+              // this.setPanelContentRows(); // ?
+    
+    
+              this.initHex(); //generates the strings
+              this.generateLineSpacingRange();
+              this.setPanelContentColumns();
+              
+              this.setPanelContentRows();
+              this.generateHexHeaderHTML();
+              this.generateHexHTML( this.source.data, 0, this.groupSize*4);
+              this.hexScroll(); // should generate enough to cover the view window
+              
+    
+    
+            }
+    
+            break;
         case "bitplaneViewer":
           // break;
   

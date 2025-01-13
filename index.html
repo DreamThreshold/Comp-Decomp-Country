@@ -149,13 +149,13 @@ class UImodel {
 aboutText = `\
               <div class="text_content" >
                 <p>
-                  <b>Hello!</b> This app decompresses graphics data from DKC, and provides visualizations that can help in ROM hacking.
+                  <b>Hello!</b> This app compresses and decompresses graphics data from DKC, and provides visualizations that can help in ROM hacking.
                   <br><br>
                   It provides several panels with different applications:
                   <ul>
-                    <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.<br>
+                    <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed or compressed data, you can download it from the "☰" menu.<br>
                       <ul>
-                        <li> After uploading valid compressed data, if there is a hex viewer panel for <i>de</i>compressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These graphics files contain many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
+                        <li> After uploading valid compressed data, if there is a hex viewer panel for <i>de</i>compressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These graphics files contain many spans/blocks of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
                       </ul>
                     </li>
                     <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
@@ -166,13 +166,13 @@ aboutText = `\
                         <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
                       </ul>
                     </li>
-                    <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to assign it to the indexed tile in the bitplane viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are different ways to convert the colors.)</li>
+                    <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to assign it to the indexed tile in the bitplane viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are multiple ways to convert the colors.)</li>
                     <li> <b>Tileset Viewer</b>. View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
                     <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
                     <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
                   </ul>
                   <br>
-                  Most features require uploading a file to the relevant file input panels on the page. Data will be persist through page refreshes, but not page closes.
+                  Most features require uploading a file to the relevant file input panels on the page. Data will persist through page refreshes, but not page closes.
                 </p>
                 <br>
                   Panels can be:<br>
@@ -182,7 +182,7 @@ aboutText = `\
                       <li> collapsed by clicking "˄" in the header</li>
                       <li> and maximized by double clicking the header.</li>
                     </ul>
-                  Some panels also have settings or other features hidden in the "☰" menu. You can zoom out of the page (usually ctrl+scroll) to have more space to organize your panels. Depending on the initial panelset template, some panels may be hidden off-screen at first.
+                  Some panels also have settings or other features hidden in the "☰" menu. You can zoom out of the page (usually ctrl+scroll) to have more space to organize your panels. Depending on the initial panels template, some panels may be hidden off-screen at first.
   
                 <br><br>
                 <p>
@@ -206,23 +206,37 @@ aboutText = `\
 
 
 // let c0 = 2, c1 = 11, c2 = 20, c3=29;
-let c0 = 1, c1 = 6, c2 = 16, c3=27;
+let c0 = 1, c1 = 6, c2 = 16, c3=27-3;
 let cx = c2*1;
 let dx = cx+5;
 let d0 = c1, d1 = c2, d2=c3, d3=33;
+// main decompression "pipeline"
 //              _, kind,                  rows        cols     name=null, link, content=''
 var inputPanel = ["fileIn",                1,  3,    c0, d0,  "Input - Compressed Data"];
-var compHexPanel = ["hexViewerComp",       1, 15,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
+var compHexPanel = ["hexViewerComp",       1, 10,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
 var paletteInputPanel = ["fileIn",         1,  3,    c3, d3,  "Input - Palette"];  //  2
 var paletteViewer = ["paletteViewer",      3,  6,    c3, d3,  "Palette", [2]]; // 3
-var decompHexPanel = ["hexViewer",        15, 28,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
-var bitplanePanel = ["bitplaneViewer",     1, 18,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
-var tilesetViewer = ["tilesetViewer",     18, 29,    c2, d2,  "Tiles", [4, 3, 5]]; //  6   4, 3, 5
+var decompHexPanel = ["hexViewer",        10, 19,    c1, d1,  "Hex Viewer - Decompressed Data", [0, 3, 1]]; // 4
+var bitplanePanel = ["bitplaneViewer",     1, 15,    c2, d2,  "Bitplane Viewer - Decompressed Data", [4, 3]]; // 5
+var tilesetViewer = ["tilesetViewer",     15, 19,    c2, d2-1,  "Tiles", [4, 3, 5]]; //  6   4, 3, 5
 var metatilemapInputPanel = ["fileIn",     6,  8,    c3, d3,  "Input - Tilemap32 (Metatiles)"]; //  7
 var metatilesViewer = ["metatilesViewer",  8, 15,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input
 var levelMapInputPanel = ["fileIn",       15, 17,    c3, d3,  "Input - Level Map"]; //  9
 var levelMapViewer = ["levelMapViewer",   17, 29,    c3, d3,  "Level Map", [3,8,9]]; // 10 paletteViewer, metatilesViewer, fileIn
-var description = ["textDescription",      3, 29,    c0, d0,  "About", null, aboutText]; // 11
+var description = ["textDescription",      3, 19,    c0, d0,  "About Comp/Decomp Country", null, aboutText]; // 11
+
+// for the Compression "pipeline"
+var compPipelineText = `\
+<div class="text_content" >
+  <p>This group of panels (12-16) represents a separate pipeline from the others above.</p>
+  <p>Enter <u>un</u>compressed data to the file input above to compress it. In the compressed data hex viewer to the right, you can download the compressed data file from the "☰" menu.</p><br>
+  <p> Also to the right, below that, you'll see your newly-compressed data get re-decompressed, if you wanted to immediately verify it. You can also verify it with the associated tileset viewer to the right.
+  </div>`;
+var inputPanelC = ["fileIn",               20, 23,    c0, d0,  "Input - Uncompressed Data"];// 12
+var compressC = ["hexViewerCompressed",    20, 24,    c1, d1,  "Hex Viewer - Compressed-by-this-app Data", [12]]; // 13
+var decompressC = ["hexViewer",            24, 28,    c1, d1,  "Hex Viewer - Decompressed from compressed-by-this-app Data", [13]]; // 14
+var tilesetViewerC = ["tilesetViewer",     24, 28,    c2, d2-1,  "Tiles", [14, null, null ]];
+var descriptionC = ["textDescription",     23, 28,    c0, d0,  "About Compression", null, compPipelineText]; // 11
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
@@ -232,7 +246,9 @@ const ui = new UImodel(
         tilesetViewer,
         metatilemapInputPanel, metatilesViewer,
         levelMapInputPanel, levelMapViewer,
-        description ],
+        description,
+              inputPanelC, compressC, decompressC, tilesetViewerC, descriptionC, 
+      ],
         "main"
     );
 
