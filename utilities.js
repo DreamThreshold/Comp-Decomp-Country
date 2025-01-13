@@ -73,71 +73,6 @@ const pal = [
   ];
 
 
-// -----------------------------------------------------------------------------------------------
-//
-//  these are more like Utilities
-//
-//-----------------------------------------------------------------------------------------------
-
-
-// a lot of variations on __Hex, some unused now
-
-// plain text version...
-function appendHex(inp,el){
-    var str = [];
-    inp.forEach( (x, i) => {
-        // console.log(x);
-        str.push(hex(x));
-    });
-    // hexView.innerHTML = bin.map( (x) => hex(x)).join(" ");
-
-    el.innerHTML += str.join(" ");
-
-}
-
-// special html div version...
-function appendHexHTML(inp,el){
-    // gets uint8 data bytes from inp,
-    // then appends specially-formatted HTML representations to element el
-    var str = [];
-    inp.forEach( (x, i) => {
-        let byte = document.createElement('div');
-        byte.className = "hexAndBinByte";
-        byte.innerHTML = (
-                `<div class="hexByte">${hex(x)}</div>
-                <div class="binByte">${binar(x)}</div>`
-            ).trim();
-        el.appendChild(byte);
-    });
-}
-// offset html div version...
-function appendHexOffsetHTML(inp,el){
-    // gets uint8 data bytes from inp,
-    // then appends specially-formatted HTML representations to element el
-    var str = [];
-    inp.forEach( (x, i) => {
-        let byte = document.createElement('div');
-        byte.className = "offset";
-        byte.innerHTML = hex(x,6);
-        el.appendChild(byte);
-    });
-}
-// 1-wide special version...
-function appendOneWideByteHTML(inp,el){
-    // gets uint8 data bytes from inp,
-    // then appends specially-formatted HTML representations to element el
-    var str = [];
-    inp.forEach( (x, i) => {
-        let byte = document.createElement('div');
-        byte.className = "oneWideByte";
-        byte.innerHTML = (
-                `${hex(x)} ${binar(x)}`
-            ).trim();
-        el.appendChild(byte);
-    });
-}
-
-
 function unbitplane(input){
     // Takes SNES 4 bit-per-pixel (4bpp) data and rearranges into image data.
     // Usage:
@@ -453,3 +388,98 @@ function transpose(a){
     return levelobjs;
   
   }
+
+// canvas display functions.
+// could be moved to another file...?
+function displayRaw(dat, parent, sc=1){
+  
+    // console.log(dat);
+    var canvas = document.createElement("canvas");
+    // canvas.id = "canvas";
+    canvas = parent.appendChild(canvas);
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
+    var w = dat.length;
+    var h = dat[0].length;
+  
+    canvas.width = sc * w;
+    canvas.height = sc * h;
+  
+    var ctx = canvas.getContext("2d");
+  
+    for (let rowIndex = 0; rowIndex < dat.length; rowIndex++){
+    
+      for (let columnIndex = 0; columnIndex < dat[rowIndex].length; columnIndex++){
+  
+        // let fill = "#"+pal[ dat[tileIndex][rowIndex][columnIndex] ].map(d => hex(d)).join("")+"ff";
+  
+        ctx.fillStyle = `rgb(${dat[rowIndex][columnIndex].join()})`;
+        ctx.fillRect(columnIndex*sc, rowIndex*sc, sc, sc);
+  
+        // rowstr+="R_"+rowIndex+";C_"+columnIndex+":_"+fill;
+        // console.log([rowIndex*sc, tileIndex*8*sc + rowIndex*sc, sc, sc]);
+      }
+    }
+  
+    return canvas;
+}
+  
+function display(dat, parent, palette, sc=1, title=null, classes=null){
+    // use canvas to display image. Maybe try integrer scaling, and pixel-rendering CSS stuff for better look.
+    // console.log(dat);
+    // sc is pexel scale
+    // const sc = 4; // integer scale for canvas
+
+    var canvas = document.createElement("canvas");
+    // canvas.id = "canvas";
+    canvas = parent.appendChild(canvas);
+    var w = dat[0].length;
+    var h = dat[0][0].length;
+    canvas.className = "tile_item";
+    canvas.width = sc * w;
+    canvas.height = dat.length*sc * h;
+    if (title) canvas.title = title;
+    if (classes) classes.forEach(d=>canvas.classList.add(d));
+    var ctx = canvas.getContext("2d");
+    // var pixels = new Uint8ClampedArray(8*8*4);
+    for (var tileIndex = 0; tileIndex<(dat.length); tileIndex++){
+    //TODO: can remove this outermost loop through tiles; this func is only ever called for 1, wrpped in an array???
+        // let rowstr = "";
+        for (let rowIndex = 0; rowIndex < dat[tileIndex].length; rowIndex++){
+
+            for (let columnIndex = 0; columnIndex < dat[tileIndex][rowIndex].length; columnIndex++){
+
+                let px = palette[ dat[tileIndex][rowIndex][columnIndex] ];
+                // console.log(dat[tileIndex][rowIndex][columnIndex]);
+                // console.log(px);
+                // let fill = "#"+pal[ dat[tileIndex][rowIndex][columnIndex] ].map(d => hex(d)).join("")+"ff";
+                let fill = `rgba(${px[0]}, ${px[1]}, ${px[2]}, 255)`;
+                ctx.fillStyle = fill;
+                ctx.fillRect(columnIndex*sc, (tileIndex*h*sc) + (rowIndex*sc), sc, sc);
+
+                // rowstr+="R_"+rowIndex+";C_"+columnIndex+":_"+fill;
+                // console.log([rowIndex*sc, tileIndex*8*sc + rowIndex*sc, sc, sc]);
+            }
+        }
+        // console.log(rowstr);
+    }
+
+    // .putImageData(value, x, y);
+
+    // let df = dat.flat();
+    // let cvim = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // console.log(cvim);
+    // for (i=0; i<cvim.length/4;i++){
+    //     let px = pal[df[i]];
+    //     let ii = 4*i;
+    //     cvim[ii] = px[0];
+    //     cvim[ii+1] = px[1];
+    //     cvim[ii+2] = px[2];
+    //     cvim[ii+3] = 255;
+    // }
+    // console.log(cvim);
+    // ctx.putImageData(cvim,0,0);
+    return canvas;
+
+}

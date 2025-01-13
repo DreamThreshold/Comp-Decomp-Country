@@ -88,354 +88,57 @@
 
 
 
-// class Animation {
-//   constructor(name="anim"+Date.now()){
-
-//   }
-
-// }
-
-
-
-function fileInput(e, ui, panel){
-
-    // console.log("onchanged");
-    // console.log(e);
-
-    var file = e.target.files[0];
-
-    // the hex viewer div
-    //HACK: assumes there is only one hexViewercontent per panel...
-    let hexContent = panel.panelContent.querySelector(" .hex_content");
-    // console.log(panel.name+" hexContent");
-    // console.log(hexContent);
-
-    var fReader = new FileReader();
-    fReader.readAsArrayBuffer(file);
-
-    // console.log("this/e/ui");
-    // console.log(this);
-    // console.log(e);
-    // console.log(ui);
-
-    fReader.addEventListener('load', function (e) {
-
-        panel.source = {
-            name: "Raw data from "+file.name,
-            filename: file.name,
-            kind: "bytes",
-            data: new Uint8Array( e.target.result),
-            // panel: panel,
-            // file: file
-        };
-
-
-        
-        // save to local browser session storage
-        sessionStorage.setItem( panel.nameValid+'_source', JSON.stringify(panel.source) );
-
-        panel.source.panel = panel; // do this after to avoid cyclic objects
-        // panel.generateHexHTML( panel.source.data );  // comment out for speed
-
-
-        // Automatically do the next steps...
-        // console.log(panel);
-        // panel.nexts[0].propagateSource();
-        panel.propagateSource();
-
-    });
-
-}
-
-function changeByteWidth(panel, overrideMode=null){
-  // var panel = e.target.parentNode.parentNode;
-
-  var oldMode = panel.getAttribute("data-mode");
-  var newMode = "";
-  if (overrideMode){
-    newMode = overrideMode;
-  }
-  else{
-    newMode = oldMode=="byte16"?"byte1":"byte16"; // simplified: toggle
-  }
-
-
-  // console.log(panel);
-
-  // panel.style.gridTemplateColumns = newMode=="byte1"?"2fr 4fr 14fr":"2fr 16fr 0fr";
-
-  var hexOffsetHeaderLabels = panel.querySelector(".hex_header > .hex_offset_labels");
-  var hexBaseLabels = panel.querySelector(".hex_header > .hex_base_labels");
-  // hof.style.gridTemplateColumns = newMode=="byte1"?"2fr repeat(16, 0.25fr)":"2fr repeat(16, 1fr)";
-  var hexContent = panel.querySelectorAll(".hex_content")[0];
-  var g32l = hexContent.querySelectorAll(".g32l");
-  // hc.style.gridTemplateColumns = newMode=="byte1"?"4fr 14fr":"18fr 0fr";
-
-// hc.style.gridTemplateRows = newMode=="byte1"?`repeat(${g32.length},100%)`:`repeat(${g32.length},1fr)`;
-
-
-  switch (newMode){
-    case "byte16":
-      panel.style.gridTemplateColumns = "2fr 16fr 0fr";
-      // hexContent.style.gridTemplateRows = `repeat(${g32l.length},5ch)`;
-      hexOffsetHeaderLabels.style.opacity = 1;
-      hexBaseLabels.style.opacity = 0;
-      break;
-    case "byte1":
-      panel.style.gridTemplateColumns = "2fr 4fr 25fr";
-      // hexContent.style.gridTemplateRows = `repeat(${g32l.length},100%)`;
-      hexOffsetHeaderLabels.style.opacity = 0;
-      hexBaseLabels.style.opacity = 1;
-      break;
-    }
-
-  // console.log(g32);
-  // hc.height = "100%";
-
-  // for grid elements, get the custom grid-template-rows and columns
-  var g32rrs = hexContent.querySelectorAll(".g32rr");
-  for (var g32rr of g32rrs){
-    for (var gr32r of g32rr.querySelectorAll(".g32r")){
-
-      let gcr = gr32r.getAttribute(`data-mode-${newMode}`).split(";");
-
-      gr32r.style.gridTemplateColumns = gcr[0];
-      gr32r.style.gridTemplateRows = gcr[1];
-      let gr32rByte = gr32r.querySelector(".byte");
-      let bp = gr32rByte.getAttribute('data-bitplane');
-      let binSpan = gr32rByte.querySelector(".byteBin");
-      let prefix = gr32rByte.querySelector(".byteOffsetPrefix");
-      // console.log(gr32rByte);
-      // console.log(bp);
-      // gr.querySelectorAll(".byte")[0].style.justifyContent = newMode=="byte1"?"flex-end":"center";
-      if (newMode == "byte16"){
-        gr32rByte.classList.remove(`byte_bp${bp}`);
-        binSpan.classList.remove(`byteBinOneByteWide`);
-        // binSpan.style.width = "0%";
-        // binSpan.style.opacity = 0;
-        prefix.style.opacity = 0;
-        // gr32rByte.style.gridTemplateColumns = "0fr 1fr"; //NOTE: backwards because rtl
-      }
-      else if (newMode == "byte1"){
-        gr32rByte.classList.add(`byte_bp${bp}`);
-        binSpan.classList.add(`byteBinOneByteWide`);
-        // binSpan.style.width = "100%";
-        // binSpan.style.opacity = 1;
-        prefix.style.opacity = 1;
-        // gr32rByte.style.gridTemplateColumns = "4fr 2fr";
-      }
-    }
-    // console.log(g32);
-  }
-
-
-  panel.setAttribute("data-mode", newMode);
-
-}
-
-function updateBitplaneSeek(panelNode, panel, change, override=false ){
-
-
-  // first update the total number
-  let currentTile = panelNode.querySelector(".panel_content > .hex_header > .seekButtons > #currentTile");
-  let totalTiles = panelNode.querySelector(".panel_content > .hex_header > .seekButtons > #totalTiles");
-
-  // console.log("seek btn:");
-  // [panelNode, panel, change, override, currentTile, totalTiles].forEach( d=> console.log(d));
-
-  if (panel.source){
-
-    let totalNumber = Math.ceil(panel.source.data.length/32);
-    totalTiles.innerHTML = totalNumber;
-    //
-    let oldVal = (1*currentTile.innerHTML);
-    let newVal =  (typeof(override)=='number' ) ? override : (oldVal+change);
-
-    // min max/ clamp the range:
-    if (newVal>totalNumber) newVal = totalNumber;
-    if (newVal<1) newVal = 1;
-
-    // if we have a valid change:
-    if ( (newVal != oldVal) || (override!=false) ){
-      currentTile.innerHTML = newVal;
-      console.log(`Valid seek change: updating bitplane seek to ${newVal}`)
-
-      panel.generateBitplaneHTML(panel.source.data, (newVal-1)*32 );
-
-    } else{
-      console.log("invalid seek change");
-    }
-  }
-}
 
 class UImodel {
-  constructor(grid, panelsParams, name=null, cell=null) {
+  constructor(grid, panelsParams, name=null ) {
+
     this.grid = grid;
     this.panels = [];
+
     for (let i = 0; i<panelsParams.length; i++){
         //HACK: surely a better way to do this but whatever
+        if ( panelsParams[i][0] == "textDescription") {
+          this.panels.push( new TextPanel(this,
+            panelsParams[i][0], panelsParams[i][1], panelsParams[i][2],
+            panelsParams[i][3], panelsParams[i][4], panelsParams[i][5],
+            panelsParams[i][6], panelsParams[i][7] )
+          );
+          continue;
+        }
+        if ( panelsParams[i][0] == "fileIn") {
+          this.panels.push( new FilePanel(this,
+            panelsParams[i][0], panelsParams[i][1], panelsParams[i][2],
+            panelsParams[i][3], panelsParams[i][4], panelsParams[i][5],
+            panelsParams[i][6], panelsParams[i][7] )
+          );
+          continue;
+        }
         this.panels.push( new Panel(this,
             panelsParams[i][0], panelsParams[i][1], panelsParams[i][2],
             panelsParams[i][3], panelsParams[i][4], panelsParams[i][5],
-            panelsParams[i][6] )
+            panelsParams[i][6], panelsParams[i][7] )
         );
+
     }
 
     this.name = name;
     this.sources = []; // will contain source data from files
-    if (cell == null){
-        let cell = document.createElement("div");
-        cell.style.gridRow = 1;
-        cell.style.gridColumn = 1;
-        cell.style.background = "none";
-        cell.style.zIndex = -10;
-        this.grid.append(cell);
-        this.cell = cell;
-        console.log("assigning cell to ui");
-    }
-    else{
-        this.cell = cell; // a reference cell within the grid
-    }
-    console.log("Appending to main grid...");
-    // this.panels.forEach(p => this.grid.append(p.outer));
-    // now that they're in the document, add event listeners
+    this.links = [];
 
-    // this.panels.forEach(
-    //     p => p.eventListeners.forEach(
-    //         // (el) => el[0].addEventListener(el[1], el[2] )
-    //         (el) => el.tagName=="INPUT" ? el.onchange = fileInput : 0
-    //     )
-    // );
-    //HACK: this is a weird way to assign the event listener, but it wasn't working otherwise...
-    for (let panel of this.panels){
-
-        // console.log(panel);
-        //TODO: find a better way to find ALL inputs within a panel, instead
-        // of searching through everything in the panelHeader ...?
-        // for (let el of panel.panelHeader.children){
-
-        //     if (el.tagName=="INPUT"){
-        //         // where "this" will be the UImodel object.
-        //         el.onchange = (e) => fileInput(e, this, panel);
-        //         ;
-        //         console.log("found input");
-        //         console.log(el);
-        //         console.log(el.onchange);
-        //         console.log( [ this, panel ] );
-
-        //     }
-        // }
-
-        // if (panel.byteWidthButton){
-        //   // panel.inner.querySelectorAll(".panel_header > .byteWidthButton")[0].addEventListener("click",
-        //   //     (event) => {changeByteWidth(event.target.parentNode.parentNode)});
-        //   console.log("ADDED EVENT LISTENER");
-        //   panel.inner.querySelector(".panel_content > .bitplane_header > .byteWidthButton").addEventListener("click",
-        //       (event) => {
-        //         console.log(event);
-        //         // changeByteWidth(event.target.parentNode.parentNode);
-        //         panel.animate16to1();
-        //       });
-        // }
-        // if (panel.seekTileUpButton){
-        //   // panel.inner.querySelector(".panel_header > div > .seekTileUpButton").addEventListener("click",
-        //   //   (event) => {
-        //   //     updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, +1)
-        //   //   }
-        //   // );
-        //   console.log("ADDED EVENT LISTENER");
-        //   panel.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileUpButton").addEventListener("click",
-        //     (event) => {
-        //       console.log(event);
-        //       updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, +1)
-        //     }
-        //   );
-        // }
-        // if (panel.seekTileDownButton){
-        //   // panel.inner.querySelector(".panel_header > div > .seekTileDownButton").addEventListener("click",
-        //   //   (event) => {
-        //   //     updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, -1)
-        //   //   }
-        //   // );
-        //   console.log("ADDED EVENT LISTENER");
-        //   panel.inner.querySelector(".panel_content > .bitplane_header > .seekButtons > .seekTileDownButton").addEventListener("click",
-        //     (event) => {
-        //       console.log(event);
-        //       updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, panel, -1)
-        //     }
-        //   );
-        // }
-
-
-        if (panel.fileInputs[0]){
-          panel.inner.querySelectorAll(".panel_content > .fileInput")[0].onchange = (e) => fileInput(e, this, panel);
-        }
-
-        // also see if we need to link any panels:
-        for (let link of panel.links){
-            console.log(`Pushing link: [${link.name}] --> [${panel.name}]`);
-            link.nexts.push(panel);
-        }
-    }
-    //HACK
-    // document.getElementById("ii").onchange = (e) => fileInput(e, this, this.panels[0]);
-    // document.getElementById("btn").addEventListener("click",
-    //   (event) => {changeByteWidth(event.target.parentNode.parentNode)});
-
-
-
-    // changeByteWidth(this.panels[0].inner,"byte16");
-
-    // window.addEventListener('resize', (e) => this.reflow(e), true);
-    this.bpsvgs = [];
-    let i = 0;
-
-    // for (var g32s of document.getElementsByClassName("g32s")){
-    //   this.bpsvgs.push(makeBitplaneSVG(g32s,"bpsvg_"+i));
-    //   console.log(i);
-    //   i++;
+    // perform the linking of panels
+    // for (let panel of this.panels){
+    //     for (let link of panel.links){
+    //         console.log(`Pushing link: [${link.name}] --> [${panel.name}]`);
+    //         link.nexts.push(panel);
+    //     }
     // }
-
-    // this.reflow(); // initial reflow
-
+    for (let panel of this.panels)
+        for (let link of panel.links)
+            link.nexts.push(panel);
+    
   }
-  reflow(){
+  addLink(){
 
-    // tries to automatically fit panels. Not used after adding more complicates setup.
-    // console.log(this);
-
-    let cellWidth = this.cell.getBoundingClientRect().width;
-    let dl = 0; // running tracker of previous panels' width changes
-    let dt = 0; // not fully implemented; top deltas
-
-    for (let i=0; i<this.panels.length; i++){
-        let panel = this.panels[i];
-        // // Get the first child element to be of panel_inner class:
-        // var inner;
-        // for (let item of panel.element.children ){
-        //     if (item.classList.contains("panel_inner")){
-        //         inner = item;
-        //         break;
-        //     }
-        // }
-        let inner = panel.inner;
-        let outer = panel.outer;
-        let dw = 0, dh = 0;
-        // console.log([inner.getBoundingClientRect().width , outer.getBoundingClientRect().width]);
-        if (inner.getBoundingClientRect().width > outer.getBoundingClientRect().width){
-            dw = 1;
-            // console.log("largen");
-        }
-        else if (inner.getBoundingClientRect().width  + (1*cellWidth) < outer.getBoundingClientRect().width  ){
-            dw = -1;
-            // console.log("smallen");
-        }
-        panel.updateBox(dt, dt+dh, dl, dl+dw);
-        // dl += i>0 ? dw : 0;
-        dl += dw;
-        dt += dh;
-
-    }
   }
 }
 
@@ -443,12 +146,71 @@ class UImodel {
 //   Create the ui and panels
 //
 
+aboutText = `\
+              <div class="text_content" >
+                <p>
+                  <b>Hello!</b> This app decompresses graphics data from DKC, and provides visualizations that can help in ROM hacking.
+                  <br><br>
+                  It provides several panels with different applications:
+                  <ul>
+                    <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.<br>
+                      <ul>
+                        <li> After uploading valid compressed data, if there is a hex viewer panel for <i>de</i>compressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These graphics files contain many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
+                      </ul>
+                    </li>
+                    <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
+                      <ul>
+                        <li> Upload a file to "Input - Compressed Data" to get started. This expects a .bin file that you might get in a disassembly of the game, usually in the "graphics/compressed" folder. Or, copy the hex values from the relevant offset of your ROM to a new file.</li>
+                        <li> After uploading valid data, the bitplane diagram should appear, showing the first tile. In the diagram, you can see how the 32 bytes of data comprise the four bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
+                        <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out.</li>
+                        <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
+                      </ul>
+                    </li>
+                    <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to assign it to the indexed tile in the bitplane viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are different ways to convert the colors.)</li>
+                    <li> <b>Tileset Viewer</b>. View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
+                    <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
+                    <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
+                  </ul>
+                  <br>
+                  Most features require uploading a file to the relevant file input panels on the page. Data will be persist through page refreshes, but not page closes.
+                </p>
+                <br>
+                  Panels can be:<br>
+                  <ul>
+                      <li> moved around the page by dragging their headers</li>
+                      <li> resized by dragging the bottom right corner</li>
+                      <li> collapsed by clicking "˄" in the header</li>
+                      <li> and maximized by double clicking the header.</li>
+                    </ul>
+                  Some panels also have settings or other features hidden in the "☰" menu. You can zoom out of the page (usually ctrl+scroll) to have more space to organize your panels. Depending on the initial panelset template, some panels may be hidden off-screen at first.
+  
+                <br><br>
+                <p>
+                  The app's first release was made to celebrate DKC's 30th anniversary. The goal is to de-mystify DKC hacking and to provide even more appreciation for what Rare developed in the 1990s. More features will continue to be added. Works best in a full screen window, tested most thoroughly with firefox. You can expect more features for visualizing, documenting, and hacking the DKC series soon. Thanks!
+                </p>
+                <br><br>
+                <p>
+                  Special thanks to the DKC Atlas community members and their previous work. In particular Kingizor's dkcomp program. In the future I will update this page with additional guides and resources, and their proper credits.
+                </p>
+                <br><br><br>
+                <p>
+                <b>Disclaimer</b>. This software is not official or supported by Nintendo, nor any other commercial entity. It is provided AS IS, and its use is at your own risk.
+                </p>
+              </div>`;
+
+
+// const ui = new UImodel( "main", document.getElementById("panelgrid") );
+// var inputPanel = ui.addNode( new FilePanel ("Input - Compressed Data"),          [1,  3,    c0, d0]  );
+// var compHexPanel = ui.addNode( new HexPanel ("Hex Viewer - Compressed Data"),          [1, 15,    c1, d1]  );
+// ui.addLink( new Link(inputPanel, compHexPanel) )
+
+
 // let c0 = 2, c1 = 11, c2 = 20, c3=29;
 let c0 = 1, c1 = 6, c2 = 16, c3=27;
 let cx = c2*1;
 let dx = cx+5;
 let d0 = c1, d1 = c2, d2=c3, d3=33;
-//              _, kind,                  rows        cols     name=null, link
+//              _, kind,                  rows        cols     name=null, link, content=''
 var inputPanel = ["fileIn",                1,  3,    c0, d0,  "Input - Compressed Data"];
 var compHexPanel = ["hexViewerComp",       1, 15,    c1, d1,  "Hex Viewer - Compressed Data", [0]]; // 1
 var paletteInputPanel = ["fileIn",         1,  3,    c3, d3,  "Input - Palette"];  //  2
@@ -460,7 +222,7 @@ var metatilemapInputPanel = ["fileIn",     6,  8,    c3, d3,  "Input - Tilemap32
 var metatilesViewer = ["metatilesViewer",  8, 15,    c3, d3,  "Tilemap32 (Metatiles)", [3,6,7]]; // 8 pal viewer, tileset vwr, metatile input
 var levelMapInputPanel = ["fileIn",       15, 17,    c3, d3,  "Input - Level Map"]; //  9
 var levelMapViewer = ["levelMapViewer",   17, 29,    c3, d3,  "Level Map", [3,8,9]]; // 10 paletteViewer, metatilesViewer, fileIn
-var description = ["textDescription",      3, 29,    c0, d0,  "About"]; // 11
+var description = ["textDescription",      3, 29,    c0, d0,  "About", null, aboutText]; // 11
 
 const ui = new UImodel(
         document.getElementById("panelgrid"),
@@ -474,124 +236,9 @@ const ui = new UImodel(
         "main"
     );
 
-// ui.panels[0].toOneByteWide(); //HACK
-// window.addEventListener('resize', ui.reflow, true);
-
 let pg = document.getElementById("panelgrid");
 
-//debug:
-// ui.panels[1].generateHexHTML();
 
-//checkerboard (sort of debug)
-// for (let i=1; i<=28; i++){
-//     for (let j=1; j<=32;j++){
-//         let chkr = document.createElement("div");
-//         chkr.className = "checker";
-//         chkr.id = "checker_"+i+"_"+j;
-//         chkr.style.gridRow = ""+i+"";
-//         chkr.style.gridColumn = ""+j+"";
-//         if ( (i%2) == (j%2) ){
-//             chkr.style.backgroundColor = "black";
-//         }
-//         pg.append(chkr);
-
-
-//     }
-// }
-//
-
-function displayRaw(dat, parent, sc=1){
-  
-  // console.log(dat);
-  var canvas = document.createElement("canvas");
-  // canvas.id = "canvas";
-  canvas = parent.appendChild(canvas);
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
-  
-  var w = dat.length;
-  var h = dat[0].length;
-
-  canvas.width = sc * w;
-  canvas.height = sc * h;
-
-  var ctx = canvas.getContext("2d");
-
-  for (let rowIndex = 0; rowIndex < dat.length; rowIndex++){
-  
-    for (let columnIndex = 0; columnIndex < dat[rowIndex].length; columnIndex++){
-
-      // let fill = "#"+pal[ dat[tileIndex][rowIndex][columnIndex] ].map(d => hex(d)).join("")+"ff";
-
-      ctx.fillStyle = `rgb(${dat[rowIndex][columnIndex].join()})`;
-      ctx.fillRect(columnIndex*sc, rowIndex*sc, sc, sc);
-
-      // rowstr+="R_"+rowIndex+";C_"+columnIndex+":_"+fill;
-      // console.log([rowIndex*sc, tileIndex*8*sc + rowIndex*sc, sc, sc]);
-    }
-  }
-
-  return canvas;
-}
-
-function display(dat, parent, palette, sc=1, title=null, classes=null){
-    // use canvas to display image. Maybe try integrer scaling, and pixel-rendering CSS stuff for better look.
-    // console.log(dat);
-    // sc is pexel scale
-    // const sc = 4; // integer scale for canvas
-
-    var canvas = document.createElement("canvas");
-    // canvas.id = "canvas";
-    canvas = parent.appendChild(canvas);
-    var w = dat[0].length;
-    var h = dat[0][0].length;
-    canvas.className = "tile_item";
-    canvas.width = sc * w;
-    canvas.height = dat.length*sc * h;
-    if (title) canvas.title = title;
-    if (classes) classes.forEach(d=>canvas.classList.add(d));
-    var ctx = canvas.getContext("2d");
-    // var pixels = new Uint8ClampedArray(8*8*4);
-    for (var tileIndex = 0; tileIndex<(dat.length); tileIndex++){
-      //TODO: can remove this outermost loop through tiles; this func is only ever called for 1, wrpped in an array???
-        // let rowstr = "";
-        for (let rowIndex = 0; rowIndex < dat[tileIndex].length; rowIndex++){
-
-            for (let columnIndex = 0; columnIndex < dat[tileIndex][rowIndex].length; columnIndex++){
-
-                let px = palette[ dat[tileIndex][rowIndex][columnIndex] ];
-                // console.log(dat[tileIndex][rowIndex][columnIndex]);
-                // console.log(px);
-                // let fill = "#"+pal[ dat[tileIndex][rowIndex][columnIndex] ].map(d => hex(d)).join("")+"ff";
-                let fill = `rgba(${px[0]}, ${px[1]}, ${px[2]}, 255)`;
-                ctx.fillStyle = fill;
-                ctx.fillRect(columnIndex*sc, (tileIndex*h*sc) + (rowIndex*sc), sc, sc);
-
-                // rowstr+="R_"+rowIndex+";C_"+columnIndex+":_"+fill;
-                // console.log([rowIndex*sc, tileIndex*8*sc + rowIndex*sc, sc, sc]);
-            }
-        }
-        // console.log(rowstr);
-    }
-
-    // .putImageData(value, x, y);
-
-    // let df = dat.flat();
-    // let cvim = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    // console.log(cvim);
-    // for (i=0; i<cvim.length/4;i++){
-    //     let px = pal[df[i]];
-    //     let ii = 4*i;
-    //     cvim[ii] = px[0];
-    //     cvim[ii+1] = px[1];
-    //     cvim[ii+2] = px[2];
-    //     cvim[ii+3] = 255;
-    // }
-    // console.log(cvim);
-    // ctx.putImageData(cvim,0,0);
-    return canvas;
-
-}
 
 </script>
 

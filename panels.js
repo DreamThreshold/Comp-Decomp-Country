@@ -1,33 +1,42 @@
 
-// each panel of the ui; comes in different kinds
+// each panel of the ui
+// Panel is the parent class, then there are several subclasses.
 class Panel {
-    constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null) {
-      // panel templats:
-      // this.templates = {
-      //     binin: {
-      //         dom: {
-  
-      //         }
-      //     }
-      // }
+    constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content='') {
+
+        // parse the inputs
       this.ui = parentUI;
+      this.index = parentUI ? this.ui.panels.length : null;
+      this.name = name ? name : `Panel_${(this.index ? this.index : '?')}_${Date.now()}`;
+      this.nameValid = this.name.replace(/\s/g, ""); // this should make a valid html id
+      this.kind = kind ? kind : "placeholder";
+      this.source = null; // input data source, initially null
+      this.links = []; // references to other panels that might have transformed a .source
+      if (links) links.forEach(d => this.links.push(this.ui.panels[d]) );
+      this.nexts = [];
+      this.rowStart = rowStart;
+      this.rowEnd = rowEnd;
+      this.columnStart = columnStart;
+      this.columnEnd = columnEnd;
+    //   this.fileData = null;
+    //   this.fileBin = null;
+      this.palette = pal; // from external grayscale 16-color palette
+      this.fileInputs = []; // will be populated if there are file <input>s
+      this.settings = {};
+      
+      console.log(`panel  ${this.name} should be index ${this.index}`);
+
+      // begin setup
       this.outer = document.createElement("div");
-      this.ui.grid.append(this.outer);
-      if (name != null){
-          this.outer.id = name;
-      }
+      this.outer.id = this.nameValid+"_outer";
       this.outer.className = "panel_outer";
+      this.outer = this.ui.grid.appendChild(this.outer);
   
       this.inner = document.createElement("div");
-      if (name != null){
-          this.inner.id = name+"_inner";
-      }
+      this.inner.id = this.nameValid+"_inner";
       this.inner.className = "panel_inner";
+      this.inner = this.outer.appendChild(this.inner);
   
-      this.outer.appendChild(this.inner);
-  
-  
-      this.settings = {};
   
       // set up the dragging "grid"
       for (let i=1; i<4; i++){
@@ -49,51 +58,36 @@ class Panel {
       }
   
   
-      this.name = name;
-      this.nameValid = this.name.replace(/\s/g, ""); // should make a valid html id
-      this.kind = kind;
-      this.source = null; // input data source
-      this.links = []; // references to other panels that might have transformed a .source
-      this.nexts = [];
-      this.palette = pal; //TODO: re-work palette system
-      this.fileInputs = []; // will be populated if there are file <input>s
-      // assume it's an array
-      if (links){
-        links.forEach(d => this.links.push(this.ui.panels[d]) );
-      }
-  
-      this.eventListeners = []; // need to add them after their on the page...?
-  
-      this.index = this.ui.panels.length;
-      console.log(`panel  ${this.name} should be index ${this.index}`);
-  
       // HEADER
       // create a header
-      this.inner.appendChild(document.createElement("div") );
-      this.panelHeader = this.inner.children[this.inner.children.length-1];
-      this.panelHeader.id = this.name+"_header";
+      this.panelHeader = this.inner.appendChild(document.createElement("div") );
+      this.panelHeader.id = this.nameValid+"_header";
       this.panelHeader.className = "panel_header";
   
       // add the title
       this.title = document.createElement("div");
-      this.title.innerHTML += this.index+') '+this.name;
+      //   this.title.innerHTML += this.index+') '+this.name;
+      this.title.textContent = this.index+') '+this.name;
       this.title.classList.add("panel_header_title");
       this.title = this.panelHeader.appendChild(this.title);
   
       // add the settings/menu button
       this.menuButton = document.createElement("div");
-      this.menuButton.innerHTML += "☰";
-      this.menuButton = this.panelHeader.appendChild(this.menuButton);
+    //   this.menuButton.innerHTML += "☰";
+      this.menuButton.textContent = "☰";
       this.menuButton.classList.add("panel_menu_button");
+      this.menuButton = this.panelHeader.appendChild(this.menuButton);
+      // Event listener for opening the menu
+      this.menuButton.addEventListener("click", event => this.toggleMenu(event) );
   
       // add the collapse button
       this.collapse = document.createElement("div");
-      this.collapse.innerHTML += "˄";
+    //   this.collapse.innerHTML += "˄";
+      this.collapse.textContent = "˄";
       this.collapse.classList.add("collapser");
-      this.collapse = this.panelHeader.appendChild(this.collapse);
       var collapseTime = 2000; // only source of collapse timing, to prevent redundancy
       this.collapse.style.transition = `height ${collapseTime/1000}s ease 0s`;
-  
+      this.collapse = this.panelHeader.appendChild(this.collapse);
       // Event listener for collapsing the panelContent
       this.collapse.addEventListener("click", (event) => {
   
@@ -125,39 +119,17 @@ class Panel {
   
       // CONTENT
       // create the content
-      this.inner.appendChild(document.createElement("div") );
-      this.panelContent = this.inner.children[this.inner.children.length-1];
-      this.panelContent.id = this.name+"_content";
+      this.panelContent = document.createElement("div");
+      this.panelContent.id = this.nameValid+"_content";
       this.panelContent.className = "panel_content";
+      this.panelContent = this.inner.appendChild( this.panelContent );
   
       // MENU
       // create the settings menu which will normally be hidden
-      this.inner.appendChild(document.createElement("div") );
-      this.menu = this.inner.children[this.inner.children.length-1];
-      this.menu.id = this.name+"_menu";
+      this.menu = this.inner.appendChild(document.createElement("div") );
+      this.menu.id = this.nameValid+"_menu";
       this.menu.className = "panel_menu";
       this.menu.innerHTML = "<h4>Settings</h4>";
-  
-      // Event listener for opening the menu
-      //HACK: using setTimeout...
-      setTimeout(
-        ()=> {
-          this.panelHeader.querySelector(".panel_menu_button").addEventListener("click", (event) => {
-            this.toggleMenu(event);
-              // console.log("toggling menu");
-  
-              // // change button appearance
-              // event.target.classList.toggle("panel_menu_button_opened");
-              // // change menu appearance (show it)
-              // this.inner.querySelector(".panel_menu").classList.toggle("panel_menu_opened");
-              // this.inner.querySelector(".panel_content").classList.toggle("panel_content_disabled");
-  
-            }
-          );
-          console.log("menu event listener added.");
-        },
-        2000);
-  
   
       // create outer and inner html divs
       // let headerHeight = 0;
@@ -167,194 +139,29 @@ class Panel {
           case "textDescription":
             //TODO: move the below text to another file
             // this.panelContent.classList.add("panel_inner_text");
-            this.panelContent.innerHTML += `\
-              <div class="text_content" >
-                <p>
-                  <b>Hello!</b> This app decompresses graphics data from DKC, and provides visualizations that can help in ROM hacking.
-                  <br><br>
-                  It provides several panels with different applications:
-                  <ul>
-                    <li> <b>Hex Viewer</b>. View hexadecimal data from game files. If viewing a processed set of data, such as decompressed data, you can download it from the "☰" menu.<br>
-                      <ul>
-                        <li> After uploading valid compressed data, if there is a hex viewer panel for <i>de</i>compressed data, you can navigate to its "☰" menu and click "Animate Decompression Process". This will show you a visualization of the process, with data bytes given different shades to correspond to the decompression mode used. These graphics files contain many spans of compressed data, and each span has one of several possible compression/encoding modes, and usually an operand as well.</li>
-                      </ul>
-                    </li>
-                    <li> <b>Bitplane Viewer</b>. Visualize SNES 4 bit per pixel graphics tiles and their weird intertwined format.<br>More details...
-                      <ul>
-                        <li> Upload a file to "Input - Compressed Data" to get started. This expects a .bin file that you might get in a disassembly of the game, usually in the "graphics/compressed" folder. Or, copy the hex values from the relevant offset of your ROM to a new file.</li>
-                        <li> After uploading valid data, the bitplane diagram should appear, showing the first tile. In the diagram, you can see how the 32 bytes of data comprise the four bitplanes. Each pixel or "cell" of the 8x8 bitplane is stacked with those of the other bitplanes to form a color index of between 0 and 15 (0x0 to 0xF) for each pixel of the tile. For example, if the bitplanes read "1 0 1 0" from front to back for a given pixel, that pixel's index value will be "A".</li>
-                        <li> The bitplane diagram is a 3d model and can rotate when dragged. ctrl+scroll to zoom in or out.</li>
-                        <li> Click the "<" and ">" buttons near the top to flip through the tiles. Alternatively, if a tileset viewer panel is present, click a tile within that panel to show it in the bitplane viewer.</li>
-                      </ul>
-                    </li>
-                    <li> <b>Palette Viewer</b>. View color palettes used in the game's levels. Select a row of colors (16-color sub-palette) to assign it to the indexed tile in the bitplane viewer. <br>(Currently uses the following forumla: <br>SNES 5 bit color channel  ×  8  =  RGB 8 bit channel<br> ... there are different ways to convert the colors.)</li>
-                    <li> <b>Tileset Viewer</b>. View the 8x8 pixel tiles in their grayscale form, before they are assigned a color palette.</li>
-                    <li> <b>Metatiles Viewer</b>. View 32x32 pixel metatiles. Each metatile is composed of 4x4 tiles, 16 total. Each of the metatiles is built using an associated color sub-palette, and potentially horizontal and/or vertical flip; hover to view these details. Requires graphics tiles, palette, and then tilemap32 to be uploaded. Make sure your tilemap32 matches your 8x8 tiles: for example, don't use a foreground/background tilemap on layer 3 tiles, or vice versa. Mainly meant for FG/BG.</li>
-                    <li> <b>Level Map Viewer</b>. View level maps built from the metatiles. Currently only supports horizontal levels. Requires graphics tiles, palette, tilemap32, and then level map to be uploaded.</li>
-                  </ul>
-                  <br>
-                  Most features require uploading a file to the relevant file input panels on the page. Data will be persist through page refreshes, but not page closes.
-                </p>
-                <br>
-                  Panels can be:<br>
-                  <ul>
-                      <li> moved around the page by dragging their headers</li>
-                      <li> resized by dragging the bottom right corner</li>
-                      <li> collapsed by clicking "˄" in the header</li>
-                      <li> and maximized by double clicking the header.</li>
-                    </ul>
-                  Some panels also have settings or other features hidden in the "☰" menu. You can zoom out of the page (usually ctrl+scroll) to have more space to organize your panels. Depending on the initial panelset template, some panels may be hidden off-screen at first.
-  
-                <br><br>
-                <p>
-                  The app's first release was made to celebrate DKC's 30th anniversary. The goal is to de-mystify DKC hacking and to provide even more appreciation for what Rare developed in the 1990s. More features will continue to be added. Works best in a full screen window, tested most thoroughly with firefox. You can expect more features for visualizing, documenting, and hacking the DKC series soon. Thanks!
-                </p>
-                <br><br>
-                <p>
-                  Special thanks to the DKC Atlas community members and their previous work. In particular Kingizor's dkcomp program. In the future I will update this page with additional guides and resources, and their proper credits.
-                </p>
-                <br><br><br>
-                <p>
-                <b>Disclaimer</b>. This software is not official or supported by Nintendo, nor any other commercial entity. It is provided AS IS, and its use is at your own risk.
-                </p>
-              </div>`;
+            
             break;
   
           case "fileIn":
-              // Create a file input, save it to the panel object, and add to panel gui
-              //TODO: clean up
-              // this.panelContent.appendChild( ff() );
-              this.fileInputs.push(document.createElement("input"));
-              this.fileInputs[this.fileInputs.length-1].id = "ii";
-              this.fileInputs[this.fileInputs.length-1].className = "fileInput";
-  
-              this.fileInputs[this.fileInputs.length-1].type = "file";
-              this.fileInputs[this.fileInputs.length-1].value = null;
-              // this.input = input;
-              // this.fileInputs.push(this.input);
-              this.panelContent.appendChild(this.fileInputs[this.fileInputs.length-1]);
-              // console.log("panelHeader children");
-              // console.log(this.panelHeader.children);
-              // headerHeight += this.input.style.height;
-  
-              // old way had no break; flow into hexviewer
-  
-              // give some time, then load stored data if it exists
-              if (sessionStorage.getItem(this.nameValid+'_source')) 
-                setTimeout( ()=> {
-                  this.source = JSON.parse( sessionStorage.getItem(this.nameValid+'_source') );
-                  // special handling
-                  this.source.data = Object.entries(this.source.data).map(d=>d[1]) ; 
-                  this.source.panel = this;
-                  this.panelContent.innerHTML = '<i>Retrieved "'+this.source.filename+'" from browser session storage.<br>(Close & reopen page to clear)</i>';
-                  this.propagateSource();
-                }, 1000);
               
               break;
   
           case "bitplaneViewer":
               this.selectedTile = 1;
-              // bitplane header (controls)
-              //
-  
-  
-  
-              // `<div id="Bitplane Viewer - Decompressed Data_bitplane_header" class="bitplane_header">
-              //   <button class="byteWidthButton">Change View</button>
-              //   <div class="seekButtons">
-              //     <button class="seekTileDownButton">&lt;</button>
-              //     <a>Tile&nbsp;</a>
-              //     <a>1</a>
-              //     <a>&nbsp;of&nbsp;</a>
-              //     <a>...</a>
-              //     <button class="seekTileUpButton">&gt;</button>
-              //   </div>
-              // </div>`
   
               // header itself
-              let bph = document.createElement("div")
-              // bph = this.panelContent.children[this.panelContent.children.length-1];
+              let bph = document.createElement("div");
               bph.id = this.name+"_bitplane_header";
               bph.className = "bitplane_header";
   
-              // this.bitplaneHeader2 = this.panelContent.querySelector(".bitplane_header");
-              // console.log("bitplane header query selector:");
-              // console.log(this.bitplaneHeader2);
-  
-  
-              // this.bitplaneHeader3 = this.inner.querySelector(".panel_content > .bitplane_header");
-              // console.log(" inner query selector:");
-              // console.log(this.bitplaneHeader3.innerHTML);
-  
-  
-  
-  
-              // change view button
-              // this.byteWidthButton = document.createElement("button");
-              // this.byteWidthButton.innerHTML = "Change View";
-              // this.byteWidthButton.className = "byteWidthButton";
-              // bph.appendChild(this.byteWidthButton);
-  
-              // seek tile buttons
-              // this.seekTileDownButton = document.createElement("button");
-              // this.seekTileDownButton.append("<");
-              // this.seekTileDownButton.className = "seekTileDownButton";
-              // let seek0 = document.createElement("a");
-              // seek0.innerHTML = "Tile&nbsp;";
-              // let seek1 = document.createElement("a");
-              // seek1.innerHTML = "1";
-              // let seek2 = document.createElement("a");
-              // seek2.innerHTML = "&nbsp;of&nbsp;";
-              // let seek3 = document.createElement("a");
-              // seek3.innerHTML = "...";
-              // this.seekTileUpButton = document.createElement("button");
-              // this.seekTileUpButton.append(">");
-              // this.seekTileUpButton.className = "seekTileUpButton";
-  
-              // let seekButtons = document.createElement("div");
-              // seekButtons.className = "seekButtons";
-              // seekButtons.innerHTML = `<button class="seekTileDownButton">&lt;</button><a>Tile&nbsp;</a><a>1</a><a>&nbsp;of&nbsp;</a><a>...</a><button class="seekTileUpButton">&gt;</button>`;
-              // this.seekButtons = bph.appendChild(seekButtons);
-  
-              // this.seekTileDownButton = this.seekButtons.appendChild(this.seekTileDownButton);
-              // [ seek0, seek1, seek2, seek3 ].forEach(d => this.seekButtons.appendChild(d));
-              // this.seekTileUpButton = this.seekButtons.appendChild(this.seekTileUpButton);
-  
-  
-              // this.bitplaneHeader = this.panelContent.appendChild( bph );
-  
-              // console.log("bitplane header .children[last]:");
-              // console.log(this.bitplaneHeader);
               this.inner.classList.add("panel_inner_bitplane");
               this.panelContent.classList.add("panel_content_b1");
   
-              //HACK
+              //HACK: bitplane seek buttons event listeners
               setTimeout(()=>{
   
-                // this.inner.querySelector(".panel_content > .hex_header > .byteWidthButton").addEventListener("click",
-                //   (event) => {
-                //     console.log(event);
-                //     // changeByteWidth(event.target.parentNode.parentNode);
-                //     this.animate16to1();
-                //   });
-  
-                this.inner.querySelector(".panel_content > .hex_header > .seekButtons > .seekTileUpButton").addEventListener("click",
-                  (event) => {
-                    console.log(event);
-                    updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, this, +1)
-                  }
-                );
-  
-                this.inner.querySelector(".panel_content > .hex_header > .seekButtons > .seekTileDownButton").addEventListener("click",
-                  (event) => {
-                    console.log(event);
-                    updateBitplaneSeek(event.target.parentNode.parentNode.parentNode, this, -1)
-                  }
-  
-                );
-                // console.log("buttons nodes");
-                // console.log(this.inner.querySelector(".panel_content > .hex_header > .byteWidthButton"));
-                // console.log(this.inner.querySelector(".panel_content > .hex_header > .seekButtons > .seekTileUpButton"));
+                
+
               }, 1000);
   
               m = "_b1";
@@ -388,26 +195,10 @@ class Panel {
   
               
   
-              this.scrollGroup = 0; // currently-viewed g256 group
+              this.scrollGroup = 0; // currently-viewed group
               this.scrolling = false;
-              this.groupSize = 64;
-              // setTimeout(()=>{
-              //   // add scroll tracker to hexContent
-              //   this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
-              //     (event)=>{
-              //       // console.log("scroll");
-              //       // console.log(event);
-              //       // console.log(this.inner.querySelector(".panel_content > .hex_content").scrollTop);
-  
-              //       // scroll updating, with some debouncing.
-              //       if (!this.scrolling){
-              //         this.scrolling = true;
-              //         this.hexScroll();
-              //         setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
-              //       }
-              //     });
-              // }, 2000);
-                
+              this.groupSize = 64; // dev settings
+              
   
               ////////////////
   
@@ -417,15 +208,7 @@ class Panel {
                    style=""></div>`;
   
               this.panelContent.setAttribute("data-mode","byte16");
-                  // this.inner.innerHTML +=
-                  // `<div class="hexViewer" >
-                  //     <div class="hexViewerTop"></div>
-  
-                  //     <div class="hexViewerScrollWrapper">
-                  //         <div class="hexViewerScroll">${sbytes}</div>
-                  //     </div>
-                  // </div>`;
-  
+
               this.panelContent.classList.add("hex_panel_content");
   
               // Add details about Line Height to settings:
@@ -438,14 +221,23 @@ class Panel {
               this.settings['Spacing Every x Bytes'] = {value:'None'}
               this.settings['Spacing Amount'] = {value:0}
               
+            //TODO: settings for adjusting "line-spacing":
+            // use:
+            // let newLineHeight = "4em";
+            // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
+
+            this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
+            // this.settings['Byte Mode'] = 'nibble';
+            // this.settings['Byte Mode'] = 'bit';
   
+                //// Move the following event listeners to propagateSource? //////
               setTimeout( ()=>{
-                let downloadButton = document.createElement("button");
-                downloadButton.className = "downloadButtons";
-                downloadButton.innerHTML = "Change Number of Columns";
-                downloadButton.title = "Change Number of Columns (16/32)";
-                downloadButton.style.height = "2em";
-                this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( downloadButton );
+                let byteWidthButton = document.createElement("button");
+                // byteWidthButton.className = "downloadButtons";
+                byteWidthButton.innerHTML = "Change Number of Columns";
+                byteWidthButton.title = "Change Number of Columns (16/32)";
+                byteWidthButton.style.height = "2em";
+                this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( byteWidthButton );
                 this.settings['Number of Columns'].html = [this.byteWidthButton];
   
                 this.byteWidthButton.addEventListener("click", (event) => {
@@ -463,16 +255,7 @@ class Panel {
               },
               2100
             );
-  
-            //TODO: settings for adjusting "line-spacing":
-            // use:
-            // let newLineHeight = "4em";
-            // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
-  
-            this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
-            // this.settings['Byte Mode'] = 'nibble';
-            // this.settings['Byte Mode'] = 'bit';
-  
+    
   
             // debug 
   
@@ -510,6 +293,7 @@ class Panel {
                       } );
                     }
                 });
+                //////////////////////////////////////////////////////
   
             break;
   
@@ -575,21 +359,9 @@ class Panel {
             break;
       }
   
+
   
-  
-      this.rowStart = rowStart;
-      this.rowEnd = rowEnd;
-      this.columnStart = columnStart;
-      this.columnEnd = columnEnd;
-  
-      this.fileData = null;
-      this.fileBin = null;
-  
-      // Set the CSS:
-      // old method, for grid
-      // this.updateCSS();
-  
-      // new method, absolute/draggable
+      // Positioning of panel: absolute/draggable
   
       // position the outer
       let pageWidth = document.body.querySelector(".main").clientWidth;
@@ -856,14 +628,6 @@ class Panel {
       this.inner.querySelector(".panel_content").classList.toggle("panel_content_disabled");
     }
   
-    updateBox(rowStartDelta, rowEndDelta, columnStartDelta, columnEndDelta, widthDelta=0, heightDelta=0){
-      this.rowStart += rowStartDelta;
-      this.rowEnd += rowEndDelta;
-      this.columnStart += columnStartDelta;
-      this.columnEnd += columnEndDelta;
-      // Set the CSS:
-      this.updateCSS();
-    }
     updateCSS(){
       this.outer.style.gridRowStart = this.rowStart;
       this.outer.style.gridRowEnd = this.rowEnd;
@@ -871,20 +635,7 @@ class Panel {
       this.outer.style.gridColumnEnd = this.columnEnd;
   
     }
-  
-    toOneByteWide(){
-      // NOTE: needs fine-tuning; can't get the animations to synchronize for some weird reason.
-      let ps = document.getElementsByClassName("panel_inner");
-      for (let p of ps){
-          p.style.width="20em";
-      }
-      let bs = document.getElementsByClassName("byte");
-      for (let b of bs){
-          b.style.width="100%";
-          b.style.height = "calc(100%/32)";
-      }
-    }
-  
+    
     getByteLocationFromOffset( byteOffset, subPos = 0, bitPrecision='byte'){
       // byte node, the div containing the offset and all sub-characters (bytes, nibbles, or bits)
       let bnode = this.inner.querySelector(`.panel_content > .hex_content > .byte_group > #byte_${hex(byteOffset,6)}`);
@@ -1374,22 +1125,7 @@ class Panel {
       });
       removes.forEach(d=>d.remove());
   
-      // // update the "before" padding:
-      // let before = hc.querySelector(`.grid_before`);
-      // let precedingRows = Math.floor(bufferTopOffset/this.settings['Number of Columns'].value)-1;
-      // before.style.gridRow = `1 / ${precedingRows+1}`;
-      // before.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${precedingRows}`;
-  
-      // // update the "after" padding:
-      // let after = hc.querySelector(`.grid_after`);
-      // let firstRowOfAfter = ((bufferBottomOffset+this.groupSize)/this.settings['Number of Columns'].value) + 1; // 1-based
-      // let finalRow = Math.floor((this.source.data.length-1)/this.settings['Number of Columns'].value) + 1;
-  
-      // // let subsequentRows = Math.floor(bufferTopOffset/this.settings['Number of Columns'].value)-1;
-      // after.style.gridRow = `${firstRowOfAfter} / ${finalRow}`;
-      // after.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${finalRow - firstRowOfAfter}`;
-  
-  
+      
       console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
   
       const added = Date.now()-start;
@@ -1843,6 +1579,34 @@ class Panel {
         )
       );
     }
+    
+    updateBitplaneSeek( change, override=false ){
+
+
+        // first update the total number
+        let currentTile = this.panelContent.querySelector(".hex_header > .seekButtons > #currentTile");
+        let totalTiles = this.panelContent.querySelector(".hex_header > .seekButtons > #totalTiles");
+            
+        if (this.source){
+      
+          let totalNumber = Math.ceil(this.source.data.length/32);
+          totalTiles.textContent = totalNumber;
+          //
+          let oldVal = (1*currentTile.innerHTML);
+          let newVal =  (typeof(override)=='number' ) ? override : (oldVal+change);
+      
+          // min max/ clamp the range:
+          if (newVal>totalNumber) newVal = totalNumber;
+          if (newVal<1) newVal = 1;
+      
+          // if we have a valid change:
+          if ( (newVal != oldVal) || (override!=false) ){
+            currentTile.textContent = newVal;
+            this.generateBitplaneHTML(this.source.data, (newVal-1)*32 );
+          } 
+        }
+      }
+
     generateAnimateDecompButton( ){
       // initialize
       this.animateDecomp();
@@ -2032,8 +1796,7 @@ class Panel {
   
             // console.log(`this.links[2]: `);
             // console.log(this.links[2]);
-            updateBitplaneSeek(this.links[2].inner, this.links[2], 0,
-              tileIndex )
+            this.links[2].updateBitplaneSeek( 0, tileIndex )
             this.selectedTile = tileIndex;
             // // this.links[0].scrollToTile( this.selectedTile );
   
@@ -2325,19 +2088,10 @@ class Panel {
   
           // update the bitplane viewer if it's available
           //HACK: assumes nexts index 1 is the bitplane viewer
-          if (this.nexts[1].source){
-            // this.nexts[0].generateHexHTML( this.nexts[0].source.data);
-            // A wrapper that prevents jumping to 1st tile
-            // last argument, override, will ensure the svg is updated.
-            updateBitplaneSeek(this.nexts[1].inner, this.nexts[1], 0, true )
-          }
-          // update tileset view
-          if (this.nexts[2].source){
-            this.nexts[2].generateTilesetHTML( this.nexts[2].source.data);
-            // A wrapper that prevents jumping to 1st tile
-            // last argument, override, will ensure the svg is updated.
-            // updateBitplaneSeek(this.nexts[0].inner, this.nexts[0], 0, true )
-          }
+          if (this.nexts[1].source) this.nexts[1].updateBitplaneSeek( 0, true );
+          // update tileset view (this is where we'd re-generate with the new palette?)
+        //   if (this.nexts[2].source) this.nexts[2].generateTilesetHTML( this.nexts[2].source.data);
+          
   
         });
   
@@ -2427,6 +2181,7 @@ class Panel {
       if ( (this.settings['Number of Columns'].value==16) && (((offset/16)%2)>=1) ) newPosition += g32Height/2;
       setTimeout( ()=>hc.scrollTo({top: newPosition, behavior: 'smooth'}), 0.1);
     }
+
     scrollToView( offset ){
       let hc = this.panelContent.querySelector(".hex_content");
       let windowHeight = hc.getBoundingClientRect().height;
@@ -2444,262 +2199,42 @@ class Panel {
   
     }
   
-  
-    animate16to1(overrideMode=null,tile=null){
-  
-      if (!this.tic) this.tic = 1.5; // in s
-  
-      var hexContent = this.panelContent.querySelector(".hex_content");
-  
-      if (tile==null){
-        // var g32tile = hexContent.querySelector(".g32");
-        var g32tile = hexContent.querySelector("#tile_index_"+this.selectedTile);
-        // console.log(g32tile);
-      }
-      else{
-        var g32tile = tile;
-      }
-      var tileIndex = g32tile.getAttribute("data-tile-index")*1;
-  
-      var oldMode = this.panelContent.getAttribute("data-mode");
-      var newMode = "";
-      if (overrideMode){
-        newMode = overrideMode;
-      }
-      else{
-        newMode = oldMode=="byte16"?"byte1":"byte16"; // simplified: toggle
-      }
-  
-      var ani = {
-        duration: 1,
-        elapsed: 0,   // set to final element's delay for "backwards" order
-        direction: 1, // set -1 for "backwards" order
-        series: true, // set to false before running parallel animations
-        timingFunction: 'ease',
-        tic: function (duration, delay){
-          if (!duration) duration = this.duration;
-          if (!delay) delay = this.elapsed;
-          this.elapsed+= ( duration * this.direction )
-        },
-        mate: function (elements, toggleClasses, duration, timingFunction, delay){
-          if (!duration) duration = this.duration;
-          if (!timingFunction) timingFunction = this.timingFunction;
-          if (!delay) delay = this.elapsed; // usually won't specify anyway
-  
-          let trans = `${duration}s ${timingFunction} ${delay}s`;
-          // console.log(toggleClasses[0]+":   "+trans);
-  
-          for (let element of elements){
-  
-            // // Directly assign a transition
-            // element.style.transition = trans;
-            // // Assign a timeout for the transition to be removed
-            // setTimeout( () => {
-            //   element.style.transition = ``;
-            //   // console.log((delay+duration)+"s:  "+toggleClasses[0]+"");
-            // }, ((delay+duration)*1000)-5 );
-            // // toggle the classes
-            // toggleClasses.forEach( (d)=> element.classList.toggle(d) );
-  
-  
-            // Assign a timeout for the transition to be removed
-            setTimeout( () => {
-              // Directly assign a transition
-              element.style.transition = trans;
-              // toggle the classes
-              toggleClasses.forEach( (d)=> element.classList.toggle(d) );
-  
-              setTimeout( () => element.style.transition = ``, ((delay+duration)*1000)-5 );
-  
-            }, ((delay)*1000) );
-  
-  
-          }
-          // increase the elapsed count
-          if (this.series) this.tic(duration, delay);
-        }
-      };
-  
-      // // animation "steps" labeled according to order when going byte16 -> byte1
-  
-      // replace default "plain" with more detailed g32:
-      this.generateHexHTML( this.source.data, (tileIndex-1)*32, oldMode, 32, [g32tile]);
-      console.log("replacing with old mode "+oldMode+" to start with...");
-  
-      switch(newMode){
-        case "byte16":
-  
-          // animation order settings ("backwards" order)
-          var numTics = 5;
-          ani.duration = this.tic;
-          ani.elapsed = (numTics-1) * ani.duration;
-          ani.elapsed = 6;
-          ani.direction = -1;
-          break;
-  
-        case "byte1":
-          // "forwards" order
-          ani.duration = this.tic;
-          ani.elapsed = 0;
-          ani.direction = 1;
-  
-          // if we are going to 1-bit-wide mode, update the html first
-  
-  
-          // create the svg
-          var tileIndex0Based = (1*g32tile.getAttribute("data-tile-index")) - 1;
-          var offset = tileIndex0Based*32;
-          this.generateBitplaneView(
-            g32tile.querySelector(".g32s"),
-            this.source.data.slice(offset, offset+32),
-            tileIndex0Based);
-          break;
-      }
-  
-  
-  
-      // animation "steps" labeled according to order when going byte16 -> byte1
-      ani.series = false;
-  
-      // already has a 1s grid temp rows transition permanently assigned.
-      let before = tileIndex>1? `repeat(${tileIndex-1}, calc(100%/8)) ` : ``;
-      let after = tileIndex<this.numberOfTiles? ` repeat(${this.numberOfTiles-tileIndex}, calc(100%/8))` : ``;
-      hexContent.style.gridTemplateRows = before + '100%' + after;
-  
-  
-      // instantly switch the data from taking up all remaining columns of g32 to only taking up one column
-      ani.mate( g32tile.querySelectorAll(".g32r"), ["g32r_b16","g32r_b1"], 0.0 );
-  
-      // 0  expand/collapse height of this tile (g32l, g32rr, and g32s)
-      console.log("Now, will toggle from g32 classes "+Array.from(g32tile.classList).join(", "));
-      ani.mate( [g32tile], ["g32_b16","g32_b1"], 0.5 );
-      ani.tic(0.5);
-  
-      // parallel animations
-      // (some require custom parsing for each, so we turn of ani.series)
-  
-  
-      // 1  hide/show offset labels 0-F
-      ani.mate(  this.panelContent.querySelectorAll(".hex_header > div > .hex_header_offset_label"), ["hex_header_offset_label_b16","hex_header_offset_label_b1"], 2.5 );
-      // 1  reposition the g32_items
-      g32tile.querySelectorAll("div > .g32_item").forEach( d => ani.mate( [d], ["g32_item_b16","g32_item_b1",...["_b16","_b1"].map(e=>d.getAttribute(`data-gridclass`)+e)], 2.5)  );
-  
-      // 2  fade in/out the extra offsets
-      ani.mate( g32tile.querySelectorAll(".g32l > .g32l_offset_sometimes"), ["g32l_offset_sometimes_b16", "g32l_offset_sometimes_b1"], 2.5);
-  
-      // 3  base labels, "hex" and "binary"   [ parallel w/ above ]
-      ani.mate(
-      this.panelContent.querySelectorAll(".hex_header > div > .hex_header_base_label"), ["hex_header_base_label_b16","hex_header_base_label_b1"], 2.5 );
-      ani.tic(2.5);
-  
-  
-  
-      // // 3  expand/collapse the g32b (binary representation) column  [ parallel w/ below ]
-      // ani.mate( [this.panelContent], ["panel_content_b16","panel_content_intermediate"], 2 );
-      // ani.tic(2);
-  
-  
-      // 5  expand/collapse the g32s (svg) column
-      // ani.mate( [this.panelContent], ["panel_content_intermediate","panel_content_b1"], 1 );
-      ani.mate( [this.panelContent], ["panel_content_b16","panel_content_b1"], 1.5 );
-      ani.tic(1.5);
-  
-      // 4  change the coloring of the byte
-      // foreground
-      g32tile.querySelectorAll("div > .g32_item").forEach(d => ani.mate( [d], [`fg_bp${d.getAttribute('data-bitplane')}`], 1.5 )  );
-      // background
-      ani.mate( g32tile.querySelectorAll(".g32bg"), ["g32bg_b16","g32bg_b1"], 1.5 );
-      ani.tic(1.5);
-  
-      // show/hide the svg
-      ani.mate( g32tile.querySelectorAll(".g32s"), ["g32s_b16","g32s_b1"], 1.5 );
-      ani.tic(1.5);
-  
-      this.panelContent.setAttribute("data-mode", newMode);
-  
-  
-    }
-    // generateBitplaneView(parent, data, tileIndex)
-    // animate1to16(){
-  
-    // }
-  
     animateDecomp(source, destination){
   
-  
-      // ---------------------------------------------------------------
-      // define the functions that will be used frequently for animation:
-  
-  
-  
-      // Reducing those to the unique actions:
-  
-      // copy div, make its units rem, make larger with transform origin at reight or left
-      function clone(node){
-        var mover = node.cloneNode(true);
-        mover.style.position = "absolute";
-        var nodeBbox = node.getBoundingClientRect();
-        // mover.style.perspective = `100px`;
-        // mover.style.perspectiveOrigin = `100px`;
-        mover.style.width = nodeBbox.width+"px";
-        mover.style.height = nodeBbox.height+"px";
-        mover.style.transform = `translate3D(${nodeBbox.x }px, ${nodeBbox.y }px, 0px)`;
-        mover.style.zIndex = "100";
-        mover = page.appendChild(mover);
-        return mover;
-      }
-  
-      // convert to binary
-      function convertToBinary(mover){
-        var hexToDec = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, 'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15};
-        mover.innerHTML = binar(Array.from(mover.innerHTML).reverse().reduce((s,d,i)=>s+=hexToDec[d]*(16**i),s=0),8);
-      }
-  
-      // split into 2 MSBs and 6 LSBs
-  
-      // highlight n bytes from left to right (sometimes wrapping around)
-      function highlight(node){
-      }
-  
-      // decrement visible n in sync with other things
-  
-      // move across screen and resize
-      function move(node){
-        var nodeBbox = node.getBoundingClientRect();
-        // mover.style.perspective = `100px`;
-        // mover.style.perspectiveOrigin = `100px`;
-        mover.style.width = nodeBbox.width+"px";
-        mover.style.height = nodeBbox.height+"px";
-        mover.style.transform = `translate3D(${nodeBbox.x - (left?nodeBbox.width:0)}px, ${nodeBbox.y }px, 0px)`;
-      }
-  
-      // replace destination styling with mover's (just colors?)
-  
-      // fade out movers and remove
-  
-      // take a div and make a stack of n duplicates of them as movers
-  
-      // swap bytes (just movement?)
-  
-  
-      // move to left of offsets, scroll page, move right to specific byte
-      function scroll(panel){
-        panel.scrollToTile(Math.floor(offset/32)+1);
-      }
-  
-      // pick up a group of bytes in unison
-  
-      // bit shift left / multiply by 2
-  
-      // ---------------------------------------------------------------
-  
-      //TODO: move this into its own class
       this.animation = new Animation();
-  
-  
   
     }
   
+    fileInput(uploadEvent){
+    
+        var file = uploadEvent.target.files[0];
+
+        var fReader = new FileReader();
+        fReader.readAsArrayBuffer(file);
+    
+        // add an event listener to act when the file has fully loaded
+        fReader.addEventListener('load', (loadEvent) => {
+    
+            this.source = {
+                name: "Raw data from "+file.name,
+                filename: file.name,
+                kind: "bytes",
+                data: new Uint8Array( loadEvent.target.result),
+                // panel: panel,
+                // file: file
+            };
+    
+            // save to local browser session storage
+            sessionStorage.setItem( this.nameValid+'_source', JSON.stringify(this.source) );
+            this.source.panel = this; // do this AFTER saving source object, to avoid cyclic objects
+            
+            // Automatically do the next steps...
+            this.propagateSource();
+    
+        });
+    
+    }
+
     propagateSource(){
       // this propagates the update of a source (or addition) out to dependent panels
       console.log(`propagateSource on panel ${this.index}: ${this.name} ( ${this.kind} )`);
@@ -2720,8 +2255,7 @@ class Panel {
                 panel: this,
                 from: this.links[0]
             };
-            // updateBitplaneSeek(this.inner, this, 0 );
-            // this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
+            
   
             // this.generateLineSpacingRange();
   
@@ -2769,7 +2303,7 @@ class Panel {
                 panel: this,
                 from: this.links[0]
             };
-            // updateBitplaneSeek(this.inner, this, 0 );
+            
             // this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
   
             // this.generateLineSpacingRange();
@@ -2821,10 +2355,15 @@ class Panel {
                 panel: this,
                 from: this.links[0]
             };
-            // updateBitplaneSeek(this.inner, this, 0 );
+            
             this.generateBitplaneHTML( this.source.data.slice(0,32), 0, "byte1", 32);
+
+            // Add seek button event listeners now that the bitplane is generated.
+            this.panelContent.querySelector(".hex_header > .seekButtons > .seekTileUpButton").addEventListener("click", (event) => this.updateBitplaneSeek( +1) );
+  
+            this.panelContent.querySelector(".hex_header > .seekButtons > .seekTileDownButton").addEventListener("click", (event) => this.updateBitplaneSeek( -1));
             //
-            updateBitplaneSeek(this.inner, this, 0);
+            this.updateBitplaneSeek( 0);
   
             // download setup
             // if (!this.downloadButton){
@@ -2935,3 +2474,43 @@ class Panel {
     }
   
   }
+
+
+class TextPanel extends Panel {
+    constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+        super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+
+        this.panelContent.innerHTML = content; // assigns the html string for text
+    }
+}
+
+
+class FilePanel extends Panel {
+    constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+        super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+        
+        // Create a file input, save it to the panel object, and add to panel gui
+        var fileInputDiv = document.createElement("input");
+        fileInputDiv.id = "ii";
+        fileInputDiv.className = "fileInput";
+        fileInputDiv.type = "file";
+        fileInputDiv.value = null;
+        this.fileInputs.push( this.panelContent.appendChild(fileInputDiv) );
+        console.log(fileInputDiv);
+        this.fileInputs[this.fileInputs.length-1].addEventListener("change", (e) => this.fileInput(e) );
+        
+        // give some time, then load stored data if it exists
+        if (sessionStorage.getItem(this.nameValid+'_source')) {
+          setTimeout( ()=> {
+            this.source = JSON.parse( sessionStorage.getItem(this.nameValid+'_source') );
+            // special handling
+            this.source.data = Object.entries(this.source.data).map(d=>d[1]) ; 
+            this.source.panel = this;
+            this.panelContent.innerHTML = '<i>Retrieved "'+this.source.filename+'" from browser session storage.<br>(Close & reopen page to clear)</i>';
+            this.propagateSource();
+          }, 200);
+          //NOTE: currently, the above delay is necessary (although should work even down to 10 millisec). Could find alternative way to re-load everything once all panels are ready.
+           
+        }
+    }
+}

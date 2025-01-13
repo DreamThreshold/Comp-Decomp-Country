@@ -564,110 +564,7 @@ class Animation {
       
       return scrollAnim;
     }
-    highlight(countdown, total, name){
-
-      // from cloneAndMove: ---------------
-      // First, highlight the fromDiv ???
-
-      // var highlightName = `Mode_${this.mode}_highlight_${Date.now()}`;
-      // var highlightKeyframe = `@keyframes ${highlightName} {
-      //   0% {
-      //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
-      //     background-size: 200% 100%;
-      //     background-position: right;
-      //   }
-      //   100% {
-      //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
-      //     background-size: 200% 100%;
-      //     background-position: left;
-      //   }
-      // }`;
-      // // insert into stylesheet at index 0
-      // document.styleSheets[0].insertRule(highlightKeyframe);
-
-      // // assign the base color for future reference
-      // // (for ex, if this is a LUT )
-      // fromDiv.setAttribute("data-base-color",`rgba(${this.modeColor},0.4)`);
-      // // apply the animation ("forwards" might be important?)
-      // fromDiv.style.animation = `${highlightName} 1s linear forwards`;
-
-      // fromDiv.addEventListener("animationend", ()=>{});
-      // ------------------------------
-
-      // designed for highlighting multiple cells in series across the decomp hex_content
-      // get the first decomp byte for this decomp span
-      let g32d = hex( 32*(this.decompIndex>>5), 6 ); // get g32 group by floor dividing by 32 (>>5)
-      let offsetd = hex( this.decompIndex, 6 );
-      let byt = this.decompContent.querySelector(`div > #g0x${g32d} div #byte_${offsetd}`);
-
-      // console.log(`Decomp index ${this.decompIndex}:`);
-      // console.log(byt);
-
-      // insert into stylesheet at index 0
-      // document.styleSheets[0].insertRule(highlightKeyframe);
-
-      // apply the animation ("forwards" might be important?)
-      byt.style.animation = `${name} ${2/total}s linear forwards`;
-      // if (countdown == total) byt.style.borderLeft = "2px solid black";
-      // if (countdown == total) byt.style.borderLeft = "2px solid black";
-
-      byt.addEventListener("animationend", ()=>{
-
-        // console.log("LEVEL 2 ( "+countdown+" down of "+total+" ) finished\n");
-
-
-        countdown--;
-        this.decompIndex++;
-
-
-
-        if (countdown==0){
-          // close up if this was the last one.
-
-          // find and delete this keyframe to clean up the stylesheet
-          // for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
-          //   if ( document.styleSheets[0].cssRules[i].name === name ){
-          //     document.styleSheets[0].deleteRule(i);
-          //     break;
-          //   }
-          // }
-          // // remove animation (?)
-          // byt.style.animation = ``;
-
-          // increment the indices appropriately and then run next (recursive)
-
-          switch(this.mode){
-            case 0:
-              this.compIndex += 1+this.n;
-              // this.decompIndex += n;
-              break;
-            case 1:
-              this.compIndex += 2;
-              // this.decompIndex += n;
-              break;
-            case 2:
-              this.compIndex += 3;
-              // this.decompIndex += n;
-              break;
-            case 3:
-              this.compIndex += 1;
-              // this.decompIndex += 2;
-              break;
-          }
-
-          this.decompSpanCount++;
-          console.log("this, at end of clonendMove");
-          console.log(this);
-
-          if (this.compIndex < this.comp.source.data.length) this.decompSpan();
-
-        } else{
-          // run this again for the next one.
-          this.highlight(countdown, total, name);
-        }
-
-      });
-    }
+    
 
     cloneAndMove(){
       // console.log(`Starting cloneAndMove with ${this.moveBuffer.length} remaining bytes in moveBuffer`);
@@ -1743,8 +1640,6 @@ class Animation {
 
     
 
-
-
     // also animate the appearance of bubble around the cmd and maybe cmd1 and cmd2 bytes:
     var bblBoth = this.bblBoth;
     var bblLeft = this.bblLeft;
@@ -1850,57 +1745,14 @@ class Animation {
 
     // not sure if it matters...
     anim.element.addEventListener("animationend", ()=>{
-    // this.details.addEventListener("animationend", ()=>{
+        // this.details.addEventListener("animationend", ()=>{
 
 
 
-
-
-      // console.log("LEVEL 1 finished\n");
-      // find and delete this keyframe to clean up the stylesheet
-
-      // for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
-      //   if ( document.styleSheets[0].cssRules[i].name === name ){
-      //     document.styleSheets[0].deleteRule(i);
-      //     break;
-      //   }
-      // }
-      // // remove animation (?)
-      // cmd.style.animation = ``;
-
-
-      // ---------------------------------------------------------------
-      //
-      // LEVEL 2
-      // Address scroll
-
-      // --- highlight decomped data (temporary) ---
-      // var highlightName = `Mode_${this.mode}_highlight_${Date.now()}`;
-      // var highlightKeyframe = `@keyframes ${highlightName} {
-      //   0% {
-      //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
-      //     background-size: 200% 100%;
-      //     background-position: right;
-      //     color: var(--textColorTransparent);
-      //   }
-      //   100% {
-      //     background: linear-gradient(to left, rgba(0,0,0,0) 50%, rgba(${this.modeColor},0.4) 50%) right;
-      //     background-size: 200% 100%;
-      //     background-position: left;
-      //     color: var(--textColor);
-      //   }
-      // }`;
-      // // insert into stylesheet at index 0
-      // document.styleSheets[0].insertRule(highlightKeyframe);
-      // // apply the animation ("forwards" might be important?)
-      // cmd.style.animation = `${highlightName} 1s linear forwards`;
-      // this.highlight(this.numberAddedToDecomp, this.numberAddedToDecomp, highlightName);
-      //--- end of temporary highlighting ----
-
-
-        // LEVEL 3
+        // ---------------------------------------------------------------
         //
-        // level 3 cloneAndMove outline
+        // LEVEL 2
+        //  cloneAndMove outline
         //
         // SETUP:
         this.compIndex; // increment to the byte following the command byte
@@ -1963,37 +1815,37 @@ class Animation {
         this.moveBuffer = [];
 
         if ( ( (this.mode==2) && !offsetPos.inView ) || this.parallelize ){
-          // console.log("first case");
-          // move all in a batch
-          var batch = [];
-          for (let i = a; i>0; i--){
+            // console.log("first case");
+            // move all in a batch
+            var batch = [];
+            for (let i = a; i>0; i--){
             for (let j = b; j>0; j--){
-              batch.push(
+                batch.push(
                 clonePanelContent.querySelector(
-                  `.byte_group > #byte_${hex( cloneOffset, 6 )} > .byte`
+                    `.byte_group > #byte_${hex( cloneOffset, 6 )} > .byte`
                 )
-              );
+                );
             }
             cloneOffset++;
             // cloneTotal++;
-          }
-          this.moveBuffer.push( batch ); // note; not popping, won't reverse
+            }
+            this.moveBuffer.push( batch ); // note; not popping, won't reverse
 
         } else {
-          // console.log("secnd case");
-          // move all in series.
-          for (let i = a; i>0; i--){
+            // console.log("secnd case");
+            // move all in series.
+            for (let i = a; i>0; i--){
             for (let j = b; j>0; j--){
-              // `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
-              this.moveBuffer.push(
+                // `div > #g0x${hex( 32*(cloneOffset>>5), 6 )} div #byte_${hex( cloneOffset, 6 )}`
+                this.moveBuffer.push(
                 [ clonePanelContent.querySelector(
-                  `.byte_group > #byte_${hex( cloneOffset, 6 )} > .byte`
+                    `.byte_group > #byte_${hex( cloneOffset, 6 )} > .byte`
                 ) ]
-              );
+                );
             }
             cloneOffset++;
             // cloneTotal++;
-          }
+            }
 
         }
 
@@ -2010,70 +1862,13 @@ class Animation {
         // Call the function to perform the moving (recursively iterates through the this.moveBuffer)
         this.cloneAndMove();
 
-      }); // end of level 2, moving the details div vertically, and horizontally
+    }); // end of level 2, moving the details div vertically, and horizontally
 
 
-        // // get the first decomp byte for this decomp span
-        // let g32d = hex( 32*(this.decompIndex>>5), 6 ); // get g32 group by floor dividing by 32 (>>5)
-        // let offsetd = hex( this.decompIndex, 6 );
-        // let byt = this.decompContent.querySelector(`div > #g0x${g32d} div #byte_${offsetd}`);
-        // console.log(`Decomp index ${this.decompIndex}:`);
-        // console.log(byt);
-
-        // // insert into stylesheet at index 0
-        // // document.styleSheets[0].insertRule(highlightKeyframe);
-
-        // // apply the animation ("forwards" might be important?)
-        // byt.style.animation = `${name} 2s linear forwards`;
-
-        // byt.addEventListener("animationend", ()=>{
-        //   console.log("LEVEL 2 finished\n");
-        //   // find and delete this keyframe to clean up the stylesheet
-
-        //   for (let i=0; i<document.styleSheets[0].cssRules.length; i++) {
-        //     if ( document.styleSheets[0].cssRules[i].name === name ){
-        //       document.styleSheets[0].deleteRule(i);
-        //       break;
-        //     }
-        //   }
-        //   // // remove animation (?)
-        //   // byt.style.animation = ``;
-
-        //   // increment the indices appropriately and then run next (recursive)
-
-        //   switch(mode){
-        //     case 0:
-        //       this.compIndex += 1+n;
-        //       this.decompIndex += n;
-        //       break;
-        //     case 1:
-        //       this.compIndex += 2;
-        //       this.decompIndex += n;
-        //       break;
-        //     case 2:
-        //       this.compIndex += 3;
-        //       this.decompIndex += n;
-        //       break;
-        //     case 3:
-        //       this.compIndex += 1;
-        //       this.decompIndex += 2;
-        //       break;
-        //   }
-
-        //   if (this.compIndex < this.comp.source.data.length) this.decompSpan();
-
-        // });
-
-      // }); // end of level 1: details
-
-      // increment to next decomp span
-
-      // if there are more left, call this again (recursive)
-      // if (index < input.length) this.decompSpan();
 
 
     }
-    
+
     // skip: function(){
     //   if (!this.skipping){
     //     // 0) enter skipping mode if not already in it
