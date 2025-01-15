@@ -23,6 +23,9 @@ class Panel {
       this.palette = pal; // from external grayscale 16-color palette
       this.fileInputs = []; // will be populated if there are file <input>s
       this.settings = {};
+
+      //HACK: get the workspace, which can be panned around.
+      this.workspace = this.ui.grid.parentNode;
       
       console.log(`panel  ${this.name} should be index ${this.index}`);
 
@@ -53,6 +56,8 @@ class Panel {
             edge.style.cursor = "se-resize";
             // console.log(edge);
             this.assignResize(this, edge);
+          } else{
+            edge.style.pointerEvents = 'none';
           }
         }
       }
@@ -471,7 +476,8 @@ class Panel {
         element.style.left = `${left}px`;
         element.setAttribute('data-user-left', left);
   
-        top = Math.max(element.offsetTop - deltaY, 0);
+        // top = Math.max(element.offsetTop - deltaY, 0); // if we wanted to clamp the top
+        top = element.offsetTop - deltaY;
         element.style.top = `${top}px`;
         element.setAttribute('data-user-top', top);
   
@@ -486,7 +492,7 @@ class Panel {
   
     assignMaximize(panel){
   
-      let outer = panel.outer, inner = panel.inner;
+      let outer = panel.outer, inner = panel.inner, workspace = panel.workspace;
   
       this.panelHeader.addEventListener("dblclick", (event) => {
   
@@ -494,24 +500,37 @@ class Panel {
         event.preventDefault();
         let content = inner.querySelector(".panel_content");
         console.log("content:");
-        console.log(content);
+        // console.log(content);
   
         let headerHeight = inner.querySelector(".panel_header").getBoundingClientRect().height;
-        let totalHeight = outer.parentNode.getBoundingClientRect().height;
-  
+        // let heightReferenceNode = outer.parentNode; // previously used
+        let heightReferenceNode = document.getElementById("main");
+        let totalHeight = heightReferenceNode.getBoundingClientRect().height;
+        // let totalHeight = 
         //
         switch(inner.getAttribute("data-maximized")){
           case "false":
             // move outer to the top left corner
-            outer.style.top = "0px";
-            outer.style.left = "0px";
+            let posRef = workspace; // position reference node
+            // outer.style.top = "0px";
+            // outer.style.left = "0px";
+            
+            outer.style.top = -(posRef.getAttribute("data-user-top")*1)+"px";
+            outer.style.left = -(posRef.getAttribute("data-user-left")*1)+"px";
             // expand inner's width and height to full screen
             inner.style.width = "100vw";
             console.log(`headerHeight: ${headerHeight}; panelUserHeight: ${inner.getAttribute("data-user-height")}`);
             // content.style.height = `calc(100vh - ${headerHeight}px)`;
             // content.style.height = "100vh";
-            content.style.height = (totalHeight - headerHeight) + "px";
+            // content.style.height = `calc(100vh - var(--panelHeaderHeight) - var(--navbarHeight))`;
+            // content.style.height = `calc(calc(100vh - var(--panelHeaderHeight  )) - var(--navbarHeight))`;
+            content.style.height = `var(--maximizedPanelContent)`;
+            
+            // content.style.height = `calc(100vh - 52px)`;
+            // content.style.height = `calc(100vh - 5em)`;
+            // content.style.height = (totalHeight - headerHeight) + "px";
             //
+            inner.classList.toggle("panel_inner_maximized");
             inner.setAttribute("data-maximized", "true");
             outer.setAttribute('data-draggable', "false");
   
@@ -530,6 +549,7 @@ class Panel {
             outer.style.left = outer.getAttribute("data-user-left")+"px";
             inner.style.width = inner.getAttribute("data-user-width")+"px";
             content.style.height = (inner.getAttribute("data-user-height")-headerHeight)+"px";
+            inner.classList.toggle("panel_inner_maximized");
             inner.setAttribute("data-maximized", "false");
             outer.setAttribute('data-draggable', "true");
             break;
@@ -1586,12 +1606,13 @@ class Panel {
 
 
         // first update the total number
-        let currentTile = this.panelContent.querySelector(".hex_header > .seekButtons > #currentTile");
-        let totalTiles = this.panelContent.querySelector(".hex_header > .seekButtons > #totalTiles");
+        var currentTile = this.panelContent.querySelector(".hex_header > .seekButtons > #currentTile");
+        var totalTiles = this.panelContent.querySelector(".hex_header > .seekButtons > #totalTiles");
             
         if (this.source){
       
           let totalNumber = Math.ceil(this.source.data.length/32);
+          console.log(this);
           totalTiles.textContent = totalNumber;
           //
           let oldVal = (1*currentTile.innerHTML);
@@ -2091,7 +2112,7 @@ class Panel {
   
           // update the bitplane viewer if it's available
           //HACK: assumes nexts index 1 is the bitplane viewer
-          if (this.nexts[1].source) this.nexts[1].updateBitplaneSeek( 0, true );
+          if (this.nexts[0].source) this.nexts[0].updateBitplaneSeek( 0, true );
           // update tileset view (this is where we'd re-generate with the new palette?)
         //   if (this.nexts[2].source) this.nexts[2].generateTilesetHTML( this.nexts[2].source.data);
           

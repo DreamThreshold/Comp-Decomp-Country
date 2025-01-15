@@ -29,6 +29,14 @@
   --superLightGray: rgb(200,200,200);
   --superGray: rgb(125, 125, 125);
   --superDarkGray: rgb(21, 21, 21);
+
+  --navbarHeight: 2em;
+  --panelHeaderHeight: 2em;
+  --panelBorderWidth: 2px;
+  /* if we were retaining borders when maximized: */
+  /* --maximizedPanelContent: calc(calc(calc(calc(100vh - var(--panelHeaderHeight)) - var(--navbarHeight)) - var(--panelBorderWidth)) - var(--panelBorderWidth)); */
+  /* but since we're not (currently): */
+  --maximizedPanelContent: calc(calc(100vh - var(--panelHeaderHeight)) - var(--navbarHeight)); 
 }
 
 body{
@@ -59,6 +67,10 @@ h4{
 
 a{text-align: center;}
 g{overflow: visible}
+input{
+  cursor:pointer;
+
+}
 button{
   /* margin: 1ch;
   padding: 3px; */
@@ -70,6 +82,7 @@ button{
   color: var(--superBlue);
   border:none;
   border-radius: 5px;
+  cursor:pointer;
 }
 
 #main{
@@ -81,6 +94,8 @@ button{
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    /* perspective is useful if we're moving around stuff (workspaces) in 3D */
+    perspective: 50px;
 }
 #animationBottom{
   position: relative;
@@ -97,16 +112,42 @@ button{
   z-index: 100;
 }
 
+/* should only be one navbar in this app? */
 #navbar{
-    height: 2em;
+    height: var(--navbarHeight);
     width: 100%;
     background-color: black;
     display: flex;
     flex-shrink: 0;
     overflow: hidden;
+    z-index: 200; /* arbitrary... */
 }
 
-#panelgrid{
+.workspace{
+  position: absolute;
+  padding-top: var(--navbarHeight);
+  width: 0;
+  height: 0;
+
+  /* display: grid;
+  grid-template-columns: repeat(32, 1fr);
+  grid-template-rows: repeat(28, 1fr);
+  grid-auto-flow: row; */
+
+  overflow: visible;
+
+    /* position: absolute;
+    
+    transform-origin: center center; */
+}
+/* if we want to "hide" a workspace, could do something like this: */
+.workspace_sent_to_background{
+  transform: translateZ(-30px);
+  filter: brightness(0.5) opacity(0.5);
+}
+
+.panelgrid{
+  /* old settings*/
     position: relative;
     display: grid;
     width: 100%;
@@ -114,9 +155,17 @@ button{
     grid-template-columns: repeat(32, 1fr);
     grid-template-rows: repeat(28, 1fr);
     grid-auto-flow: row;
-    overflow: hidden;
+    /* overflow: hidden; */
+
+      /* position: absolute;
+      overflow: visible;
+      left: 50%;
+      top: 50%; */
+    /* margin-left:-50%;
+    margin-top:-50%; */
 
 }
+
 
 .checker{
     background-color: rgb(66, 12, 12);
@@ -165,10 +214,10 @@ button{
 .panel_inner{
 
     /* background-color: rgba(7, 7, 80, 0.5); */
-    border: 2px solid var(--superDarkGray);
+    border: var(--panelBorderWidth) solid var(--superDarkGray);
     /* background-color:rgb(17, 11, 15); */
     background-color: var(--superPurple);
-    border-radius: 7px;
+    border-radius: 8px;
     justify-self: center;
     overflow: hidden;
     grid-column: 1 / -1;
@@ -189,6 +238,10 @@ button{
 
     display: grid;
     grid-template-columns: 1fr;
+}
+.panel_inner_maximized{  
+  border: 0px solid var(--superDarkGray);
+  border-radius: 0px;
 }
 /* .panel_inner::after{
   background-color: yellow;
@@ -257,6 +310,7 @@ button{
 
 .panel_header{
     /* height: 2em; */
+    height: var(--panelHeaderHeight);
     /* background-color: rgb(5, 20, 5); */
     display: grid;
     grid-template-columns: auto 3ch 3ch;
@@ -955,6 +1009,7 @@ end of animation classes
   /* max-height: 15em; */
   /* height: 20em;  */
   overflow-y:auto;
+  overflow-x:hidden;
   font-family:Arial, Helvetica, sans-serif;
   line-height: 1.5em;
   padding: 1ch;
@@ -962,9 +1017,13 @@ end of animation classes
 }
 p{
   text-indent: 4ch;
+  text-indent: 1em;
 }
 ul{
-  margin-left: 4ch;
+  margin-left: 3ch;
+}
+ol{
+  margin-left: 3ch;
 }
 
 
