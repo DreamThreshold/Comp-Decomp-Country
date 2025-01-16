@@ -1,3 +1,131 @@
+//
+// Contains classes for the various objects that form the node graph system,
+// where each node is a Panel. Panels are linked with Links, and may contain
+// Settings and Sources.
+//
+
+// Data: basically a wrapper for data types. But we use
+// them to track metadata, links to other nodes, and other properties.
+// replaces the .source object from before Node Graph Alpha branch.
+class Data{
+  constructor(data, type=undefined, name=undefined, args=undefined){
+      this.data = data;// chrDecompress( Array(...this.links[0].source.data) );
+      this.type = type; // "bytes"; // formerly .kind
+      this.name = name; // "Decompressed from "+this.links[0].source.filename;
+      // these were barely used, but might be helpful in the future?
+      // they do cause problems when trying to JSONify data, though.
+      // this.panel = this;
+      // this.from = this.links[0];
+
+      if (args) Object.assign(this, args); // assign extra arguments, like filename, etc
+  }
+
+}
+
+
+// Link. a link between Panels. 
+// Mainly for the UI elements of SVG splines connecting the panels.
+class Link{
+  constructor(source, target, data=undefined, id=undefined, type=undefined, label=undefined){
+    this.source = source;
+    this.source.targets.push(this);
+    // this.origin;
+    this.target = target;
+    this.target.sources.push(this);
+    // an object containing the source and the start/end offsets used.
+    if (data) {
+      this.data = data; 
+    } else{
+      this.data = {
+        get chunk(){
+          // return the entire data.
+          // Otherwise we might be getting only a subset of that data, such as
+          // return this.source.data.data.slice(offset, offset+length);
+          return this.source.data.data;
+        }
+      }
+    }
+    if (id) this.id = id;
+    if (type) this.type = type;
+    if (label) this.label = label;
+
+    // make the svg path:
+    this.generateSpline();
+  }
+  updateSpline(){
+    // modify the size of the svg, and the location og the end of the spline,
+    // so it aligns with the target Panel.
+    this.spline.setAttribute("d", this.generateD());
+    this.spline.style.zIndex = ((1*this.target.outer.style.zIndex)+1)+'';
+    // update text label?
+  }
+  generateD(){
+    // return `M 10,30
+    //     A 20,20 0,0,1 50,30
+    //     A 20,20 0,0,1 190,30
+    //     Q 190,60 50,90
+    //     Q 10,60 10,30 z`;
+    let so = this.source.outer, to = this.target.outer;
+    // const ctrl = 30; // control point distance
+    const ctrly = 0.25* Math.abs(to.offsetTop-so.offsetTop);
+    const ctrl = ctrly + 20 + ( 0.33*Math.abs(to.offsetLeft - (so.offsetLeft+so.offsetWidth) ));
+    
+    const arrw = 5; // half of arrowhead width
+    const endm = 2; // end margin
+    // return `M ${so.offsetWidth},0 
+    //         L ${to.offsetLeft-(so.offsetLeft)},${to.offsetTop-(so.offsetTop)}`;
+            return `M ${so.offsetWidth},0 
+                    C ${so.offsetWidth+ctrl},0 
+                      ${to.offsetLeft-(so.offsetLeft)-(ctrl+arrw)},${to.offsetTop-(so.offsetTop)} 
+                      ${to.offsetLeft-(so.offsetLeft)-arrw-endm},${to.offsetTop-(so.offsetTop)} 
+                    L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} 
+                    M ${to.offsetLeft-(so.offsetLeft)-(arrw)-endm},${to.offsetTop-(so.offsetTop)-arrw} 
+                    L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} 
+                    M ${to.offsetLeft-(so.offsetLeft)-(arrw)-endm},${to.offsetTop-(so.offsetTop)+arrw} 
+                    L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} `;
+  
+  }
+
+
+  generateSpline(){
+    // create the svg and add it to an area of the source Panel.
+    // which area that is may depend on the Panel...
+   
+    var domp = new DOMParser();
+    var dompsvg = domp.parseFromString(
+      `<svg viewBox="0 0 1 1" preserveAspectRatio="none" width="auto" height="auto" xmlns="http://www.w3.org/2000/svg" 
+         style="overflow: visible; grid-column: 1 / -1; grid-row: 1 / -1; pointer-events:none; position:relative; width:1px; height:1px; z-index:-1; margin-top:calc(var(--panelHeaderHeight) / 2);">
+          <path
+            d="${this.generateD(this.source, this.target)}" fill="none" stroke-width="3" 
+              stroke="rgb(194,189,235)" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        `,
+        "image/svg+xml"
+    );
+    // console.log(dompsvg);
+    this.svg = this.source.outer.appendChild( dompsvg.documentElement );
+    this.spline = this.svg.querySelector('path');
+    console.log(this.spline);
+
+    this.path = null;
+    if (this.label) this.text = null;
+    // this.updateSpline();
+  }
+}
+
+// Settings. re-usable classes that can easily generate buttons, sliders, text input, etc.
+// usually used by Panels to add such inputs to their "settings" menu.
+class Settings{
+  constructor(name, value, type=undefined){
+    this.name = name;
+    this.value = value;
+    if (type) this.type = type;
+  }
+}
+
+
+
+
 
 // each panel of the ui
 // Panel is the parent class, then there are several subclasses.
@@ -7,13 +135,20 @@ class Panel {
         // parse the inputs
       this.ui = parentUI;
       this.index = parentUI ? this.ui.panels.length : null;
+      this.ui.panels.push( this );
       this.name = name ? name : `Panel_${(this.index ? this.index : '?')}_${Date.now()}`;
       this.nameValid = this.name.replace(/\s/g, ""); // this should make a valid html id
       this.kind = kind ? kind : "placeholder";
-      this.source = null; // input data source, initially null
+      // this.data = null; // input data source, initially null
       this.links = []; // references to other panels that might have transformed a .source
       if (links) links.forEach(d => this.links.push(this.ui.panels[d]) );
       this.nexts = [];
+
+      // Node Graph Alpha terminology: links -> "sources", nexts -> "targets".
+      // bc Link is a class name now, and anyway it's a bit ambiguous as to which "direction".
+      this.sources = [];
+      this.targets = [];
+
       this.rowStart = rowStart;
       this.rowEnd = rowEnd;
       this.columnStart = columnStart;
@@ -197,109 +332,109 @@ class Panel {
           case "hexViewerComp":
           case "hexViewerCompressed":
           case "hexViewer":
-              this.selectedTile = 1;
+            //   this.selectedTile = 1;
   
               
   
-              this.scrollGroup = 0; // currently-viewed group
-              this.scrolling = false;
-              this.groupSize = 64; // dev settings
+            //   this.scrollGroup = 0; // currently-viewed group
+            //   this.scrolling = false;
+            //   this.groupSize = 64; // dev settings
               
   
-              ////////////////
+            //   ////////////////
   
-              this.panelContent.innerHTML +=
-                  `<div class="hex_header"></div>
-                  <div class="hex_content"
-                   style=""></div>`;
+            //   this.panelContent.innerHTML +=
+            //       `<div class="hex_header"></div>
+            //       <div class="hex_content"
+            //        style=""></div>`;
   
-              this.panelContent.setAttribute("data-mode","byte16");
+            //   this.panelContent.setAttribute("data-mode","byte16");
 
-              this.panelContent.classList.add("hex_panel_content");
+            //   this.panelContent.classList.add("hex_panel_content");
   
-              // Add details about Line Height to settings:
-              this.settings['Line Height'] = {value:3};
+            //   // Add details about Line Height to settings:
+            //   this.settings['Line Height'] = {value:3};
   
-              // Add a byte-width change button to settings:
-              this.settings['Number of Columns'] = {value:16};
-              this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
-              // this.lineHeightInPx = this.getLineHeightInPx();
-              this.settings['Spacing Every x Bytes'] = {value:'None'}
-              this.settings['Spacing Amount'] = {value:0}
+            //   // Add a byte-width change button to settings:
+            //   this.settings['Number of Columns'] = {value:16};
+            //   this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+            //   // this.lineHeightInPx = this.getLineHeightInPx();
+            //   this.settings['Spacing Every x Bytes'] = {value:'None'}
+            //   this.settings['Spacing Amount'] = {value:0}
               
-            //TODO: settings for adjusting "line-spacing":
-            // use:
-            // let newLineHeight = "4em";
-            // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
+            // //TODO: settings for adjusting "line-spacing":
+            // // use:
+            // // let newLineHeight = "4em";
+            // // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
 
-            this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
-            // this.settings['Byte Mode'] = 'nibble';
-            // this.settings['Byte Mode'] = 'bit';
+            // this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
+            // // this.settings['Byte Mode'] = 'nibble';
+            // // this.settings['Byte Mode'] = 'bit';
   
-                //// Move the following event listeners to propagateSource? //////
-              setTimeout( ()=>{
-                let byteWidthButton = document.createElement("button");
-                // byteWidthButton.className = "downloadButtons";
-                byteWidthButton.innerHTML = "Change Number of Columns";
-                byteWidthButton.title = "Change Number of Columns (16/32)";
-                byteWidthButton.style.height = "2em";
-                this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( byteWidthButton );
-                this.settings['Number of Columns'].html = [this.byteWidthButton];
+            //     //// Move the following event listeners to propagateSource? //////
+            //   setTimeout( ()=>{
+            //     let byteWidthButton = document.createElement("button");
+            //     // byteWidthButton.className = "downloadButtons";
+            //     byteWidthButton.innerHTML = "Change Number of Columns";
+            //     byteWidthButton.title = "Change Number of Columns (16/32)";
+            //     byteWidthButton.style.height = "2em";
+            //     this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( byteWidthButton );
+            //     this.settings['Number of Columns'].html = [this.byteWidthButton];
   
-                this.byteWidthButton.addEventListener("click", (event) => {
-                  this.panelContent.classList.toggle("hex_panel_content_32wide");
-                  // toggle within settings for refering to elsewhere
-                  this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
-                  this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
-                  this.setPanelContentColumns();
-                  this.setPanelContentRows();
-                  // Update line/group/row heights:
-                  // this.updateLines();
+            //     this.byteWidthButton.addEventListener("click", (event) => {
+            //       this.panelContent.classList.toggle("hex_panel_content_32wide");
+            //       // toggle within settings for refering to elsewhere
+            //       this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
+            //       this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+            //       this.setPanelContentColumns();
+            //       this.setPanelContentRows();
+            //       // Update line/group/row heights:
+            //       // this.updateLines();
   
-                });
-                console.log("byte width button added...");
-              },
-              2100
-            );
+            //     });
+            //     console.log("byte width button added...");
+            //   },
+            //   2100
+            // );
     
   
-            // debug 
+            // // debug 
   
-            // if (kind=='hexViewer'){
+            // // if (kind=='hexViewer'){
   
-            //   this.source = {
-            //       name: "Debug",
-            //       kind: "bytes",
-            //       data: Array.from(Array(128*64).keys()).map(d=>Math.round(255*Math.random())),
-            //       panel: this,
-            //       from: this.links[0]
-            //   };
-            //   this.initHex(); //generates the strings
-            //   this.generateLineSpacingRange();
-            //   this.setPanelContentColumns();
+            // //   this.data = {
+            // //       name: "Debug",
+            // //       kind: "bytes",
+            // //       data: Array.from(Array(128*64).keys()).map(d=>Math.round(255*Math.random())),
+            // //       panel: this,
+            // //       from: this.links[0]
+            // //   };
+            // //   this.initHex(); //generates the strings
+            // //   this.generateLineSpacingRange();
+            // //   this.setPanelContentColumns();
               
-            //   this.setPanelContentRows();
-            //   this.generateHexHeaderHTML();
-            //   this.generateHexHTML( this.source.data, 0, this.groupSize*2);
-            //   // this.hexScroll();
-            //   // setTimeout( ()=>{this.hexScroll();}, 1000); // will generate an appropriate amount of rows 
-            //   // this.updateLines();
-            //   // end debug
-            // }
+            // //   this.setPanelContentRows();
+            // //   this.generateHexHeaderHTML();
+            // //   this.generateHexHTML( this.data.data, 0, this.groupSize*2);
+            // //   // this.hexScroll();
+            // //   // setTimeout( ()=>{this.hexScroll();}, 1000); // will generate an appropriate amount of rows 
+            // //   // this.updateLines();
+            // //   // end debug
+            // // }
   
-            // add scroll tracker to hexContent
-            this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
-                  (event)=>{
-                    if (!this.scrolling){
-                      requestAnimationFrame( ()=>{
-                      // scroll updating, with some debouncing.
-                        this.scrolling = true;
-                        this.hexScroll();
-                        // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
-                      } );
-                    }
-                });
-                //////////////////////////////////////////////////////
+            // // add scroll tracker to hexContent
+            // this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
+            //       (event)=>{
+            //         if (!this.scrolling){
+            //           requestAnimationFrame( ()=>{
+            //           // scroll updating, with some debouncing.
+            //             this.scrolling = true;
+            //             this.hexScroll();
+            //             // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+            //           } );
+            //         }
+            //     });
+            //     //////////////////////////////////////////////////////
   
             break;
   
@@ -480,6 +615,11 @@ class Panel {
         top = element.offsetTop - deltaY;
         element.style.top = `${top}px`;
         element.setAttribute('data-user-top', top);
+
+        // update the links' splines
+        panel.sources.forEach(d=>d.updateSpline());
+        panel.targets.forEach(d=>d.updateSpline());
+        
   
       }
   
@@ -614,8 +754,11 @@ class Panel {
           content.style.height = `${h - headerHeight}px`;
         }
         // console.log( content.style.height );
-  
         // console.log(w+" "+h);
+
+        // update the links' splines
+        panel.sources.forEach(d=>d.updateSpline());
+        panel.targets.forEach(d=>d.updateSpline());
   
       }
   
@@ -665,7 +808,7 @@ class Panel {
       if (bnode) snode = bnode.querySelector(`.${bitPrecision}_${subPos}`);
       // // calculate the vertical and horizontal offsets from hex_content's top
       // // (doesn't factor in current scroll height)
-      // // let numberOfRows = Math.ceil( this.source.data.length / this.settings['Number of Columns'].value );
+      // // let numberOfRows = Math.ceil( this.data.data.length / this.settings['Number of Columns'].value );
       
       // var bitShift = this.columnBits;
       // let gridRow0Based = (byteOffset>>bitShift); // floor divides
@@ -723,7 +866,7 @@ class Panel {
     
     getNumberOfCells(){
       // varies by Panel class...?
-      return this.source.data.length;
+      return this.data.data.length;
     }
   
     
@@ -790,22 +933,22 @@ class Panel {
       // initializes the offset values and strings that we'll probably use later
       console.log("init hex");
       // generate hexadecimal and binary strings for each byte
-      // this.source.hexStrings = this.source.data.map((d,i)=>hex(this.source.data[i],2));
-      // this.source.binStrings = this.source.data.map((d,i)=>binar(this.source.data[i],8));
-      // this.source.offsets = this.source.data.map( (d,i) => i );
-      // this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
+      // this.data.hexStrings = this.data.data.map((d,i)=>hex(this.data.data[i],2));
+      // this.data.binStrings = this.data.data.map((d,i)=>binar(this.data.data[i],8));
+      // this.data.offsets = this.data.data.map( (d,i) => i );
+      // this.data.offsetsHexStrings = this.data.offsets.map(d=>hex(d,6));
   
-      this.source.hexStrings = this.source.data.map((d,i)=>hex(d,2));
-      this.source.binStrings = this.source.data.map((d,i)=>binar(d,8));
-      this.source.offsets = this.source.data.map( (d,i) => i );
-      this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
+      this.data.hexStrings = this.data.data.map((d,i)=>hex(d,2));
+      this.data.binStrings = this.data.data.map((d,i)=>binar(d,8));
+      this.data.offsets = this.data.data.map( (d,i) => i );
+      this.data.offsetsHexStrings = this.data.offsets.map(d=>hex(d,6));
   
       // save the html nodes?
-      console.log(Math.ceil(this.source.data.length/this.groupSize));
-      this.source.groupNodes = Array(Math.ceil(this.source.data.length/this.groupSize));
+      console.log(Math.ceil(this.data.data.length/this.groupSize));
+      this.data.groupNodes = Array(Math.ceil(this.data.data.length/this.groupSize));
   
       // console.log('hex data:');
-      // console.log(this.source.hexStrings);
+      // console.log(this.data.hexStrings);
     }
   
     generateHexHTML( input = null, offset=0, length=this.groupSize){
@@ -819,10 +962,10 @@ class Panel {
       let end = Math.min(offset+length, input.length);
       
       // extract relevant data:
-      // let bytesHex = this.source.hexStrings.slice(start, end);
-      // let bytesBin = this.source.binStrings.slice(start, end); 
+      // let bytesHex = this.data.hexStrings.slice(start, end);
+      // let bytesBin = this.data.binStrings.slice(start, end); 
       
-      // let offsetsHex = this.source.offsetsHexStrings.slice(start, end);
+      // let offsetsHex = this.data.offsetsHexStrings.slice(start, end);
   
       
       // parent div for byte elements
@@ -843,7 +986,7 @@ class Panel {
       // let top = 100*(i>>bitShift)/numRows;
       // let gridRow = 1+(i>>bitShift); // essentially floor divides
   
-      // html += `<div id="group_${this.source.offsetsHexStrings[i]}" class="byte_group" style="height:${groupHeightEm}em; top:${top}%; background-color: hsl(${Math.round(Math.random()*360)}deg, 70%, 30%);" data-offset="${i}" ></div>`;
+      // html += `<div id="group_${this.data.offsetsHexStrings[i]}" class="byte_group" style="height:${groupHeightEm}em; top:${top}%; background-color: hsl(${Math.round(Math.random()*360)}deg, 70%, 30%);" data-offset="${i}" ></div>`;
       var group;
       var bytes = ''; // running innerHTML
   
@@ -862,7 +1005,7 @@ class Panel {
         // if we need to create a group (on first byte, or after the previous group completes)
         if (!group) {
           group = document.createElement('div');
-          group.id = `group_${this.source.offsetsHexStrings[i]}`;
+          group.id = `group_${this.data.offsetsHexStrings[i]}`;
           group.classList = ["byte_group"];
           
           // group.style.gridRow = `${gridRow} / span ${this.groupSize/this.settings['Number of Columns'].value}`;
@@ -879,19 +1022,19 @@ class Panel {
   
   
   
-        //   // html += `<div id="group_${this.source.offsetsHexStrings[i]}" class="byte_group" style="height:${groupHeightEm}em; grid-row:${gridRow} / span ${this.groupSize/this.settings['Number of Columns'].value};background-color: hsl(${Math.round(Math.random()*360)}deg, 80%, 50%);" data-offset="${i}" >`;
+        //   // html += `<div id="group_${this.data.offsetsHexStrings[i]}" class="byte_group" style="height:${groupHeightEm}em; grid-row:${gridRow} / span ${this.groupSize/this.settings['Number of Columns'].value};background-color: hsl(${Math.round(Math.random()*360)}deg, 80%, 50%);" data-offset="${i}" >`;
   
         // }
   
         // group div
-        // if ( (i%this.groupSize==0) || (i==start) ) html += `<div id="group_${this.source.offsetsHexStrings[i]}" class="byte_group" style="height:${groupHeight}px;position:absolute;top:${top}%; display:grid;  grid-template-columns: subgrid; grid-column: 1 / -1; grid-row:${gridRow} / span ${this.groupSize/this.settings['Number of Columns'].value};" data-offset="${i}" >`;
+        // if ( (i%this.groupSize==0) || (i==start) ) html += `<div id="group_${this.data.offsetsHexStrings[i]}" class="byte_group" style="height:${groupHeight}px;position:absolute;top:${top}%; display:grid;  grid-template-columns: subgrid; grid-column: 1 / -1; grid-row:${gridRow} / span ${this.groupSize/this.settings['Number of Columns'].value};" data-offset="${i}" >`;
         
         // byte container    grid-row:${gridRow};
-        bytes += `<div id="byte_${this.source.offsetsHexStrings[i]}" class="byte_container" style="display:grid; grid-template-rows: repeat(${rowPerByteContainer}, 1fr);  grid-column: span 11; grid-template-columns: subgrid;" data-offset="${i}">`;
+        bytes += `<div id="byte_${this.data.offsetsHexStrings[i]}" class="byte_container" style="display:grid; grid-template-rows: repeat(${rowPerByteContainer}, 1fr);  grid-column: span 11; grid-template-columns: subgrid;" data-offset="${i}">`;
   
         // offset
-        // bytes += `<div style="display: grid; grid-row: 1 / -1; grid-column: span 1; min-width:0;overflow:hidden;"><a style="width:100%;user-select: none;" >${(i%this.settings['Number of Columns'].value)==0?this.source.offsetsHexStrings[i]:''}</a></div>`;
-        bytes += `<div style="display: grid; grid-row: 1 / -1; grid-column: span 1; min-width:0;overflow:hidden;"><a style="width:100%;user-select: none;" >${this.source.offsetsHexStrings[i]}</a></div>`;
+        // bytes += `<div style="display: grid; grid-row: 1 / -1; grid-column: span 1; min-width:0;overflow:hidden;"><a style="width:100%;user-select: none;" >${(i%this.settings['Number of Columns'].value)==0?this.data.offsetsHexStrings[i]:''}</a></div>`;
+        bytes += `<div style="display: grid; grid-row: 1 / -1; grid-column: span 1; min-width:0;overflow:hidden;"><a style="width:100%;user-select: none;" >${this.data.offsetsHexStrings[i]}</a></div>`;
   
         // spacing
         bytes += `<div style="display: grid; grid-row: 1 / -1; grid-column: span 1; min-width:0;width:0;overflow:hidden;"></div>`;
@@ -904,18 +1047,18 @@ class Panel {
           switch (mode){
   
             case 'byte':
-              bytes += `<div class="byte" style="display: grid; grid-row: ${row}; grid-column: span 9;${this.byteColor?'color:'+this.byteColor:''}">${this.source.hexStrings[i]}</div>`;
+              bytes += `<div class="byte" style="display: grid; grid-row: ${row}; grid-column: span 9;${this.byteColor?'color:'+this.byteColor:''}">${this.data.hexStrings[i]}</div>`;
               break;
   
             case 'nibble':
-              bytes += `<div class="nibble" style="display: grid; grid-row: ${row}; grid-column: span 4;">${this.source.hexStrings[i][0]}</div>`;
+              bytes += `<div class="nibble" style="display: grid; grid-row: ${row}; grid-column: span 4;">${this.data.hexStrings[i][0]}</div>`;
               bytes += `<div style="display: grid; grid-row: ${row}; grid-column: span 1;"></div>`;
-              bytes += `<div class="nibble" style="display: grid; grid-row: ${row}; grid-column: span 4;">${this.source.hexStrings[i][1]}</div>`;
+              bytes += `<div class="nibble" style="display: grid; grid-row: ${row}; grid-column: span 4;">${this.data.hexStrings[i][1]}</div>`;
               break;
   
             case 'bit':
               // console.log(bytesBin[i]);
-              bytes += this.source.binStrings[i].split('').map((e,k)=>`<div class="bit" style="display: grid; grid-row: ${row}; grid-column: span 1;">${e}</div>${(k==3)?'<div style="display: grid; grid-row: '+row+'; grid-column: span 1;"></div>':''}`).join('');
+              bytes += this.data.binStrings[i].split('').map((e,k)=>`<div class="bit" style="display: grid; grid-row: ${row}; grid-column: span 1;">${e}</div>${(k==3)?'<div style="display: grid; grid-row: '+row+'; grid-column: span 1;"></div>':''}`).join('');
               break;
   
           }
@@ -936,13 +1079,13 @@ class Panel {
           bytes = '';
           // and append the goup to the page
           group = hexContent.appendChild(group);
-          this.source.groupNodes[groupIndex] = group; // save
+          this.data.groupNodes[groupIndex] = group; // save
           if (!((i+1)==end)) group = undefined; // clear if there are more
   
           // this is an example for how we'd add right_group containers.
           // they can span as many byte groups as needed in order to align with their left-side data
           // let rightItem = document.createElement('div');
-          // rightItem.id = `right_group_${this.source.offsetsHexStrings[i]}`;
+          // rightItem.id = `right_group_${this.data.offsetsHexStrings[i]}`;
           // rightItem.classList = ["right_group"];
           // rightItem.style.gridRow = `${gridRow} / span 2`;
           // rightItem.style.position = 'relative';
@@ -1033,10 +1176,10 @@ class Panel {
   
       adds.forEach((index)=>{
         let groupIndex = Math.floor(index/this.groupSize)
-        if (this.source.groupNodes[groupIndex]){
-          this.source.groupNodes[groupIndex] = hc.appendChild( this.source.groupNodes[groupIndex]);
+        if (this.data.groupNodes[groupIndex]){
+          this.data.groupNodes[groupIndex] = hc.appendChild( this.data.groupNodes[groupIndex]);
         } else {
-          this.generateHexHTML( this.source.data, index, this.groupSize);
+          this.generateHexHTML( this.data.data, index, this.groupSize);
         }
       });
   
@@ -1091,7 +1234,7 @@ class Panel {
         return 0;
       }
   
-      var totalRows = Math.ceil(this.source.data.length/this.settings['Number of Columns'].value);
+      var totalRows = Math.ceil(this.data.data.length/this.settings['Number of Columns'].value);
   
       // this.scrollGroup = currentOffsetGroup;
   
@@ -1103,7 +1246,7 @@ class Panel {
       // the scroll buffer bottom is min(current scroll + 2*window height, numRows)
       
       
-      var bufferBottomOffset = Math.min( Math.floor(this.settings['Number of Columns'].value*( windowScrollTop + (2*windowHeight))/rowHeight)-1, this.source.data.length-1);
+      var bufferBottomOffset = Math.min( Math.floor(this.settings['Number of Columns'].value*( windowScrollTop + (2*windowHeight))/rowHeight)-1, this.data.data.length-1);
   
       // Math.min( this.getGroupOffsetFromByteLocation( windowScrollTop + (2*windowHeight) ), this.getNumberOfCells()-1 );
       // var bufferBottomOffsetGroup = this.groupSize * Math.floor( bufferBottomOffset/this.groupSize );
@@ -1142,8 +1285,8 @@ class Panel {
       console.log(existingCount+" groups were already existing.");
   
       adds.forEach(index => {
-        if ( this.kind=="tilesetViewer" ) this.generateTilesetHTML( this.source.data, index, this.groupSize);
-        if ( this.kind=="metatilesViewer" ) this.generateMetatilesetHTML( this.source.data, index, this.groupSize);
+        if ( this.kind=="tilesetViewer" ) this.generateTilesetHTML( this.data.data, index, this.groupSize);
+        if ( this.kind=="metatilesViewer" ) this.generateMetatilesetHTML( this.data.data, index, this.groupSize);
       });
       removes.forEach(d=>d.remove());
   
@@ -1164,29 +1307,29 @@ class Panel {
     }
     initMetatiles(){
       console.log('init metatiles');
-      this.source.rawPixels = this.source.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
+      this.data.rawPixels = this.data.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
       // generate canvas nodes?
-      this.source.canvasNodes = Array(this.source.data.length);
+      this.data.canvasNodes = Array(this.data.data.length);
   
       // update the placeholder to reflect rumber of rows.
       let hc = this.inner.querySelector(".panel_content > .tileset_content");
       let placeholder = hc.querySelector(`.grid_placeholder`);
-      let finalRow = Math.floor((this.source.data.length-1)/this.settings['Number of Columns'].value) + 1; // 1-based
+      let finalRow = Math.floor((this.data.data.length-1)/this.settings['Number of Columns'].value) + 1; // 1-based
       placeholder.style.gridRow = `1 / ${finalRow}`;
       placeholder.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${finalRow}`;
       placeholder.style.zIndex = "-1";
     }
     initTiles(){
       console.log('init tiles');
-      // this.source.rawPixels = this.source.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
-      this.source.rawPixels = this.source.data.map(tile=>tile.map(row=>row.map(colorIndex=>this.palette[colorIndex])));
+      // this.data.rawPixels = this.data.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
+      this.data.rawPixels = this.data.data.map(tile=>tile.map(row=>row.map(colorIndex=>this.palette[colorIndex])));
       // generate canvas nodes?
-      this.source.canvasNodes = Array(this.source.data.length);
+      this.data.canvasNodes = Array(this.data.data.length);
   
       // update the placeholder to reflect rumber of rows.
       let hc = this.inner.querySelector(".panel_content > .tileset_content");
       let placeholder = hc.querySelector(`.grid_placeholder`);
-      let finalRow = Math.floor((this.source.data.length-1)/this.settings['Number of Columns'].value) + 1; // 1-based
+      let finalRow = Math.floor((this.data.data.length-1)/this.settings['Number of Columns'].value) + 1; // 1-based
       placeholder.style.gridRow = `1 / ${finalRow}`;
       placeholder.style.aspectRatio = `${this.settings['Number of Columns'].value} / ${finalRow}`;
       placeholder.style.zIndex = "-1";
@@ -1197,21 +1340,21 @@ class Panel {
       console.log("init lvl");
       
       // rearrange and extract raw pixel data so we don't have to keep doing it
-      this.source.rawPixels = this.source.data.map(mt=>prepMetatile(mt,this.palette));
+      this.data.rawPixels = this.data.data.map(mt=>prepMetatile(mt,this.palette));
       // generate canvas nodes?
-      this.source.canvasNodes = Array(this.source.data.length);
+      this.data.canvasNodes = Array(this.data.data.length);
   
       let rows = 16;
-      let cols = Math.ceil(this.source.data.length/rows);
+      let cols = Math.ceil(this.data.data.length/rows);
   
       let lc = this.inner.querySelector(".panel_content > .levelMap_content");
       lc.style.gridTemplateColumns = 'repeat('+cols+', 8ch)';
   
       
-      // this.source.hexStrings = this.source.data.map((d,i)=>hex(d,2));
-      // this.source.binStrings = this.source.data.map((d,i)=>binar(d,8));
-      // this.source.offsets = this.source.data.map( (d,i) => i );
-      // this.source.offsetsHexStrings = this.source.offsets.map(d=>hex(d,6));
+      // this.data.hexStrings = this.data.data.map((d,i)=>hex(d,2));
+      // this.data.binStrings = this.data.data.map((d,i)=>binar(d,8));
+      // this.data.offsets = this.data.data.map( (d,i) => i );
+      // this.data.offsetsHexStrings = this.data.offsets.map(d=>hex(d,6));
   
       
     }
@@ -1257,7 +1400,7 @@ class Panel {
       this.scrollGroup = currentOffset;
   
       let numRows = 16; // placeholder... different for vertical levels
-      let numCols = Math.ceil(this.source.data.length/numRows);
+      let numCols = Math.ceil(this.data.data.length/numRows);
   
       var buffer = {
         left: Math.max( Math.floor( (windowScrollLeft-windowWidth) / mtWidth), 0 ),
@@ -1310,7 +1453,7 @@ class Panel {
   
       console.log(existingCount+" groups were already existing.");
   
-      adds.forEach(index=>this.generateLevelMapHTML( this.source.data, index, 1));
+      adds.forEach(index=>this.generateLevelMapHTML( this.data.data, index, 1));
       removes.forEach(d=>d.remove());
       console.log(`Added: ${adds.join()}\nRemoved: ${removes.map(d=>d.id.substr(9)).join()}`);
       const added = Date.now()-start;
@@ -1547,7 +1690,7 @@ class Panel {
                   console.log(g32selem);
                   this.generateBitplaneView(
                     g32selem,
-                    this.source.data.slice(offsetbp, offsetbp+32),
+                    this.data.data.slice(offsetbp, offsetbp+32),
                     tileIndex0Based);
   
                 }
@@ -1609,9 +1752,9 @@ class Panel {
         var currentTile = this.panelContent.querySelector(".hex_header > .seekButtons > #currentTile");
         var totalTiles = this.panelContent.querySelector(".hex_header > .seekButtons > #totalTiles");
             
-        if (this.source){
+        if (this.data){
       
-          let totalNumber = Math.ceil(this.source.data.length/32);
+          let totalNumber = Math.ceil(this.data.data.length/32);
           console.log(this);
           totalTiles.textContent = totalNumber;
           //
@@ -1625,13 +1768,13 @@ class Panel {
           // if we have a valid change:
           if ( (newVal != oldVal) || (override!=false) ){
             currentTile.textContent = newVal;
-            this.generateBitplaneHTML(this.source.data, (newVal-1)*32 );
+            this.generateBitplaneHTML(this.data.data, (newVal-1)*32 );
           } 
         }
       }
 
-    generateAnimateDecompButton( ){
-      // initialize
+    generateAnimateDecompButton( targetDecompHex){
+      // initialize (assign an AnimationSystem object)
       this.animateDecomp();
   
       setTimeout( ()=>{
@@ -1644,7 +1787,7 @@ class Panel {
   
           this.animateDecompButton.addEventListener("click", (event) => {
             // begin animation
-            this.animation.initDecomp( this, this.nexts[0] );
+            this.animation.initDecomp( this, targetDecompHex );
             this.toggleMenu();
           });
           console.log("Animate Decompression button added...");
@@ -1654,13 +1797,14 @@ class Panel {
     }
   
   
-    generateDownloadButton(data, fileName, title, label="Download"){
+    generateDownloadButton(data, fileName, title=undefined, label="Download"){
       // let header = this.inner.querySelector(" .panel_header");
       setTimeout( ()=>{
           let downloadButton = document.createElement("button");
           downloadButton.className = "downloadButtons";
           downloadButton.innerHTML = label;
-          downloadButton.title = title;
+          // downloadButton.title = title;
+          downloadButton.title = 'Download '+fileName;
           downloadButton.style.height = "2em";
           this.downloadButton = this.inner.querySelector(".panel_menu").appendChild( downloadButton );
   
@@ -1692,7 +1836,7 @@ class Panel {
   
       // update hexContent grid's grid-template-rows
       let hc = this.inner.querySelector(".panel_content > .hex_content");
-      let numberOfGroups = Math.ceil( this.source.data.length / this.groupSize );
+      let numberOfGroups = Math.ceil( this.data.data.length / this.groupSize );
       let groupHeight = this.settings['Line Height'].value * this.groupSize / this.settings['Number of Columns'].value ;
       let gtr = `repeat(${numberOfGroups}, ${ groupHeight}em)`;
       hc.style.gridTemplateRows = gtr;
@@ -1813,8 +1957,8 @@ class Panel {
   
           // update the bitplane viewer if it's available
           //HACK: assumes index 0 is the bitplane viewer
-          if (this.links[0].source){
-            // this.nexts[0].generateHexHTML( this.nexts[0].source.data);
+          if (this.links[0].data){
+            // this.nexts[0].generateHexHTML( this.nexts[0].data.data);
             // A wrapper that prevents jumping to 1st tile
             // last argument, override, will ensure the svg is updated.
   
@@ -1854,7 +1998,7 @@ class Panel {
           var subtiles, tileClass;
   
           for (let panel of this.nexts){
-            if ( (panel.kind == "metatilesViewer") && panel.source ){
+            if ( (panel.kind == "metatilesViewer") && panel.data ){
   
               tileClass = "metatile_subtile_tile_index_"+tileIndex;
               subtiles = panel.inner.querySelectorAll(".panel_content > .tileset_content > .metatile_wrapper > canvas");
@@ -1874,16 +2018,16 @@ class Panel {
         });
   
         // add canvas image
-        if (this.source.canvasNodes[i]){
-          wrapper.appendChild(this.source.canvasNodes[i]);
+        if (this.data.canvasNodes[i]){
+          wrapper.appendChild(this.data.canvasNodes[i]);
           continue; // skip if we already have it
         }
   
         // add actual canvas
-        let canvas = displayRaw( this.source.rawPixels[i],  wrapper ) ;
+        let canvas = displayRaw( this.data.rawPixels[i],  wrapper ) ;
         canvas.style.width='100%';
         canvas.style.height='100%';
-        this.source.canvasNodes[i] = canvas;
+        this.data.canvasNodes[i] = canvas;
         count++;
       }
     }
@@ -1951,8 +2095,8 @@ class Panel {
         metatileWrapper.style.gridRow = y+1;
   
         // add canvas image
-        if (this.source.canvasNodes[i]){
-          metatileWrapper.appendChild(this.source.canvasNodes[i]);
+        if (this.data.canvasNodes[i]){
+          metatileWrapper.appendChild(this.data.canvasNodes[i]);
           continue; // skip if we already have it
         }
   
@@ -1982,10 +2126,10 @@ class Panel {
         // let cssflip = `${hf?'scaleX(-1) ':''}${vf?'scaleY(-1) ':''}`;
         // metatileWrapper.style.transform = cssflip;
         
-        this.source.canvasNodes[i] = displayRaw( this.source.rawPixels[i],  metatileWrapper );
-        // this.source.canvasNodes[i].style.gridArea = 'span 4 / span 4';
-        this.source.canvasNodes[i].style.gridRow = '1 / -1';
-        this.source.canvasNodes[i].style.gridColumn = '1 / -1';
+        this.data.canvasNodes[i] = displayRaw( this.data.rawPixels[i],  metatileWrapper );
+        // this.data.canvasNodes[i].style.gridArea = 'span 4 / span 4';
+        this.data.canvasNodes[i].style.gridRow = '1 / -1';
+        this.data.canvasNodes[i].style.gridColumn = '1 / -1';
   
         // if (vf || hf) console.log(`Level metatile ${count} should be flipped ${cssflip}.`)
         // count++;
@@ -2017,8 +2161,8 @@ class Panel {
         metatileWrapper.style.gridColumn = x+1;
         metatileWrapper.style.gridRow = y+1;
   
-        if (this.source.canvasNodes[i]){
-          metatileWrapper.appendChild(this.source.canvasNodes[i]);
+        if (this.data.canvasNodes[i]){
+          metatileWrapper.appendChild(this.data.canvasNodes[i]);
           continue; // skip if we already have it
         }
   
@@ -2033,7 +2177,7 @@ class Panel {
         // let cssflip = `${hf?'scaleX(-1) ':''}${vf?'scaleY(-1) ':''}`;
         // metatileWrapper.style.transform = cssflip;
         
-        this.source.canvasNodes[i] = displayRaw( this.source.rawPixels[i],  metatileWrapper );
+        this.data.canvasNodes[i] = displayRaw( this.data.rawPixels[i],  metatileWrapper );
   
         // if (vf || hf) console.log(`Level metatile ${count} should be flipped ${cssflip}.`)
         // count++;
@@ -2112,9 +2256,9 @@ class Panel {
   
           // update the bitplane viewer if it's available
           //HACK: assumes nexts index 1 is the bitplane viewer
-          if (this.nexts[0].source) this.nexts[0].updateBitplaneSeek( 0, true );
+          if (this.nexts[0].data) this.nexts[0].updateBitplaneSeek( 0, true );
           // update tileset view (this is where we'd re-generate with the new palette?)
-        //   if (this.nexts[2].source) this.nexts[2].generateTilesetHTML( this.nexts[2].source.data);
+        //   if (this.nexts[2].data) this.nexts[2].generateTilesetHTML( this.nexts[2].data.data);
           
   
         });
@@ -2229,35 +2373,6 @@ class Panel {
   
     }
   
-    fileInput(uploadEvent){
-    
-        var file = uploadEvent.target.files[0];
-
-        var fReader = new FileReader();
-        fReader.readAsArrayBuffer(file);
-    
-        // add an event listener to act when the file has fully loaded
-        fReader.addEventListener('load', (loadEvent) => {
-    
-            this.source = {
-                name: "Raw data from "+file.name,
-                filename: file.name,
-                kind: "bytes",
-                data: new Uint8Array( loadEvent.target.result),
-                // panel: panel,
-                // file: file
-            };
-    
-            // save to local browser session storage
-            sessionStorage.setItem( this.nameValid+'_source', JSON.stringify(this.source) );
-            this.source.panel = this; // do this AFTER saving source object, to avoid cyclic objects
-            
-            // Automatically do the next steps...
-            this.propagateSource();
-    
-        });
-    
-    }
 
     propagateSource(){
       // this propagates the update of a source (or addition) out to dependent panels
@@ -2267,172 +2382,173 @@ class Panel {
           0;
           break;
   
-        case "hexViewer":
-          // break;
-          // default is to decompress
-          // if we have source compressed graphics (ignore for calls from others )
-          if (this.links[0].source && !this.source ){
-            this.source = {
-                name: "Decompressed from "+this.links[0].source.filename,
-                kind: "bytes",
-                data: chrDecompress( Array(...this.links[0].source.data) ),
-                panel: this,
-                from: this.links[0]
-            };
+        // case "hexViewer":
+        //   // break;
+        //   // default is to decompress
+        //   // if we have source compressed graphics (ignore for calls from others )
+        //   if (this.links[0].data && !this.data ){
+        //     this.data = {
+        //         name: "Decompressed from "+this.links[0].data.filename,
+        //         kind: "bytes",
+        //         data: chrDecompress( Array(...this.links[0].data.data) ),
+        //         panel: this,
+        //         from: this.links[0]
+        //     };
             
   
-            // this.generateLineSpacingRange();
+        //     // this.generateLineSpacingRange();
   
-            // this.generateHexHTML( this.source.data, 0, this.groupSize*2 ); // first two groups' worth
-            // // Truncated version for performance
-            // // this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
+        //     // this.generateHexHTML( this.data.data, 0, this.groupSize*2 ); // first two groups' worth
+        //     // // Truncated version for performance
+        //     // // this.generateHexHTML( this.data.data.slice(0,32*20), 0, 32*20);
   
-            // download setup
-            if (!this.downloadButton){
-                var downloadFileName;
-                if (this.links[0].source.filename){
-                    downloadFileName = this.links[0].source.filename.replace(".bin","_Decompressed.bin");
-                } else{
-                    downloadFileName = this.links[0].source.name.replace(".bin","_bin")+"_Decompressed.bin";
-                }
+        //     // download setup
+        //     if (!this.downloadButton){
+        //         var downloadFileName;
+        //         if (this.links[0].data.filename){
+        //             downloadFileName = this.links[0].data.filename.replace(".bin","_Decompressed.bin");
+        //         } else{
+        //             downloadFileName = this.links[0].data.name.replace(".bin","_bin")+"_Decompressed.bin";
+        //         }
                 
-              this.generateDownloadButton(
-                this.source.data, downloadFileName,
-                "Download Decompressed Graphics File (.bin)");
-            }
+        //       this.generateDownloadButton(
+        //         this.data.data, downloadFileName,
+        //         "Download Decompressed Graphics File (.bin)");
+        //     }
   
   
-            // this.updateLines(); // should bring to full height, accurate scrollbar?
-            // this.setPanelContentRows(); // ?
+        //     // this.updateLines(); // should bring to full height, accurate scrollbar?
+        //     // this.setPanelContentRows(); // ?
   
   
-            this.initHex(); //generates the strings
-            this.generateLineSpacingRange();
-            this.setPanelContentColumns();
+        //     this.initHex(); //generates the strings
+        //     this.generateLineSpacingRange();
+        //     this.setPanelContentColumns();
             
-            this.setPanelContentRows();
-            this.generateHexHeaderHTML();
-            this.generateHexHTML( this.source.data, 0, this.groupSize*4);
-            this.hexScroll(); // should generate enough to cover the view window
+        //     this.setPanelContentRows();
+        //     this.generateHexHeaderHTML();
+        //     this.generateHexHTML( this.data.data, 0, this.groupSize*4);
+        //     this.hexScroll(); // should generate enough to cover the view window
             
   
   
-          }
+        //   }
   
-          break;
-        case "hexViewerComp":
-          // compressed data hex viewer and animator
-          // if we have source compressed graphics (ignore for calls from others )
+        //   break;
+        // case "hexViewerComp":
+        //   // compressed data hex viewer and animator
+        //   // if we have source compressed graphics (ignore for calls from others )
           
           
-          if (this.links[0].source && !this.source){
-            this.source = {
-                name: this.links[0].source.filename,
-                kind: "bytes",
-                data: Array(...this.links[0].source.data),
-                panel: this,
-                from: this.links[0]
-            };
+        //   if (this.links[0].data && !this.data){
+        //     this.data = {
+        //         name: this.links[0].data.filename,
+        //         kind: "bytes",
+        //         data: Array(...this.links[0].data.data),
+        //         panel: this,
+        //         from: this.links[0]
+        //     };
             
-            // this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.source.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
+        //     // this.inner.querySelector(".panel_content > .hex_content").style.gridTemplateRows = `repeat(${Math.ceil(this.data.data.length/this.groupSize)}, ${ 4 * this.groupSize/32 }em)`;
   
-            // this.generateLineSpacingRange();
+        //     // this.generateLineSpacingRange();
   
-            // this.generateHexHTML( this.source.data, 0, this.groupSize*2 ); // first two groups' worth
-            // // Truncated version for performance
-            // // this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
+        //     // this.generateHexHTML( this.data.data, 0, this.groupSize*2 ); // first two groups' worth
+        //     // // Truncated version for performance
+        //     // // this.generateHexHTML( this.data.data.slice(0,32*20), 0, 32*20);
   
-            // // download setup
-            // // if (!this.downloadButton){
-            // //   let downloadFileName = this.links[0].source.filename;
-            // //   this.generateDownloadButton(
-            // //     this.source.data, downloadFileName,
-            // //     "Download Original Compressed Data File (.bin)");
-            // // }
-            // this.updateLines(); // should bring to full height, accurate scrollbar?
-            // // this.setPanelContentRows(); // ?
+        //     // // download setup
+        //     // // if (!this.downloadButton){
+        //     // //   let downloadFileName = this.links[0].data.filename;
+        //     // //   this.generateDownloadButton(
+        //     // //     this.data.data, downloadFileName,
+        //     // //     "Download Original Compressed Data File (.bin)");
+        //     // // }
+        //     // this.updateLines(); // should bring to full height, accurate scrollbar?
+        //     // // this.setPanelContentRows(); // ?
   
             
-            this.initHex(); //generates the strings
-            this.generateLineSpacingRange();
-            this.setPanelContentColumns();
+        //     this.initHex(); //generates the strings
+        //     this.generateLineSpacingRange();
+        //     this.setPanelContentColumns();
             
-            this.setPanelContentRows();
-            this.generateHexHeaderHTML();
-            this.generateHexHTML( this.source.data, 0, this.groupSize*4);          
-            this.hexScroll(); // should generate enough to cover the view window
+        //     this.setPanelContentRows();
+        //     this.generateHexHeaderHTML();
+        //     this.generateHexHTML( this.data.data, 0, this.groupSize*4);          
+        //     this.hexScroll(); // should generate enough to cover the view window
             
             
   
-            // create the button used to run the decomp animation
-            if (!this.animateDecompButton){
-              this.generateAnimateDecompButton( );
-            }
-          }
+        //     // create the button used to run the decomp animation
+        //     if (!this.animateDecompButton){
+        //       this.generateAnimateDecompButton( );
+        //     }
+        //   }
   
-          break;
-          case "hexViewerCompressed":
-            // break;
-            // this COMPRESSES an input that is not compressed.
-            // if we have source compressed graphics (ignore for calls from others )
-            if (this.links[0].source && !this.source ){
-              this.source = {
-                  name: "Compressed from "+this.links[0].source.filename,
-                  kind: "bytes",
-                  data: chrCompress( Array(...this.links[0].source.data) ),
-                  panel: this,
-                  from: this.links[0]
-              };
+        //   break;
+        //   case "hexViewerCompressed":
+        //     // break;
+        //     // this COMPRESSES an input that is not compressed.
+        //     // if we have source compressed graphics (ignore for calls from others )
+        //     if (this.links[0].data && !this.data ){
+        //       this.data = {
+        //           name: "Compressed from "+this.links[0].data.filename,
+        //           kind: "bytes",
+        //           data: chrCompress( Array(...this.links[0].data.data) ),
+        //           panel: this,
+        //           from: this.links[0]
+        //       };
               
     
-              // this.generateLineSpacingRange();
+        //       // this.generateLineSpacingRange();
     
-              // this.generateHexHTML( this.source.data, 0, this.groupSize*2 ); // first two groups' worth
-              // // Truncated version for performance
-              // // this.generateHexHTML( this.source.data.slice(0,32*20), 0, 32*20);
+        //       // this.generateHexHTML( this.data.data, 0, this.groupSize*2 ); // first two groups' worth
+        //       // // Truncated version for performance
+        //       // // this.generateHexHTML( this.data.data.slice(0,32*20), 0, 32*20);
     
-              // download setup
-              if (!this.downloadButton){
-                let downloadFileName = this.links[0].source.filename.replace(".bin","_Compressed.bin");
-                this.generateDownloadButton(
-                  this.source.data, downloadFileName,
-                  "Download Compressed Graphics File (.bin)");
-              }
-    
-    
-              // this.updateLines(); // should bring to full height, accurate scrollbar?
-              // this.setPanelContentRows(); // ?
+        //       // download setup
+        //       if (!this.downloadButton){
+        //         let downloadFileName = this.links[0].data.filename.replace(".bin","_Compressed.bin");
+        //         this.generateDownloadButton(
+        //           this.data.data, downloadFileName,
+        //           "Download Compressed Graphics File (.bin)");
+        //       }
     
     
-              this.initHex(); //generates the strings
-              this.generateLineSpacingRange();
-              this.setPanelContentColumns();
+        //       // this.updateLines(); // should bring to full height, accurate scrollbar?
+        //       // this.setPanelContentRows(); // ?
+    
+    
+        //       this.initHex(); //generates the strings
+        //       this.generateLineSpacingRange();
+        //       this.setPanelContentColumns();
               
-              this.setPanelContentRows();
-              this.generateHexHeaderHTML();
-              this.generateHexHTML( this.source.data, 0, this.groupSize*4);
-              this.hexScroll(); // should generate enough to cover the view window
+        //       this.setPanelContentRows();
+        //       this.generateHexHeaderHTML();
+        //       this.generateHexHTML( this.data.data, 0, this.groupSize*4);
+        //       this.hexScroll(); // should generate enough to cover the view window
               
     
     
-            }
+        //     }
     
-            break;
+        //     break;
+
         case "bitplaneViewer":
           // break;
   
           // decompress
           // if we have source compressed graphics (ignore for calls from others )
-          if (this.links[0].source && !this.source){
-            this.source = {
-                name: this.links[0].source.name,
+          if (this.links[0].data && !this.data){
+            this.data = {
+                name: this.links[0].data.name,
                 kind: "bytes",
-                data: this.links[0].source.data,
+                data: this.links[0].data.data,
                 panel: this,
                 from: this.links[0]
             };
             
-            this.generateBitplaneHTML( this.source.data.slice(0,32), 0, "byte1", 32);
+            this.generateBitplaneHTML( this.data.data.slice(0,32), 0, "byte1", 32);
 
             // Add seek button event listeners now that the bitplane is generated.
             this.panelContent.querySelector(".hex_header > .seekButtons > .seekTileUpButton").addEventListener("click", (event) => this.updateBitplaneSeek( +1) );
@@ -2445,7 +2561,7 @@ class Panel {
             // if (!this.downloadButton){
             //   let downloadFileName = this.name.replace(".bin","_Decompressed.bin");
             //   this.generateDownloadButton(
-            //     this.source.data, downloadFileName,
+            //     this.data.data, downloadFileName,
             //     "Download Decompressed Graphics File (.bin)");
             // }
           }
@@ -2453,14 +2569,14 @@ class Panel {
           break;
   
         case "paletteViewer":
-          this.source = {
-              name: "Decompressed from "+this.links[0].source.filename,
+          this.data = {
+              name: "Decompressed from "+this.links[0].data.filename,
               kind: "bytes",
-              data: palette2rgb( this.links[0].source.data ),
+              data: palette2rgb( this.links[0].data.data ),
               panel: this,
               from: this.links[0]
           };
-          this.generatePaletteHTML( this.source.data);
+          this.generatePaletteHTML( this.data.data);
           break;
   
         case "tilesetViewer":
@@ -2468,21 +2584,21 @@ class Panel {
           // de-intertwine the bitplanes, show tilesets
           // (only if we have actual data (this.links[0]), not just palette (this.links[1]) )
           //TODO: better way to source filename
-          if (this.links[0].source && !this.generated){
-            this.source = {
-                name: "De-intertwined from "+this.links[0].source.from.source.filename,
+          if (this.links[0].data && !this.generated){
+            this.data = {
+                name: "De-intertwined from "+this.links[0].data.from.data.filename,
                 kind: "tiles",
-                data: unbitplane( this.links[0].source.data ),
+                data: unbitplane( this.links[0].data.data ),
                 panel: this,
                 from: this.links[0]
             };
             // Don't actually use the imported big palette, bc we don't know which subset goes to each 8x8 tile
-            // if (this.links[1].source){
-            //   this.palette =  this.links[1].source.data ;
+            // if (this.links[1].data){
+            //   this.palette =  this.links[1].data.data ;
             // }
             // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
             this.initTiles();
-            this.generateTilesetHTML( this.source.data);
+            this.generateTilesetHTML( this.data.data);
             this.generated = true;
           }
           break;
@@ -2493,22 +2609,22 @@ class Panel {
           // (only if we palette (this.links[0]), tile data (this.links[1]), AND metatile32 map (this.links[2]) )
           //TODO: better way to source filename
           //TODO: have a default 8x16 palette in case we don't have a source
-          if  (this.links[0].source && this.links[1].source && this.links[2].source ){
+          if  (this.links[0].data && this.links[1].data && this.links[2].data ){
             console.log(`Building metatiles...`);
-            this.source = {
-                name: "Metatiles built from "+this.links[2].source.filename,
+            this.data = {
+                name: "Metatiles built from "+this.links[2].data.filename,
                 kind: "metatiles",
-                data: metatile( this.links[1].source.data, this.links[2].source.data ), /* tiles, tilemap32  */
+                data: metatile( this.links[1].data.data, this.links[2].data.data ), /* tiles, tilemap32  */
                 panel: this,
                 from: this.links[1]
             };
             // get palette from the palette viewer, which has converted SNES format to RGB
-            if (this.links[0].source){
-              this.palette =  this.links[0].source.data;
+            if (this.links[0].data){
+              this.palette =  this.links[0].data.data;
             }
             this.initMetatiles();
             // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
-            this.generateMetatilesetHTML( this.source.data);
+            this.generateMetatilesetHTML( this.data.data);
           }
           break;
   
@@ -2517,21 +2633,21 @@ class Panel {
           // (only if we palette (this.links[0]), metatile data (this.links[1]), AND level map (this.links[2]) )
           //TODO: better way to source filename
           //TODO: have a default 8x16 palette in case we don't have a source
-          if  (this.links[0].source && this.links[1].source && this.links[2].source ){
+          if  (this.links[0].data && this.links[1].data && this.links[2].data ){
             console.log(`Building level map...`);
-            this.source = {
-                name: "Levels built from "+this.links[2].source.filename,
+            this.data = {
+                name: "Levels built from "+this.links[2].data.filename,
                 kind: "metatiles",
-                data: levelMap( this.links[1].source.data, this.links[2].source.data ), /* metatiles, level map  */
+                data: levelMap( this.links[1].data.data, this.links[2].data.data ), /* metatiles, level map  */
                 panel: this,
                 from: this.links[1]
             };
             // get palette from the palette viewer, which has converted SNES format to RGB
-            if (this.links[0].source){
-              this.palette =  this.links[0].source.data;
+            if (this.links[0].data){
+              this.palette =  this.links[0].data.data;
             }
             this.initLvl();
-            this.generateLevelMapHTML( this.source.data);
+            this.generateLevelMapHTML( this.data.data);
           }
           break;
   
@@ -2562,6 +2678,35 @@ class TextPanel extends Panel {
 
 
 class FilePanel extends Panel {
+  fileInput(uploadEvent){
+  
+      var file = uploadEvent.target.files[0];
+
+      var fReader = new FileReader();
+      fReader.readAsArrayBuffer(file);
+  
+      // add an event listener to act when the file has fully loaded
+      fReader.addEventListener('load', (loadEvent) => {
+  
+          this.data = {
+              name: "Raw data from "+file.name,
+              filename: file.name,
+              kind: "bytes",
+              data: new Uint8Array( loadEvent.target.result),
+              // panel: panel,
+              // file: file
+          };
+  
+          // save to local browser session storage
+          sessionStorage.setItem( this.nameValid+'_data', JSON.stringify(this.data) );
+          // this.data.panel = this; // do this AFTER saving source object, to avoid cyclic objects
+          
+          // Automatically do the next steps...
+          this.propagateSource();
+  
+      });
+  
+  }
     constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
         super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
         
@@ -2576,17 +2721,211 @@ class FilePanel extends Panel {
         this.fileInputs[this.fileInputs.length-1].addEventListener("change", (e) => this.fileInput(e) );
         
         // give some time, then load stored data if it exists
-        if (sessionStorage.getItem(this.nameValid+'_source')) {
+        if (sessionStorage.getItem(this.nameValid+'_data')) {
           setTimeout( ()=> {
-            this.source = JSON.parse( sessionStorage.getItem(this.nameValid+'_source') );
+            console.log("Retrieved from session storage:\n\n");
+            console.log( sessionStorage.getItem(this.nameValid+'_data') );
+            // return 0;
+            this.data = JSON.parse( sessionStorage.getItem(this.nameValid+'_data') );
             // special handling
-            this.source.data = Object.entries(this.source.data).map(d=>d[1]) ; 
-            this.source.panel = this;
-            this.panelContent.innerHTML = '<i>Retrieved "'+this.source.filename+'" from browser session storage.<br>(Close & reopen page to clear)</i>';
+            this.data.data = Object.entries(this.data.data).map(d=>d[1]) ; 
+            this.data.panel = this;
+            this.panelContent.innerHTML = '<i>Retrieved "'+this.data.filename+'" from browser session storage.<br>(Close & reopen page to clear)</i>';
             this.propagateSource();
           }, 200);
           //NOTE: currently, the above delay is necessary (although should work even down to 10 millisec). Could find alternative way to re-load everything once all panels are ready.
            
         }
     }
+    propagateSource(){
+      for (let target of this.targets){
+        // target.flashSpline(); // ?
+        target.target.propagateSource();
+      }
+    }
+}
+
+class ChrDecompressPanel extends Panel{
+  constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+      super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+      
+  }
+  propagateSource(){
+    console.log(this.sources[0]);
+    this.data = new Data( chrDecompress( Array(...this.sources[0].source.data.data) ), "bytes", this.sources[0].source.data.name+"_Decompressed" );
+    
+    this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+  }
+
+}
+
+class HexPanel extends Panel{
+  constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+
+      super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+      
+      
+      this.selectedTile = 1;
+
+      this.scrollGroup = 0; // currently-viewed group
+      this.scrolling = false;
+      this.groupSize = 64; // dev settings
+      
+
+      ////////////////
+
+      this.panelContent.innerHTML +=
+          `<div class="hex_header"></div>
+          <div class="hex_content"
+           style=""></div>`;
+
+      this.panelContent.setAttribute("data-mode","byte16");
+
+      this.panelContent.classList.add("hex_panel_content");
+
+      // Add details about Line Height to settings:
+      this.settings['Line Height'] = {value:3};
+
+      // Add a byte-width change button to settings:
+      this.settings['Number of Columns'] = {value:16};
+      this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+      // this.lineHeightInPx = this.getLineHeightInPx();
+      this.settings['Spacing Every x Bytes'] = {value:'None'}
+      this.settings['Spacing Amount'] = {value:0}
+      
+    //TODO: settings for adjusting "line-spacing":
+    // use:
+    // let newLineHeight = "4em";
+    // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
+
+    this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
+    // this.settings['Byte Mode'] = 'nibble';
+    // this.settings['Byte Mode'] = 'bit';
+
+        //// Move the following event listeners to propagateSource? //////
+      setTimeout( ()=>{
+        let byteWidthButton = document.createElement("button");
+        // byteWidthButton.className = "downloadButtons";
+        byteWidthButton.innerHTML = "Change Number of Columns";
+        byteWidthButton.title = "Change Number of Columns (16/32)";
+        byteWidthButton.style.height = "2em";
+        this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( byteWidthButton );
+        this.settings['Number of Columns'].html = [this.byteWidthButton];
+
+        this.byteWidthButton.addEventListener("click", (event) => {
+          this.panelContent.classList.toggle("hex_panel_content_32wide");
+          // toggle within settings for refering to elsewhere
+          this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
+          this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
+          this.setPanelContentColumns();
+          this.setPanelContentRows();
+          // Update line/group/row heights:
+          // this.updateLines();
+
+        });
+        console.log("byte width button added...");
+      },
+      2100
+    );
+
+
+    // debug 
+
+    // if (kind=='hexViewer'){
+
+    //   this.data = {
+    //       name: "Debug",
+    //       kind: "bytes",
+    //       data: Array.from(Array(128*64).keys()).map(d=>Math.round(255*Math.random())),
+    //       panel: this,
+    //       from: this.links[0]
+    //   };
+    //   this.initHex(); //generates the strings
+    //   this.generateLineSpacingRange();
+    //   this.setPanelContentColumns();
+      
+    //   this.setPanelContentRows();
+    //   this.generateHexHeaderHTML();
+    //   this.generateHexHTML( this.data.data, 0, this.groupSize*2);
+    //   // this.hexScroll();
+    //   // setTimeout( ()=>{this.hexScroll();}, 1000); // will generate an appropriate amount of rows 
+    //   // this.updateLines();
+    //   // end debug
+    // }
+
+    // add scroll tracker to hexContent
+    this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
+          (event)=>{
+            if (!this.scrolling){
+              requestAnimationFrame( ()=>{
+              // scroll updating, with some debouncing.
+                this.scrolling = true;
+                this.hexScroll();
+                // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+              } );
+            }
+        });
+        //////////////////////////////////////////////////////
+
+      
+  }
+  propagateSource(){
+
+    console.log(this.sources[0]);
+
+    //HACK: We're assuming there will be only one source panel for hex viewers,
+    // so we just use the most recent one that has data.
+    // in the future we may want to modify this to concatenate hex data, or write it to specific offsets.
+    let data = this.sources.reduce((s,d,i)=>d?(d.source?(d.source.data?d.source.data:s):s):s , undefined);
+    if ( !data ) return 0;
+    if ( !data.data ) return 0;
+    
+    
+    this.data = new Data(  Array( ...data.data), data.name, "bytes" );
+
+    // download setup
+    if (!this.downloadButton) this.generateDownloadButton( this.data.data, this.data.name.replace(".","_")+".bin");
+
+    this.initHex(); //generates the strings
+    this.generateLineSpacingRange();
+    this.setPanelContentColumns();
+    
+    this.setPanelContentRows();
+    this.generateHexHeaderHTML();
+    this.generateHexHTML( this.data.data, 0, this.groupSize*4);
+    this.hexScroll(); // should generate enough to cover the view window
+      
+
+    // create the button used to run the decomp animation 
+    // if this panel is hex with a "nibling" hex coming from a decomp:
+    //        parent
+    //          |                   
+    //         / \                  
+    //       /    \                 
+    //   this     sibling           
+    //         (is ChrDecompressPanel)
+    //              |                   
+    //              |               
+    //            nibling           
+    //         (is HexPanel)         
+    //
+    //NOTE: maybe too complicated... could assign directly...?
+    function findHexDecompNiblingOfHexComp( hexComp){
+      for (let parentLink of hexComp.sources)
+        if (parentLink.source)
+          for (let siblingLink of parentLink.source.targets)
+            if (siblingLink.target) if (siblingLink.target instanceof ChrDecompressPanel)
+              for (let niblingLink of siblingLink.target.targets)
+                if (niblingLink.target) if (niblingLink.target instanceof HexPanel) 
+                  return niblingLink.target;
+    }
+          
+    var foundNibling = findHexDecompNiblingOfHexComp( this );
+
+    if (foundNibling && !this.animateDecompButton) this.generateAnimateDecompButton( foundNibling); 
+
+    this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+
+  }
+
 }

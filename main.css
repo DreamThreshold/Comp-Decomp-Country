@@ -243,6 +243,13 @@ button{
   border: 0px solid var(--superDarkGray);
   border-radius: 0px;
 }
+/* when we look "under the hood" to see the underlysing data, settings, and function definitions
+(if we ever implement that... */
+.panel_inner_lifted_hood{
+  transition: 3s;
+  transform: rotateX(90deg);
+  transform-origin: center top 0px;
+}
 /* .panel_inner::after{
   background-color: yellow;
   margin-left: 20px;
@@ -347,9 +354,9 @@ button{
 }
 .panel_header_title{
 
-  margin:1ch;
-  margin-right: 2ch;
-  font-size: 1em;;
+  margin:0.5ch;
+  /* margin-right: 2ch; */
+  font-size: 0.8em;;
   font-family:Arial, Helvetica, sans-serif;
   /* note: using nowrap and overflow:hidden so the title doesn't
     wrap and increase the height of the header,
@@ -527,7 +534,7 @@ button{
   
   display: grid;
   grid-template-columns: subgrid;
-  grid-template-rows: 1fr;  
+  grid-template-rows: 100%;  
   grid-column: 2 / -2;
   font-weight: 900;
   overflow: hidden;

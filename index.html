@@ -94,7 +94,7 @@
 
 
 
-
+// note: UImodel superseded by Workspace
 class UImodel {
   constructor(grid, panelsParams, name=null ) {
 
@@ -150,8 +150,11 @@ class UImodel {
     this.assignDrag();
     
   }
-  addLink(){
+  addPanel(){
 
+  }
+  addLink( link ){
+    // actually not much is done here, it's mostly done by Link constructor...
   }
   
   assignDrag(){
@@ -207,9 +210,125 @@ class UImodel {
   }
 }
 
-//
-//   Create the ui and panels
-//
+
+// note: UImodel superseded by Workspace
+class Workspace {
+  constructor(grid, name=null ) {
+
+    this.grid = grid;
+    this.workspace = this.grid.parentNode;
+    this.panels = [];
+
+    // for (let i = 0; i<panelsParams.length; i++){
+    //     //HACK: surely a better way to do this but whatever
+    //     if ( panelsParams[i][0] == "textDescription") {
+    //       this.panels.push( new TextPanel(this,
+    //         panelsParams[i][0], panelsParams[i][1], panelsParams[i][2],
+    //         panelsParams[i][3], panelsParams[i][4], panelsParams[i][5],
+    //         panelsParams[i][6], panelsParams[i][7] )
+    //       );
+    //       continue;
+    //     }
+    //     if ( panelsParams[i][0] == "fileIn") {
+    //       this.panels.push( new FilePanel(this,
+    //         panelsParams[i][0], panelsParams[i][1], panelsParams[i][2],
+    //         panelsParams[i][3], panelsParams[i][4], panelsParams[i][5],
+    //         panelsParams[i][6], panelsParams[i][7] )
+    //       );
+    //       continue;
+    //     }
+    //     this.panels.push( new Panel(this,
+    //         panelsParams[i][0], panelsParams[i][1], panelsParams[i][2],
+    //         panelsParams[i][3], panelsParams[i][4], panelsParams[i][5],
+    //         panelsParams[i][6], panelsParams[i][7] )
+    //     );
+
+    // }
+
+    this.name = name ? name : "Workspace_"+Date.now();
+    this.sources = []; // will contain source data from files
+    this.links = [];
+
+    // perform the linking of panels
+    // for (let panel of this.panels){
+    //     for (let link of panel.links){
+    //         console.log(`Pushing link: [${link.name}] --> [${panel.name}]`);
+    //         link.nexts.push(panel);
+    //     }
+    // }
+    
+    // for (let panel of this.panels) 
+    //   for (let link of panel.links)
+    //     if (link)
+    //       link.nexts.push(panel);
+    
+
+    this.workspace.setAttribute('data-draggable', "true");
+    this.assignDrag();
+    
+  }
+  addPanel(){
+
+  }
+  addLink( link ){
+    // actually not much is done here, it's mostly done by Link constructor...
+    return link;
+  }
+  
+  assignDrag(){
+    // Drag the panel around by grabbing its header
+    var element = this.workspace;
+    var deltaX = 0, deltaY = 0, startX = 0, startY = 0, left, top;
+
+    let dragDiv = document.getElementById("main"); // should allow dragging from anywhere
+    dragDiv.addEventListener("mousedown", (event) => {
+      if (!event.ctrlKey) return 0;
+      event = event || window.event;
+      event.preventDefault();
+      startX = event.clientX;
+      startY = event.clientY;
+      document.onmouseup = dragClose;
+      document.onmousemove = dragMove;
+      console.log("drag: mouse down");
+      // panel.sortZ();
+      
+    });
+
+    function dragMove(event){
+      event = event || window.event;
+      event.preventDefault();
+
+      if (element.getAttribute('data-draggable')=="false") return 0;
+
+      deltaX = startX - event.clientX;
+      deltaY = startY - event.clientY;
+      startX = event.clientX;
+      startY = event.clientY;
+
+      left = element.offsetLeft - deltaX;
+      element.style.left = `${left}px`;
+      element.setAttribute('data-user-left', left);
+
+      // top = Math.max(element.offsetTop - deltaY, 0);
+      top = element.offsetTop - deltaY;
+      console.log(`element.offsetTop ${element.offsetTop} - deltaY ${deltaY}`);
+      element.style.top = `${top}px`;
+      element.setAttribute('data-user-top', top);
+
+      
+      console.log("drag: moved");
+
+    }
+
+    function dragClose(event){
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+
+  }
+}
+
+// quick and dirty "collapser" feature.
 function hideParent(e) {
 	// console.log(e);
   let str1 = '';
@@ -227,6 +346,33 @@ function hideParent(e) {
 
 
 }
+
+//
+//   Create the ui and panels
+//
+
+let c0 = 1, c1 = 8, c2 = 16, c3=27-3;
+let cx = c2*1;
+let dx = cx+5;
+let d0 = c1, d1 = c2, d2=c3, d3=33;
+
+const workspace1 = new Workspace( document.getElementById("panelgrid_1") );
+
+var inputPanel = new FilePanel(workspace1, "fileIn",  1,  3,    c0, d0,  "Input - Compressed Data");
+var decompressPanel = new ChrDecompressPanel(workspace1, "chrDecompress",  3,  3,    c0, d0,  "Decompress");
+var link1 = workspace1.addLink( new Link(inputPanel, decompressPanel) );
+
+
+var compHexPanel = new HexPanel( workspace1, "hexViewerComp",   1, 10, c1, d1,  "Hex Viewer - Compressed Data", [0]); // 1
+var link2 = workspace1.addLink( new Link(inputPanel, compHexPanel) );
+var decompHexPanel = new HexPanel( workspace1, "hexViewer",  10, 19, c1, d1,  "Hex Viewer - Decompressed Data", [0, null, 1]); // 2
+var link3 = workspace1.addLink( new Link(decompressPanel, decompHexPanel) );
+
+
+// var inputPanel = ui.addNode( new FilePanel ("Input - Compressed Data"),          [1,  3,    c0, d0]  );
+// var compHexPanel = ui.addNode( new HexPanel ("Hex Viewer - Compressed Data"),          [1, 15,    c1, d1]  );
+// ui.addLink( new Link(inputPanel, compHexPanel) )
+
 
 let collapser = `<a style="cursor: pointer;position: absolute; left:-1em;" onclick="hideParent(this)">-</a>`;
 
@@ -344,11 +490,7 @@ panelTypesMerged,
 aboutText2 = `<div class="text_content" >`+paragraphs.reduce((s,d,i)=>s+=`<div style="position: relative;margin-left:1em;" >`+collapser+`<p>`+d+`</p><br></div>`,``)+`</div>`;
 
 
-// const ui = new UImodel( "main", document.getElementById("panelgrid") );
-// var inputPanel = ui.addNode( new FilePanel ("Input - Compressed Data"),          [1,  3,    c0, d0]  );
-// var compHexPanel = ui.addNode( new HexPanel ("Hex Viewer - Compressed Data"),          [1, 15,    c1, d1]  );
-// ui.addLink( new Link(inputPanel, compHexPanel) )
-
+/*
 
 // let c0 = 2, c1 = 11, c2 = 20, c3=29;
 let c0 = 1, c1 = 8, c2 = 16, c3=27-3;
@@ -402,7 +544,7 @@ const ui = new UImodel(
 
 let pg = document.getElementById("panelgrid_1");
 
-
+*/
 
 </script>
 
