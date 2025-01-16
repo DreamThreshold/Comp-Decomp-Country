@@ -407,116 +407,13 @@ class Panel {
           case "hexViewerComp":
           case "hexViewerCompressed":
           case "hexViewer":
-            //   this.selectedTile = 1;
-  
-              
-  
-            //   this.scrollGroup = 0; // currently-viewed group
-            //   this.scrolling = false;
-            //   this.groupSize = 64; // dev settings
-              
-  
-            //   ////////////////
-  
-            //   this.panelContent.innerHTML +=
-            //       `<div class="hex_header"></div>
-            //       <div class="hex_content"
-            //        style=""></div>`;
-  
-            //   this.panelContent.setAttribute("data-mode","byte16");
-
-            //   this.panelContent.classList.add("hex_panel_content");
-  
-            //   // Add details about Line Height to settings:
-            //   this.settings['Line Height'] = {value:3};
-  
-            //   // Add a byte-width change button to settings:
-            //   this.settings['Number of Columns'] = {value:16};
-            //   this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
-            //   // this.lineHeightInPx = this.getLineHeightInPx();
-            //   this.settings['Spacing Every x Bytes'] = {value:'None'}
-            //   this.settings['Spacing Amount'] = {value:0}
-              
-            // //TODO: settings for adjusting "line-spacing":
-            // // use:
-            // // let newLineHeight = "4em";
-            // // Array.from(document.getElementsByClassName("hex_byte")).forEach(d=>d.style.height=newLineHeight);
-
-            // this.settings['Byte Mode'] = 'byte'; // 'nibble', 'bit'
-            // // this.settings['Byte Mode'] = 'nibble';
-            // // this.settings['Byte Mode'] = 'bit';
-  
-            //     //// Move the following event listeners to propagateSource? //////
-            //   setTimeout( ()=>{
-            //     let byteWidthButton = document.createElement("button");
-            //     // byteWidthButton.className = "downloadButtons";
-            //     byteWidthButton.innerHTML = "Change Number of Columns";
-            //     byteWidthButton.title = "Change Number of Columns (16/32)";
-            //     byteWidthButton.style.height = "2em";
-            //     this.byteWidthButton = this.inner.querySelector(".panel_menu").appendChild( byteWidthButton );
-            //     this.settings['Number of Columns'].html = [this.byteWidthButton];
-  
-            //     this.byteWidthButton.addEventListener("click", (event) => {
-            //       this.panelContent.classList.toggle("hex_panel_content_32wide");
-            //       // toggle within settings for refering to elsewhere
-            //       this.settings['Number of Columns'].value = this.settings['Number of Columns'].value==16?32:16;
-            //       this.columnBits = (Math.log(this.settings['Number of Columns'].value)/Math.LN2);
-            //       this.setPanelContentColumns();
-            //       this.setPanelContentRows();
-            //       // Update line/group/row heights:
-            //       // this.updateLines();
-  
-            //     });
-            //     console.log("byte width button added...");
-            //   },
-            //   2100
-            // );
-    
-  
-            // // debug 
-  
-            // // if (kind=='hexViewer'){
-  
-            // //   this.data = {
-            // //       name: "Debug",
-            // //       kind: "bytes",
-            // //       data: Array.from(Array(128*64).keys()).map(d=>Math.round(255*Math.random())),
-            // //       panel: this,
-            // //       from: this.links[0]
-            // //   };
-            // //   this.initHex(); //generates the strings
-            // //   this.generateLineSpacingRange();
-            // //   this.setPanelContentColumns();
-              
-            // //   this.setPanelContentRows();
-            // //   this.generateHexHeaderHTML();
-            // //   this.generateHexHTML( this.data.data, 0, this.groupSize*2);
-            // //   // this.hexScroll();
-            // //   // setTimeout( ()=>{this.hexScroll();}, 1000); // will generate an appropriate amount of rows 
-            // //   // this.updateLines();
-            // //   // end debug
-            // // }
-  
-            // // add scroll tracker to hexContent
-            // this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
-            //       (event)=>{
-            //         if (!this.scrolling){
-            //           requestAnimationFrame( ()=>{
-            //           // scroll updating, with some debouncing.
-            //             this.scrolling = true;
-            //             this.hexScroll();
-            //             // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
-            //           } );
-            //         }
-            //     });
             //     //////////////////////////////////////////////////////
-  
             break;
   
           case "paletteViewer":
-            this.inner.classList.add("panel_inner_palette");
-            this.panelContent.innerHTML +=
-                  `<div class="palette_content" ></div>`;
+            // this.inner.classList.add("panel_inner_palette");
+            // this.panelContent.innerHTML +=
+            //       `<div class="palette_content" ></div>`;
             break;
   
           case "tilesetViewer":
@@ -526,31 +423,31 @@ class Panel {
             // break;
   
           case "metatilesViewer":
-            this.settings['Number of Columns'] = {value:4};
+            // this.settings['Number of Columns'] = {value:4};
   
-            this.inner.classList.add("panel_inner_tileset");
-            this.panelContent.innerHTML += `\
-              <div class="tileset_content">
-                <div class="grid_placeholder" style="grid-column: 1 / -1; grid-row: 1;">
-              </div>`;
-              // this placeholder will help maintain the size of the grid even when we remove elements from it, so the scrollbar will be accurate
+            // this.inner.classList.add("panel_inner_tileset");
+            // this.panelContent.innerHTML += `\
+            //   <div class="tileset_content">
+            //     <div class="grid_placeholder" style="grid-column: 1 / -1; grid-row: 1;">
+            //   </div>`;
+            //   // this placeholder will help maintain the size of the grid even when we remove elements from it, so the scrollbar will be accurate
   
-            // add scroll tracker to hexContent
-            this.scrolling = false;
-            this.scrollGroup = 0;
-            this.groupSize = 1;
-            this.inner.querySelector(".panel_content > .tileset_content").addEventListener("scroll", (event)=>{
+            // // add scroll tracker to hexContent
+            // this.scrolling = false;
+            // this.scrollGroup = 0;
+            // this.groupSize = 1;
+            // this.inner.querySelector(".panel_content > .tileset_content").addEventListener("scroll", (event)=>{
   
-                    console.log('tileset scroll event listener');
-                    if (!this.scrolling){
-                      requestAnimationFrame( ()=>{
-                      // scroll updating, with some debouncing.
-                        this.scrolling = true;
-                        this.tileScroll();
-                        // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
-                      } );
-                    }
-                });
+            //         console.log('tileset scroll event listener');
+            //         if (!this.scrolling){
+            //           requestAnimationFrame( ()=>{
+            //           // scroll updating, with some debouncing.
+            //             this.scrolling = true;
+            //             this.tileScroll();
+            //             // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+            //           } );
+            //         }
+            //     });
   
             break;
   
@@ -2644,38 +2541,38 @@ class Panel {
           break;
   
         case "paletteViewer":
-          this.data = {
-              name: "Decompressed from "+this.links[0].data.filename,
-              kind: "bytes",
-              data: palette2rgb( this.links[0].data.data ),
-              panel: this,
-              from: this.links[0]
-          };
-          this.generatePaletteHTML( this.data.data);
+          // this.data = {
+          //     name: "From "+this.links[0].data.filename,
+          //     kind: "bytes",
+          //     data: palette2rgb( this.links[0].data.data ),
+          //     panel: this,
+          //     from: this.links[0]
+          // };
+          // this.generatePaletteHTML( this.data.data);
           break;
   
         case "tilesetViewer":
-          // break;
-          // de-intertwine the bitplanes, show tilesets
-          // (only if we have actual data (this.links[0]), not just palette (this.links[1]) )
-          //TODO: better way to source filename
-          if (this.links[0].data && !this.generated){
-            this.data = {
-                name: "De-intertwined from "+this.links[0].data.from.data.filename,
-                kind: "tiles",
-                data: unbitplane( this.links[0].data.data ),
-                panel: this,
-                from: this.links[0]
-            };
-            // Don't actually use the imported big palette, bc we don't know which subset goes to each 8x8 tile
-            // if (this.links[1].data){
-            //   this.palette =  this.links[1].data.data ;
-            // }
-            // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
-            this.initTiles();
-            this.generateTilesetHTML( this.data.data);
-            this.generated = true;
-          }
+          // // break;
+          // // de-intertwine the bitplanes, show tilesets
+          // // (only if we have actual data (this.links[0]), not just palette (this.links[1]) )
+          // //TODO: better way to source filename
+          // if (this.links[0].data && !this.generated){
+          //   this.data = {
+          //       name: "De-intertwined from "+this.links[0].data.from.data.filename,
+          //       kind: "tiles",
+          //       data: unbitplane( this.links[0].data.data ),
+          //       panel: this,
+          //       from: this.links[0]
+          //   };
+          //   // Don't actually use the imported big palette, bc we don't know which subset goes to each 8x8 tile
+          //   // if (this.links[1].data){
+          //   //   this.palette =  this.links[1].data.data ;
+          //   // }
+          //   // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
+          //   this.initTiles();
+          //   this.generateTilesetHTML( this.data.data);
+          //   this.generated = true;
+          // }
           break;
   
         case "metatilesViewer":
@@ -2834,6 +2731,124 @@ class ChrDecompressPanel extends Panel{
 
 }
 
+class UnbitplanePanel extends Panel{
+  constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+      super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+      
+  }
+  propagateSource(){
+    console.log(this.sources[0]);
+    this.data = new Data( unbitplane( Array(...this.sources[0].source.data.data) ), "index tiles", this.sources[0].source.data.name+"_Unbitplaned" );
+    
+    this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+  }
+
+}
+
+class TilesetPanel extends Panel{
+  constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+      super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+      
+      this.settings['Number of Columns'] = {value:4};
+  
+      this.inner.classList.add("panel_inner_tileset");
+      this.panelContent.innerHTML += `\
+        <div class="tileset_content">
+          <div class="grid_placeholder" style="grid-column: 1 / -1; grid-row: 1;">
+        </div>`;
+        // this placeholder will help maintain the size of the grid even when we remove elements from it, so the scrollbar will be accurate
+
+      // add scroll tracker to hexContent
+      this.scrolling = false;
+      this.scrollGroup = 0;
+      this.groupSize = 1;
+      this.inner.querySelector(".panel_content > .tileset_content").addEventListener("scroll", (event)=>{
+
+          console.log('tileset scroll event listener');
+          if (!this.scrolling){
+            requestAnimationFrame( ()=>{
+            // scroll updating, with some debouncing.
+              this.scrolling = true;
+              this.tileScroll();
+              // setTimeout( this.hexScroll(), 500); //HACK: because "scrollend" isn't supported in safari yet.
+            } );
+          }
+      });
+  }
+
+  propagateSource(){
+
+    let data = this.sources.reduce(
+      (s,sourceLink)=>sourceLink?(sourceLink.source && (sourceLink.source instanceof UnbitplanePanel)?(sourceLink.source.data?sourceLink.source.data:s):s):s , undefined);
+    if ( !data ) return 0;
+    if ( !data.data ) return 0;
+    
+    
+    this.data = new Data(  data.data, data.name, "tileset" );
+
+    // Don't actually use the imported big palette, bc we don't know which subset goes to each 8x8 tile
+    // if (this.links[1].data){
+    //   this.palette =  this.links[1].data.data ;
+    // }
+    // this.panelContent.querySelector(".tileset_content").style.gridTemplateColumns = '';
+    // clear first to prevent duplicates (it was happening previously)
+    this.panelContent.querySelector(".tileset_content > div").forEach(d=>d.remove());
+
+    this.initTiles();
+    this.generateTilesetHTML( this.data.data);
+    this.generated = true;
+
+    this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+
+  }
+
+}
+
+
+class PalettePanel extends Panel{
+  constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+      super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+    
+      
+      this.inner.classList.add("panel_inner_palette");
+      this.panelContent.innerHTML +=
+            `<div class="palette_content" ></div>`;
+  }
+
+  propagateSource(){
+
+    let data = this.sources.reduce(
+      (s,sourceLink)=>sourceLink?(sourceLink.source && (sourceLink.source instanceof Palette2RGBPanel)?(sourceLink.source.data?sourceLink.source.data:s):s):s , undefined);
+    if ( !data ) return 0;
+    if ( !data.data ) return 0;
+        
+    this.data = new Data(  data.data, data.name, "palette" );
+
+    this.generatePaletteHTML( this.data.data);
+
+    this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+
+  }
+
+}
+
+class Palette2RGBPanel extends Panel{
+  constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
+      super(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name, links, content); // calls constructor of parent Panel class
+      
+  }
+  propagateSource(){
+    // console.log(this.sources[0]);
+    if (!this.sources[0].source.data) return 0; 
+
+    this.data = new Data( palette2rgb( Array(...this.sources[0].source.data.data) ), "RGB Palette", this.sources[0].source.data.name+"_RGB" );
+    
+    this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+  }
+
+}
+
+
 class HexPanel extends Panel{
   constructor(parentUI, kind, rowStart, rowEnd, columnStart, columnEnd, name=null, links=null, content=''){
 
@@ -2903,31 +2918,6 @@ class HexPanel extends Panel{
       2100
     );
 
-
-    // debug 
-
-    // if (kind=='hexViewer'){
-
-    //   this.data = {
-    //       name: "Debug",
-    //       kind: "bytes",
-    //       data: Array.from(Array(128*64).keys()).map(d=>Math.round(255*Math.random())),
-    //       panel: this,
-    //       from: this.links[0]
-    //   };
-    //   this.initHex(); //generates the strings
-    //   this.generateLineSpacingRange();
-    //   this.setPanelContentColumns();
-      
-    //   this.setPanelContentRows();
-    //   this.generateHexHeaderHTML();
-    //   this.generateHexHTML( this.data.data, 0, this.groupSize*2);
-    //   // this.hexScroll();
-    //   // setTimeout( ()=>{this.hexScroll();}, 1000); // will generate an appropriate amount of rows 
-    //   // this.updateLines();
-    //   // end debug
-    // }
-
     // add scroll tracker to hexContent
     this.inner.querySelector(".panel_content > .hex_content").addEventListener("scroll",
           (event)=>{
@@ -2941,7 +2931,6 @@ class HexPanel extends Panel{
             }
         });
         //////////////////////////////////////////////////////
-
       
   }
   propagateSource(){

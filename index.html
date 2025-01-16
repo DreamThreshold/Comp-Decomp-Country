@@ -358,16 +358,31 @@ let d0 = c1, d1 = c2, d2=c3, d3=33;
 
 const workspace1 = new Workspace( document.getElementById("panelgrid_1") );
 
+// input and decompressor
 var inputPanel = new FilePanel(workspace1, "fileIn",  1,  3,    c0, d0,  "Input - Compressed Data");
 var decompressPanel = new ChrDecompressPanel(workspace1, "chrDecompress",  3,  3,    c0, d0,  "Decompress");
 var link1 = workspace1.addLink( new Link(inputPanel, decompressPanel) );
 
-
+// hex viewers for comp/decomp
 var compHexPanel = new HexPanel( workspace1, "hexViewerComp",   1, 10, c1, d1,  "Hex Viewer - Compressed Data", [0]); // 1
 var link2 = workspace1.addLink( new Link(inputPanel, compHexPanel) );
 var decompHexPanel = new HexPanel( workspace1, "hexViewer",  10, 19, c1, d1,  "Hex Viewer - Decompressed Data", [0, null, 1]); // 2
 var link3 = workspace1.addLink( new Link(decompressPanel, decompHexPanel) );
 
+// unbitplane and show tiles
+var unbitplanePanel = new UnbitplanePanel( workspace1, "unbitplane",     1, 15,    c2, d2, "Unbitplane");
+var link4 = workspace1.addLink( new Link(decompressPanel, unbitplanePanel) );
+var tilesetViewer = new TilesetPanel( workspace1, "tilesetViewer",  15, 19,   c2, d2-1,  "Tiles");
+var link5 = workspace1.addLink( new Link( unbitplanePanel, tilesetViewer) ); 
+
+// palette
+var paletteInputPanel = new FilePanel(workspace1, "fileIn", 1,  3,    c3, d3,  "Input - Palette");  //  3
+var pal2rgbPanel = new Palette2RGBPanel(workspace1, "palette2rgb", 4,  6,    c3+2, d3+2,  "Convert Palette to RGB");  //  3
+var link6 = workspace1.addLink( new Link( paletteInputPanel, pal2rgbPanel) ); 
+
+
+var paletteViewer = new PalettePanel( workspace1, "paletteViewer",  3,  6,    c3, d3,  "Palette", [3]); // 4
+var link7 = workspace1.addLink( new Link( pal2rgbPanel, paletteViewer) ); 
 
 // var inputPanel = ui.addNode( new FilePanel ("Input - Compressed Data"),          [1,  3,    c0, d0]  );
 // var compHexPanel = ui.addNode( new HexPanel ("Hex Viewer - Compressed Data"),          [1, 15,    c1, d1]  );
