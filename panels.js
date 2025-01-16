@@ -55,8 +55,10 @@ class Link{
   updateSpline(){
     // modify the size of the svg, and the location og the end of the spline,
     // so it aligns with the target Panel.
-    this.spline.setAttribute("d", this.generateD());
-    this.spline.style.zIndex = ((1*this.target.outer.style.zIndex)+1)+'';
+    // this.spline.setAttribute("d", this.generateD());
+    // this.spline.style.zIndex = ((1*this.target.outer.style.zIndex)+1)+'';
+    this.sourcespline.setAttribute("d", this.generateSourceD());
+    this.targetspline.setAttribute("d", this.generateTargetD());
     // update text label?
   }
   generateD(){
@@ -74,18 +76,73 @@ class Link{
     const endm = 2; // end margin
     // return `M ${so.offsetWidth},0 
     //         L ${to.offsetLeft-(so.offsetLeft)},${to.offsetTop-(so.offsetTop)}`;
-            return `M ${so.offsetWidth},0 
-                    C ${so.offsetWidth+ctrl},0 
-                      ${to.offsetLeft-(so.offsetLeft)-(ctrl+arrw)},${to.offsetTop-(so.offsetTop)} 
-                      ${to.offsetLeft-(so.offsetLeft)-arrw-endm},${to.offsetTop-(so.offsetTop)} 
-                    L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} 
-                    M ${to.offsetLeft-(so.offsetLeft)-(arrw)-endm},${to.offsetTop-(so.offsetTop)-arrw} 
-                    L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} 
-                    M ${to.offsetLeft-(so.offsetLeft)-(arrw)-endm},${to.offsetTop-(so.offsetTop)+arrw} 
-                    L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} `;
+    return `M ${so.offsetWidth},0 
+            C ${so.offsetWidth+ctrl},0 
+              ${to.offsetLeft-(so.offsetLeft)-(ctrl+arrw)},${to.offsetTop-(so.offsetTop)} 
+              ${to.offsetLeft-(so.offsetLeft)-arrw-endm},${to.offsetTop-(so.offsetTop)} 
+            L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} 
+            M ${to.offsetLeft-(so.offsetLeft)-(arrw)-endm},${to.offsetTop-(so.offsetTop)-arrw} 
+            L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} 
+            M ${to.offsetLeft-(so.offsetLeft)-(arrw)-endm},${to.offsetTop-(so.offsetTop)+arrw} 
+            L ${to.offsetLeft-(so.offsetLeft)-endm},${to.offsetTop-(so.offsetTop)} `;
   
   }
+  generateSourceD(){
+    // return `M 10,30
+    //     A 20,20 0,0,1 50,30
+    //     A 20,20 0,0,1 190,30
+    //     Q 190,60 50,90
+    //     Q 10,60 10,30 z`;
+    let so = this.source.outer, to = this.target.outer;
+    // const ctrl = 30; // control point distance
+    const ctrly = 0.25* Math.abs(to.offsetTop-so.offsetTop);
+    // const ctrl = ctrly + 20 + ( 0.33*Math.abs(to.offsetLeft - (so.offsetLeft+so.offsetWidth) ));
+    
+    const arrw = 5; // half of arrowhead width
+    const endm = 2; // end margin
+    // return `M ${so.offsetWidth},0 
+    //         L ${to.offsetLeft-(so.offsetLeft)},${to.offsetTop-(so.offsetTop)}`;
+    let midx = (to.offsetLeft -(endm+arrw) - (so.offsetLeft+so.offsetWidth)) / 2;
+    let midy = (to.offsetTop-so.offsetTop) / 2;
+    const ctrl = Math.abs(midx)+Math.abs(0.2*midy);
 
+    return `M ${so.offsetWidth},0 
+            q ${ctrl},0 
+              ${midx},${midy} 
+              `;
+  
+  }
+  generateTargetD(){
+    // return `M 10,30
+    //     A 20,20 0,0,1 50,30
+    //     A 20,20 0,0,1 190,30
+    //     Q 190,60 50,90
+    //     Q 10,60 10,30 z`;
+    let so = this.source.outer, to = this.target.outer;
+    // const ctrl = 30; // control point distance
+    const ctrly = 0.25* Math.abs(to.offsetTop-so.offsetTop);
+    // const ctrl = ctrly + 20 + ( 0.33*Math.abs(to.offsetLeft - (so.offsetLeft+so.offsetWidth) ));
+    
+    const arrw = 5; // half of arrowhead width
+    const endm = 2; // end margin
+    
+    
+    // return `M ${so.offsetWidth},0 
+    //         L ${to.offsetLeft-(so.offsetLeft)},${to.offsetTop-(so.offsetTop)}`;
+    let midx = -(to.offsetLeft - (endm+arrw) - (so.offsetLeft+so.offsetWidth)) / 2;
+    let midy = -(to.offsetTop-so.offsetTop) / 2;
+    const ctrl = Math.abs(midx)+Math.abs(0.2*midy);
+
+    return `M ${midx-arrw-endm},${midy} 
+            Q ${-ctrl-arrw-endm},${0} 
+              ${-arrw-endm},${0} 
+            L ${-endm},${0} 
+            M ${-arrw-endm},${-arrw} 
+            L ${-endm},${0} 
+            M ${-arrw-endm},${+arrw} 
+            L ${-endm},${0} `;
+  
+  }
 
   generateSpline(){
     // create the svg and add it to an area of the source Panel.
@@ -95,17 +152,35 @@ class Link{
     var dompsvg = domp.parseFromString(
       `<svg viewBox="0 0 1 1" preserveAspectRatio="none" width="auto" height="auto" xmlns="http://www.w3.org/2000/svg" 
          style="overflow: visible; grid-column: 1 / -1; grid-row: 1 / -1; pointer-events:none; position:relative; width:1px; height:1px; z-index:-1; margin-top:calc(var(--panelHeaderHeight) / 2);">
-          <path
-            d="${this.generateD(this.source, this.target)}" fill="none" stroke-width="3" 
+          <path class="firstHalfOut"
+            d="${this.generateSourceD(this.source, this.target)}" fill="none" stroke-width="3" 
               stroke="rgb(194,189,235)" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
         `,
         "image/svg+xml"
     );
+
     // console.log(dompsvg);
-    this.svg = this.source.outer.appendChild( dompsvg.documentElement );
-    this.spline = this.svg.querySelector('path');
-    console.log(this.spline);
+    this.sourcesvg = this.source.outer.appendChild( dompsvg.documentElement );
+    this.sourcespline = this.sourcesvg.querySelector('path');
+    //stroke="rgb(254,89,85)" 
+    dompsvg = domp.parseFromString(
+      `<svg viewBox="0 0 1 1" preserveAspectRatio="none" width="auto" height="auto" xmlns="http://www.w3.org/2000/svg" 
+         style="overflow: visible; grid-column: 1 / -1; grid-row: 1 / -1; pointer-events:none; position:relative; width:1px; height:1px; z-index:-1; margin-top:calc(var(--panelHeaderHeight) / 2);">
+          <path class="lastHalfIn"
+            d="${this.generateTargetD(this.source, this.target)}" fill="none" stroke-width="3" 
+              stroke="rgb(194,189,235)" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        `,
+        "image/svg+xml"
+    );
+
+    // console.log(dompsvg);
+    this.targetsvg = this.target.outer.appendChild( dompsvg.documentElement );
+    this.targetspline = this.targetsvg.querySelector('path');
+
+
+    // console.log(this.spline);
 
     this.path = null;
     if (this.label) this.text = null;
