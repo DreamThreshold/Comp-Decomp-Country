@@ -384,8 +384,8 @@ function metatile(tiles, tilemap32){
 function levelMap( metatiles, levelmetatiles ){
 
   console.log(`Indexing level map...`);
-  console.log(metatiles);
-  console.log(levelmetatiles);
+  // console.log(metatiles);
+  // console.log(levelmetatiles);
 
   var tl = 8; // good placeholder for future...?
 

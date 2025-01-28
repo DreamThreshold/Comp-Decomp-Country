@@ -167,7 +167,7 @@ class View {
                             <g id="elements_${this.name}"></g>
                           </svg>`;
     this.svg = document.getElementById(`svg_${this.name}`);
-    console.log(`elements_${this.name}`);
+    // console.log(`elements_${this.name}`);
     this.svgGroup = document.getElementById(`elements_${this.name}`);
 
     // Now make SVG strings for each element:

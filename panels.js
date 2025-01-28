@@ -254,9 +254,8 @@ class Link{
     return 0;
   }
   connectPorts( targetPort ){
-    console.log( 'connecting ports: ');
-    console.log( this.sourcePort);
-    console.log( targetPort);
+    console.log( 'attempting to connect 2 ports: ');
+    console.log( [this.sourcePort, targetPort]);
     
     // check if the target port is already occupied
     if ( targetPort.link ) return 1;
@@ -962,12 +961,12 @@ class Panel {
           `<div style="grid-column: span 9;">${ hex(i, i>>4?2:1)}</div>`, 
         ]
       ).join(``);
-      console.log('hex header generated');
+      // console.log('hex header generated');
     }
   
     initHex(){
       // initializes the offset values and strings that we'll probably use later
-      console.log("init hex");
+      // console.log("init hex");
       // generate hexadecimal and binary strings for each byte
       // this.data.hexStrings = this.data.data.map((d,i)=>hex(this.data.data[i],2));
       // this.data.binStrings = this.data.data.map((d,i)=>binar(this.data.data[i],8));
@@ -980,7 +979,6 @@ class Panel {
       this.data.offsetsHexStrings = this.data.offsets.map(d=>hex(d,6));
   
       // save the html nodes?
-      console.log(Math.ceil(this.data.data.length/this.groupSize));
       this.data.groupNodes = Array(Math.ceil(this.data.data.length/this.groupSize));
   
       // console.log('hex data:');
@@ -1179,7 +1177,7 @@ class Panel {
       // Math.min( this.getGroupOffsetFromByteLocation( windowScrollTop + (2*windowHeight) ), this.getNumberOfCells()-1 );
       // var bufferBottomOffsetGroup = this.groupSize * Math.floor( bufferBottomOffset/this.groupSize );
   
-      console.log(`Window top: ${windowScrollTop}, height ${windowHeight}; Scroll buffer from ${bufferTopOffsetGroup} |<-- ${currentOffset} [${currentOffsetGroup}] -->| ${bufferBottomOffsetGroup} (window height ${windowHeight}).`);
+      // console.log(`Window top: ${windowScrollTop}, height ${windowHeight}; Scroll buffer from ${bufferTopOffsetGroup} |<-- ${currentOffset} [${currentOffsetGroup}] -->| ${bufferBottomOffsetGroup} (window height ${windowHeight}).`);
   
       const setup = Date.now()-start;
   
@@ -1221,14 +1219,14 @@ class Panel {
   
       removes.forEach(d=>d.remove());
   
-      console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
+      // console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
       const added = Date.now()-start;
   
       // this.setPanelContentRows();
       
       // const setPanelRows = Date.now()-start;
   
-      console.log(`hexScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
+      // console.log(`hexScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
   
       this.scrolling = false; // say we're done
   
@@ -1246,7 +1244,7 @@ class Panel {
   
       // }
   
-      console.log("tileScroll()");
+      // console.log("tileScroll()");
   
       // batch DOM reads/writes for performance
       // / reads:
@@ -1287,7 +1285,7 @@ class Panel {
       // Math.min( this.getGroupOffsetFromByteLocation( windowScrollTop + (2*windowHeight) ), this.getNumberOfCells()-1 );
       // var bufferBottomOffsetGroup = this.groupSize * Math.floor( bufferBottomOffset/this.groupSize );
   
-      console.log(`Window top: ${windowScrollTop}, height ${windowHeight}; Scroll buffer from ${bufferTopOffset} |<-- ${currentOffset} [${currentOffset}] -->| ${bufferBottomOffset} (window height ${windowHeight}).`);
+      // console.log(`Window top: ${windowScrollTop}, height ${windowHeight}; Scroll buffer from ${bufferTopOffset} |<-- ${currentOffset} [${currentOffset}] -->| ${bufferBottomOffset} (window height ${windowHeight}).`);
   
       const setup = Date.now()-start;
   
@@ -1318,7 +1316,7 @@ class Panel {
         }
   
       }
-      console.log(existingCount+" groups were already existing.");
+      // console.log(existingCount+" groups were already existing.");
   
       adds.forEach(index => {
         if ( this.kind=="tilesetViewer" ) this.generateTilesetHTML( this.data.data, index, this.groupSize);
@@ -1327,7 +1325,7 @@ class Panel {
       removes.forEach(d=>d.remove());
   
       
-      console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
+      // console.log(`Added: ${adds.map(d=>hex(d,6)).join()}\nRemoved: ${removes.map(d=>d.id.substr((6))).join()}`);
   
       const added = Date.now()-start;
   
@@ -1335,14 +1333,14 @@ class Panel {
   
       // const setPanelRows = Date.now()-start;
   
-      console.log(`hexScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
+      // console.log(`hexScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
   
       this.scrolling = false; // say we're done
   
   
     }
     initTiles(){
-      console.log('init tiles');
+      // console.log('init tiles');
       // this.data.rawPixels = this.data.data.map(mt=>prepMetatile({metatile:mt,vflip:0,hflip:0},this.palette));
       this.data.rawPixels = this.data.data.map(tile=>tile.map(row=>row.map(colorIndex=>this.palette[colorIndex])));
       // generate canvas nodes?
@@ -1382,7 +1380,7 @@ class Panel {
     }
     initLvl(){
       // initializes the offset values and strings that we'll probably use later
-      console.log("init lvl");
+      // console.log("init lvl");
       
       // rearrange and extract raw pixel data so we don't have to keep doing it
       // this.data.rawPixels = this.data.data.map(mt=>prepMetatile(mt,this.palette));
@@ -1409,7 +1407,7 @@ class Panel {
   
     lvlScroll(){
   
-      console.log('lvlScroll()');
+      // console.log('lvlScroll()');
        
       // this is called within an event listener of the hex_content being scrolled
       const start = Date.now();
@@ -1437,7 +1435,7 @@ class Panel {
         x: Math.floor(windowScrollLeft/mtWidth), 
         y: Math.floor(windowScrollTop/mtHeight)
       };
-      console.log(currentOffset);
+      // console.log(currentOffset);
       
       if ( JSON.stringify(currentOffset)==JSON.stringify(this.scrollGroup)) {
         this.scrolling = false;
@@ -1458,7 +1456,7 @@ class Panel {
         bottom: Math.min( Math.floor( (windowScrollTop+(2*windowHeight)) / mtHeight), numRows-1),
   
       }
-      console.log(buffer);
+      // console.log(buffer);
   
       const setup = Date.now()-start;
   
@@ -1499,18 +1497,18 @@ class Panel {
             adds.push( (i*numRows) + j );
           }
   
-      console.log(existingCount+" groups were already existing.");
+      // console.log(existingCount+" groups were already existing.");
   
       adds.forEach(index=>this.generateLevelMapHTML( this.data.data, index, 1));
       removes.forEach(d=>d.remove());
-      console.log(`Added: ${adds.join()}\nRemoved: ${removes.map(d=>d.id.substr(9)).join()}`);
+      // console.log(`Added: ${adds.join()}\nRemoved: ${removes.map(d=>d.id.substr(9)).join()}`);
       const added = Date.now()-start;
   
       // this.setPanelContentRows();
       
       // const setPanelRows = Date.now()-start;
   
-      console.log(`lvlScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
+      // console.log(`lvlScroll: setup: ${setup}; deleted: ${deleted}; added: ${added}; `);
   
       this.scrolling = false; // say we're done
   
@@ -1523,12 +1521,6 @@ class Panel {
       // console.log(input);
       var mode16;
   
-      console.log("generateHexHTML");
-      [input,
-  offset,
-  mode,
-  length,
-  replace].forEach(d=>console.log(d));
       var rbytes = [];
       if (input){
         // if we have an input, use it
@@ -1561,7 +1553,7 @@ class Panel {
       var m = mode16?"_b16":"_b1"; // shorthand to be used later
       var notm = !mode16?"_b16":"_b1";
   
-      console.log(`${this.name}: Generating hex html for data with ${rbytes.length} bytes...`);
+      // console.log(`${this.name}: Generating hex html for data with ${rbytes.length} bytes...`);
   
       // generate hexadecimal and binary strings for each byte
       let rbytesHex = [];
@@ -1666,7 +1658,7 @@ class Panel {
             class="g32_item g32_item${m} ${fgType} g32rb_item_${ii}${m}"
             >${rbytesBin[i]}</div>
             `;
-            console.log(`Adding binary HTML for ${1+Math.floor( (offset+i)/32 )}`);
+            // console.log(`Adding binary HTML for ${1+Math.floor( (offset+i)/32 )}`);
           }
   
           // if we're 1 before the end of the 32-batch, or at the overall end, close up this group:
@@ -1678,7 +1670,7 @@ class Panel {
                 g32elem.innerHTML = ''; // delete contents
                 g32elem.classList.add("g32"+m);
                 g32elem.classList.remove("g32"+notm);
-                console.log(`within generateHexHTML, received mode ${mode}, parsed to mode16 ${mode16}, made a g32 with classes ${Array.from(g32elem.classList).join(", ")}`);
+                // console.log(`within generateHexHTML, received mode ${mode}, parsed to mode16 ${mode16}, made a g32 with classes ${Array.from(g32elem.classList).join(", ")}`);
   
               } else { // creating a new g32
                 g32elem = document.createElement('div');
@@ -1734,8 +1726,8 @@ class Panel {
   
                   var tileIndex0Based = Math.floor( (offset+i)/32 );
                   var offsetbp = tileIndex0Based*32;
-                  console.log(`Creating bitplane with data ${offsetbp}, ${offsetbp+32}`);
-                  console.log(g32selem);
+                  // console.log(`Creating bitplane with data ${offsetbp}, ${offsetbp+32}`);
+                  // console.log(g32selem);
                   this.generateBitplaneView(
                     g32selem,
                     this.data.data.slice(offsetbp, offsetbp+32),
@@ -1803,7 +1795,7 @@ class Panel {
         if (this.data){
       
           let totalNumber = Math.ceil(this.data.data.length/32);
-          console.log(this);
+          
           totalTiles.textContent = totalNumber;
           //
           let oldVal = (1*currentTile.innerHTML);
@@ -1838,7 +1830,7 @@ class Panel {
             this.animation.initDecomp( this, targetDecompHex );
             this.toggleMenu();
           });
-          console.log("Animate Decompression button added...");
+          // console.log("Animate Decompression button added...");
         },
         1100
       );
@@ -1858,14 +1850,14 @@ class Panel {
           if (this.downloadButton) this.downloadButton.remove();
           this.downloadButton = this.inner.querySelector(".panel_menu").appendChild( downloadButton );
   
-          console.log("beginning download button added... "+Date.now());
+          // console.log("beginning download button added... "+Date.now());
           this.downloadButton.addEventListener("click", (event) => {
-            console.log("download button clicked. url object:");
+            console.log("download button clicked.");
             //NOTE: if the output isn't uint8, we pobably won't get the file we expect.
             const dataBlob = new Blob( [new Uint8Array(data)], {type: "application/octet-stream"});
             let urlObject = URL.createObjectURL( dataBlob );
   
-            console.log(urlObject);
+            // console.log(urlObject);
   
             let a = document.createElement("a");
             a.download = fileName;
@@ -1875,7 +1867,7 @@ class Panel {
             // revoke the URL after an arbitrary amount of time
             setTimeout( () => { URL.revokeObjectURL( urlObject ); console.log("Download URL removed."); }, 5000  );
           });
-          console.log("download button added... "+Date.now());
+          // console.log("download button added... "+Date.now());
         },
         1100
       );
@@ -1891,7 +1883,7 @@ class Panel {
       let groupHeight = this.settings['Line Height'].value * this.groupSize / this.settings['Number of Columns'].value ;
       let gtr = `repeat(${numberOfGroups}, ${ groupHeight}em)`;
       hc.style.gridTemplateRows = gtr;
-      console.log("update lines() gtr");
+      // console.log("update lines() gtr");
   
       // update cells' line height
       let cells = Array.from( hc.querySelectorAll("div > div > div > .hex_cell"));
@@ -1976,7 +1968,8 @@ class Panel {
         wrapper.classList.add("tile_wrapper");
         wrapper.classList.add("tile_item");
         
-        let title = `Tile ${count}\n(Click to view bitplanes)`;
+        // let title = `Tile ${count}\n(Click to view bitplanes)`;
+        let title = `Tile ${count}`;
         // console.log("tileset content: "+title);
         wrapper.title = title;
         // if (count==1){
@@ -2078,8 +2071,6 @@ class Panel {
         }
   
         // add actual canvas
-        console.log(" attempting to add canvas:");
-        console.log( this.data.rawPixels[i] );
         let canvas = displayRaw( this.data.rawPixels[i],  wrapper ) ;
         canvas.style.width='100%';
         canvas.style.height='100%';
@@ -2138,7 +2129,7 @@ class Panel {
         let y = Math.floor(i/mtsPerRow);
         let x = i%mtsPerRow;
   
-        console.log("generate metatiles: "+(i+1));
+        // console.log("generate metatiles: "+(i+1));
   
         // wrapper
         let metatileWrapper = tilesetContent.appendChild( document.createElement("div") );
@@ -2460,28 +2451,38 @@ class Panel {
     //   console.log(`propagateSource on panel ${this.index}: ${this.name} ( ${this.kind} )`);
       
     // }
-    getDependentPanels( inputPortProps = {}, panelProps = {} ){
+    getDependentPanels( inputPortProps = {}, panelProps = {}, log=false ){
       // inputPortProps: will assign these values to all input ports of the dependent panels found.
       // ex: {"pendingUpdate": true, "awaitingFind": false}
+
+      // clear the .dependentTargetPorts for all panels in case there was a change.
+      this.ui.panels.forEach( p=> p.dependentTargetPorts = new Set([]) );
+
       var dependents = new Set([]);
+      
+      // var tree = []; // for printing a text-based representation
 
       // go through the tree of all dependent panels, potentially modifying 0 or some properties.
       function markAsPendingRecursive( outputPort ){
         if ( !outputPort) return 1;
+        if ( !outputPort.panel.dependentTargetPorts) 
+          outputPort.panel.dependentTargetPorts = new Set([]);
 
-        if (outputPort.links)
-          for (let linkKey in outputPort.links ){
-            // modify properties of the input ports, if specified:
-            // outputPort.links[linkKey].targetPort.pendingUpdate = true; // set this inputPort as pending
-            for (const [key, value] of Object.entries(inputPortProps))
-              outputPort.links[linkKey].targetPort[ key ] = value;
+        for (const [_, link] of Object.entries(outputPort.links)) 
+          if (link.targetPort){
+            // save this for easier access later:
+            outputPort.panel.dependentTargetPorts.add( link.targetPort );
 
-            dependents.add( outputPort.links[linkKey].target ); // add panel to list
+            // modify properties of the INPUT ports, if specified:
+            for (const [k, v] of Object.entries(inputPortProps)) link.targetPort[ k ] = v;
 
-            if (outputPort.links[linkKey].target)
-              if (outputPort.links[linkKey].target.outputPorts)
-                for (let linkKey2 in outputPort.links[linkKey].target.outputPorts )
-                  markAsPendingRecursive( outputPort.links[linkKey].target.outputPorts[linkKey2] );
+            // add panel to the set (will not add a duplicate if one already exists)
+            dependents.add( link.target ); 
+
+            // continue to next step of output ports
+            if ( link.target.outputPorts)
+              for (const [__, nextOutputPort] of Object.entries(link.target.outputPorts ) )
+                markAsPendingRecursive( nextOutputPort );
           }
 
         return 0;
@@ -2508,55 +2509,37 @@ class Panel {
       
       if ( !this.outputPorts) return 1;
 
-       // go through the tree of all dependent panels, mark them as "pendingUpdate".
+
+      // go through the tree of all dependent panels, mark them as "pendingUpdate".
       this.dependents = this.getDependentPanels( {"pendingUpdate": true} ); 
-      console.log(dependents);
+      
       var dependents = [...this.dependents];
-      console.log(dependents);
-      console.log(dependents.map( (d,i)=>d.index).join(", "));
+      // console.log(dependents);
+      console.log("Panel_"+this.index+".propagateDependents(): "+dependents.map( (d,i)=>d.index).join(", "));
       // now all dependent input ports should be marked as pending, and in array that we can manipulate more easily
 
       //HACK: clear the pending status of the first-level dependents of this port
-      for (let portKey in this.outputPorts )
-        if (this.outputPorts[portKey].links)
-          for (let linkKey in this.outputPorts[portKey].links )
-            if (this.outputPorts[portKey].links[linkKey].targetPort)
-              this.outputPorts[portKey].links[linkKey].targetPort.pendingUpdate=false; 
+      this.dependentTargetPorts.forEach( inputPort => inputPort.pendingUpdate=false );
 
-      // Go through list
-      var safety = 300;
-      var count = 0;
-      while (true){
-        console.log("\niteration "+count+":");
-        console.log(dependents.map( (d,i)=>d.index).join(", "));
-        var foundAnyPendings = false;
-        var portString = "";
-        for (let portKey in dependents[0].inputPorts) {
-          if ( dependents[0].inputPorts[portKey].pendingUpdate ) foundAnyPendings = true;
-          portString+=portKey+": "+dependents[0].inputPorts[portKey].pendingUpdate+"; ";
-        }
-        console.log(dependents[0].index+"= "+portString);
-        if (foundAnyPendings){
-          console.log("pushing panel "+dependents[0].index+" to end");
-          // it's not ready; move to the back of the line.
-          let p = dependents.splice(0, 1);
-          dependents.push( ...p );
-        } else {
-          // it's ready; update the panel
-          console.log("updating panel "+dependents[0].name);
-          dependents[0].propagateSource();
-          // reset the pending satus of all of this panel's output ports' links
-          for (let portKey in dependents[0].outputPorts )
-            if (dependents[0].outputPorts[portKey].links)
-              for (let linkKey in dependents[0].outputPorts[portKey].links )
-                if (dependents[0].outputPorts[portKey].links[linkKey].targetPort)
-                  dependents[0].outputPorts[portKey].links[linkKey].targetPort.pendingUpdate = false;
-          // remove from the list.
-          dependents.splice(0, 1);
-        }
+      // Go through list. We have a somewhat arbitrary limit of 300 as a safety.
+      mainLoop: for (let count = 0; count < 300; count++) {
+        
+        for (let portKey in dependents[0].inputPorts)
+          if ( dependents[0].inputPorts[portKey].pendingUpdate ) {
+            dependents.push( ...dependents.splice(0, 1) ); // this one has a pending source, send to back of line
+            continue mainLoop; // skip over the following .propagateSource step.
+          }
+          
+        // if we got here, we encountered no pendings, so we're ready to update this.
+        dependents[0].propagateSource();
+
+        // reset the pending satus of all of this panel's output ports' links
+        dependents[0].dependentTargetPorts.forEach( inputPort => inputPort.pendingUpdate=false );
+  
+        // remove from the list.
+        dependents.splice(0, 1);
+
         if (dependents.length==0) break;
-        count++;
-        if (count > safety) break;
       }
 
 
@@ -2632,14 +2615,13 @@ class FilePanel extends Panel {
       fileInputDiv.type = "file";
       fileInputDiv.value = null;
       this.fileInputs.push( this.panelContent.appendChild(fileInputDiv) );
-      console.log(fileInputDiv);
+      // console.log(fileInputDiv);
       this.fileInputs[this.fileInputs.length-1].addEventListener("change", (e) => this.fileInput(e) );
       
       // give some time, then load stored data if it exists
       if (sessionStorage.getItem(this.nameValid+'_data')) {
         setTimeout( ()=> {
-          console.log("Retrieved from session storage:\n\n");
-          console.log( sessionStorage.getItem(this.nameValid+'_data') );
+          
           // return 0;
           this.data = JSON.parse( sessionStorage.getItem(this.nameValid+'_data') );
           // special handling
@@ -2772,7 +2754,7 @@ class TilesetPanel extends Panel{
       
       });
     });
-    console.log("download button added... "+Date.now());
+    // console.log("download button added... "+Date.now());
 
   }
   constructor(parentUI, rowStart, rowEnd, columnStart, columnEnd, name=null, content=''){
@@ -2909,7 +2891,7 @@ class PalettePanel extends Panel{
       
       });
     });
-    console.log("download button added... "+Date.now());
+    // console.log("download button added... "+Date.now());
 
   }
   constructor(parentUI, rowStart, rowEnd, columnStart, columnEnd, name=null, content=''){
@@ -3010,7 +2992,7 @@ class HexPanel extends Panel{
           // this.updateLines();
 
         });
-        console.log("byte width button added...");
+        // console.log("byte width button added...");
       },
       2100
     );
@@ -3031,8 +3013,6 @@ class HexPanel extends Panel{
       
   }
   propagateSource(){
-
-    console.log(this.sources[0]);
 
     //HACK: We're assuming there will be only one source panel for hex viewers,
     // so we just use the one that has data.
@@ -3259,7 +3239,7 @@ class MetatilesPanel extends Panel{
       
       });
     });
-    console.log("download button added... "+Date.now());
+    // console.log("download button added... "+Date.now());
 
   }
   constructor(parentUI, rowStart, rowEnd, columnStart, columnEnd, name=null, content=''){
@@ -3433,7 +3413,7 @@ class LevelMapPanel extends Panel{
       // 0.85,
     );
     });
-    console.log("download button added... "+Date.now());
+    // console.log("download button added... "+Date.now());
 
   }
 
