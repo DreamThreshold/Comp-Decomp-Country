@@ -227,7 +227,9 @@ class View {
 
     // for scrolling to zoom:
     eventwrap('wheel', evt => {
-      if (evt.ctrlKey) {
+      
+      // if (evt.ctrlKey) {
+      if ( evt.metaKey || evt.ctrlKey ){
         // let hexContent = this.svg.parentNode.parentNode;
         // hexContent.style.overflow = "hidden";
         evt.preventDefault();

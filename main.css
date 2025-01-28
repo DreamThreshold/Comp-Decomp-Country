@@ -128,7 +128,7 @@ button{
   padding-top: var(--navbarHeight);
   width: 0;
   height: 0;
-
+  font-size: 0.8em;
   /* display: grid;
   grid-template-columns: repeat(32, 1fr);
   grid-template-rows: repeat(28, 1fr);
@@ -238,6 +238,8 @@ button{
 
     display: grid;
     grid-template-columns: 1fr;
+    /* rows might be different for some panel types */
+    grid-template-rows: var(--panelHeaderHeight)px 1fr;
 }
 .panel_inner_maximized{  
   border: 0px solid var(--superDarkGray);
@@ -320,7 +322,7 @@ button{
     height: var(--panelHeaderHeight);
     /* background-color: rgb(5, 20, 5); */
     display: grid;
-    grid-template-columns: auto 3ch 3ch;
+    grid-template-columns: auto 2ch 1ch;
     /* flex-direction: row; */
     /* justify-content: space-between; */
     align-items: center;
@@ -356,7 +358,7 @@ button{
 
   margin:0.5ch;
   /* margin-right: 2ch; */
-  font-size: 0.8em;;
+  font-size: 0.9em;;
   font-family:Arial, Helvetica, sans-serif;
   /* note: using nowrap and overflow:hidden so the title doesn't
     wrap and increase the height of the header,
@@ -388,7 +390,7 @@ button{
 
 .panel_inner_tileset{
 
-  grid-template-rows: 3em 1fr;
+  /* grid-template-rows: 3em 1fr; */
   grid-template-columns: 1fr;
   /* overflow: hidden; */
 }
@@ -479,7 +481,7 @@ button{
 }
 
 .panel_inner_palette{
-  grid-template-rows: 3em 1fr;
+  /* grid-template-rows: 3em 1fr; */
   grid-template-columns: 1fr;
 
 }
@@ -1006,7 +1008,7 @@ end of animation classes
 
 
 .panel_inner_text{
-  grid-template-rows: 3em 1fr;
+  /* grid-template-rows: 3em 1fr; */
   grid-template-columns: 1fr;
   max-height: 100px;
 }
@@ -1015,6 +1017,7 @@ end of animation classes
   height: 100%;
   /* max-height: 15em; */
   /* height: 20em;  */
+  /* font-size: 0.8em; */
   overflow-y:auto;
   overflow-x:hidden;
   font-family:Arial, Helvetica, sans-serif;
