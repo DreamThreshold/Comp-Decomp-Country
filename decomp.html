@@ -102,51 +102,48 @@ const workspace1 = new Workspace( document.getElementById("panelgrid_1") );
 
 var links = [];
 
-// comp pipeline
-//
-// immediately compress
-var inputPanelC = new FilePanel( workspace1,     20, 22,    c0, d0+2,  "File: Uncompressed Data");
-var compressPanel = new ChrCompressPanel(workspace1,  20, 21,    c1+2, c1+4+2,  "Compress");
-links.push( workspace1.addLink( new Link( inputPanelC.outputPorts.out, compressPanel.inputPorts.in) ) );
+// input and decompressor
+var inputPanel = new FilePanel(workspace1, 1,  3,    c0, d0,  "File: Compressed Gfx");
 
-// show the compressed data
-var compressC = new HexPanel( workspace1,  20, 28,    c2, d2,  "Hex View: Newly Compressed Data" );
-links.push( workspace1.addLink( new Link( compressPanel.outputPorts.out, compressC.inputPorts.in) ) );
+// hex viewers for comp/decomp
+var compHexPanel = new HexPanel( workspace1,  1, 10, c1, d1,  "Hex View: Compressed Data"); // 1
+links.push( workspace1.addLink( new Link(inputPanel.outputPorts.out, compHexPanel.inputPorts.in) ) );
 
+var decompressPanel = new ChrDecompressPanel(workspace1, 3,  3,    c0, d0,  "Decompress");
+links.push( workspace1.addLink( new Link(compHexPanel.outputPorts.out, decompressPanel.inputPorts.in) ) );
 
-// decompress again
-var decompressPanelC = new ChrDecompressPanel(workspace1,  22,  22,    c0, c0+3,  "Decompress");
-links.push( workspace1.addLink( new Link( compressC.outputPorts.out, decompressPanelC.inputPorts.in) ) );
+var decompHexPanel = new HexPanel( workspace1,  10, 19, c1, d1,  "Hex View: Decompressed Data"); // 2
+links.push( workspace1.addLink( new Link(decompressPanel.outputPorts.out, decompHexPanel.inputPorts.in) ) );
 
-// show that decompressed data
-var decompressC = new HexPanel( workspace1,   24, 28,    c1, d1,  "Hex Viewer - Verify: Decompressed Again" );
-links.push( workspace1.addLink( new Link( decompressPanelC.outputPorts.out, decompressC.inputPorts.in) ) );
-//... and the tileset
-var unbitplanePanelC = new UnbitplanePanel( workspace1,  23, 24,    c2, c2+3, "Unbitplane");
-links.push( workspace1.addLink( new Link(decompressC.outputPorts.out, unbitplanePanelC.inputPorts.in) ) );
-var tilesetViewerC = new TilesetPanel( workspace1,  24, 28,   c2, d2-1,  "Tileset (8x8 Tiles)");
-links.push( workspace1.addLink( new Link( unbitplanePanelC.outputPorts.out, tilesetViewerC.inputPorts.in) ) );
+// bitplane viewer
+var bitplanePanel = new BitplanePanel( workspace1,   1, 12,    c2, d2, "View Bitplanes");
+links.push( workspace1.addLink( new Link(decompHexPanel.outputPorts.out, bitplanePanel.inputPorts.in) ) );
 
 
-var compPipelineText = `\
+// unbitplane and show tiles
+var unbitplanePanel = new UnbitplanePanel( workspace1,   13, 13,    c2, c2+3, "Unbitplane");
+links.push( workspace1.addLink( new Link(bitplanePanel.outputPorts.out, unbitplanePanel.inputPorts.in) ) );
+var tilesetViewer = new TilesetPanel( workspace1,  15, 19,   c2, d2-1,  "Tileset (8x8 Tiles)");
+links.push( workspace1.addLink( new Link( unbitplanePanel.outputPorts.out, tilesetViewer.inputPorts.in) ) );
+
+
+var decompPipelineText = `\
 <div class="text_content" >
-  <p>This group of panels allows you to compress graphics tilesets and verify them visually right away.</p>
+  <p>This group of panels allows you to decompress graphics tilesets and view them right away.</p>
   <p>
-    Enter <u>un</u>compressed data to the file input above to compress it. 
-    In the "newly compressed data" hex viewer to the right, you can download the compressed data file from the "☰" menu.
-  </p>
-  <p>
-    You can also animate the decompression process from the panel 2's "☰" menu.
+    Enter the compressed data to the file input above to decompress it. 
+    <br>You can animate the decompression process from the panel 1's "☰" menu.
+    <br>You can download the resulting decompressed data file from panel 3's "☰" menu. This will be in SNES 4 BPP format.
+    <br>Check out panel 5 to see how the 4 BPP data gets "un-bitplaned" to form 8x8 pixel indexed-color images.
+    <br>You can download a .png of the decompressed tileset from panel 6. This uses a grayscale color map because we do not yet have a color palette associated with the tiles at this step.
   </p>
   <p>
     <a href="index.html">Back to main page</a>.
   </p>
 </div>`;
-var descriptionC = new TextPanel( workspace1,  23, 28,    c0, c1+4+2,  "About - Compression ", compPipelineText );
+var descriptionC = new TextPanel( workspace1,  23, 28,    c0, c1+4+2,  "About - Decompression ", decompPipelineText );
 
-workspace1.repositionPanels(`
-{"0":{"left":28,"top":25,"width":237,"height":65.14999389648438},"1":{"left":298,"top":25,"width":126,"height":24.800003051757812},"2":{"left":451,"top":25,"width":479,"height":561.566650390625},"3":{"left":960,"top":25,"width":136,"height":24.800003051757812},"4":{"left":1127,"top":25,"width":431,"height":567.2833251953125},"5":{"left":1594,"top":25,"width":116,"height":24.800003051757812},"6":{"left":1597,"top":90,"width":209,"height":373.2833251953125},"7":{"left":28,"top":132,"width":292,"height":432.8499755859375}}
-`);
+workspace1.repositionPanels(`{"0":{"left":26,"top":7,"width":300,"height":75.14999389648438},"1":{"left":450,"top":8,"width":449,"height":358.1499938964844},"2":{"left":930,"top":8,"width":163,"height":31},"3":{"left":1136,"top":8,"width":446,"height":359.1499938964844},"4":{"left":536,"top":379,"width":681,"height":493.2833251953125},"5":{"left":1276,"top":388,"width":180,"height":34},"6":{"left":1277,"top":462,"width":336,"height":415.2833251953125},"7":{"left":16,"top":111,"width":321,"height":437.8500061035156}}`);
 
 
 </script>

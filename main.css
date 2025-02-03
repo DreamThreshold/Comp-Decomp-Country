@@ -128,7 +128,7 @@ button{
   padding-top: var(--navbarHeight);
   width: 0;
   height: 0;
-  font-size: 0.8em;
+  font-size: 1em;
   /* display: grid;
   grid-template-columns: repeat(32, 1fr);
   grid-template-rows: repeat(28, 1fr);

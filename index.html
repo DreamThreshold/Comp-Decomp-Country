@@ -1,6 +1,7 @@
 <!DOCTYPE html>
     <html>
 <!-- Created 2024-10-23 / Release 0.1 2024-11-21 -->
+<!--                      Release 0.2 2025-02-02 -->
 <head>
   <meta charset="UTF-8">
   <title>Comp/Decomp Country</title>
@@ -121,14 +122,14 @@ links.push( workspace1.addLink( new Link(decompHexPanel.outputPorts.out, bitplan
 // unbitplane and show tiles
 var unbitplanePanel = new UnbitplanePanel( workspace1,   13, 13,    c2, c2+3, "Unbitplane");
 links.push( workspace1.addLink( new Link(bitplanePanel.outputPorts.out, unbitplanePanel.inputPorts.in) ) );
-var tilesetViewer = new TilesetPanel( workspace1,  15, 19,   c2, d2-1,  "Tiles");
+var tilesetViewer = new TilesetPanel( workspace1,  15, 19,   c2, d2-1,  "Tileset (8x8 Tiles)");
 links.push( workspace1.addLink( new Link( unbitplanePanel.outputPorts.out, tilesetViewer.inputPorts.in) ) );
 
 
 
 // palette
 var paletteInputPanel = new FilePanel(workspace1, 1,  3,    11, 16,  "File: Palette");  //  3
-var pal2rgbPanel = new Palette2RGBPanel(workspace1,  1,  2,    18, 23,  "Convert Palette: 5 bit to 8 bit per RGB");  //  3
+var pal2rgbPanel = new Palette2RGBPanel(workspace1,  1,  2,    18, 23,  "Convert Palette: SNES 15 bit to RGB 24 bit");  //  3
 links.push( workspace1.addLink( new Link( paletteInputPanel.outputPorts.out, pal2rgbPanel.inputPorts.in) ) );
 
 var paletteViewer = new PalettePanel( workspace1,   3,  6,    21, 25,  "Palette" ); // 4
@@ -142,7 +143,7 @@ links.push( workspace1.addLink( new Link( metatileInputPanel.outputPorts.out, bu
 links.push( workspace1.addLink( new Link( tilesetViewer.outputPorts.out, buildMetatilesPanel.inputPorts.unbitplanedTiles) ) );
 links.push( workspace1.addLink( new Link( paletteViewer.outputPorts.out, buildMetatilesPanel.inputPorts.rgbPalette) ) );
 
-var metatilesViewer = new MetatilesPanel(workspace1, 9, 15,    c3, d3,  "Tilemap32 (Metatiles)");
+var metatilesViewer = new MetatilesPanel(workspace1, 9, 15,    c3, d3,  "32x32 Tiles (Metatiles)");
 links.push( workspace1.addLink( new Link( buildMetatilesPanel.outputPorts.out, metatilesViewer.inputPorts.in) ) );
 
 // level map
@@ -157,7 +158,7 @@ links.push( workspace1.addLink( new Link( buildLevelMapPanel.outputPorts.out, le
 
 
 
-/*
+
 // comp pipeline
 //
 // immediately compress
@@ -170,18 +171,18 @@ var compressC = new HexPanel( workspace1,  20, 28,    c2, d2,  "Hex View: Newly 
 links.push( workspace1.addLink( new Link( compressPanel.outputPorts.out, compressC.inputPorts.in) ) );
 
 
-// decompress again
-var decompressPanelC = new ChrDecompressPanel(workspace1,  22,  22,    c0, c0+3,  "Decompress");
-links.push( workspace1.addLink( new Link( compressPanel.outputPorts.out, decompressPanelC.inputPorts.in) ) );
+// // decompress again
+// var decompressPanelC = new ChrDecompressPanel(workspace1,  22,  22,    c0, c0+3,  "Decompress");
+// links.push( workspace1.addLink( new Link( compressPanel.outputPorts.out, decompressPanelC.inputPorts.in) ) );
 
-// show that decompressed data
-var decompressC = new HexPanel( workspace1,   24, 28,    c1, d1,  "Hex Viewer - Decompressed from compressed-by-this-app Data" );
-links.push( workspace1.addLink( new Link( decompressPanelC.outputPorts.out, decompressC.inputPorts.in) ) );
-//... and the tileset
-var unbitplanePanelC = new UnbitplanePanel( workspace1,  23, 24,    c2, c2+3, "Unbitplane");
-links.push( workspace1.addLink( new Link(decompressC.outputPorts.out, unbitplanePanelC.inputPorts.in) ) );
-var tilesetViewerC = new TilesetPanel( workspace1,  24, 28,   c2, d2-1,  "Tiles");
-links.push( workspace1.addLink( new Link( unbitplanePanelC.outputPorts.out, tilesetViewerC.inputPorts.in) ) );
+// // show that decompressed data
+// var decompressC = new HexPanel( workspace1,   24, 28,    c1, d1,  "Hex Viewer - Decompressed from compressed-by-this-app Data" );
+// links.push( workspace1.addLink( new Link( decompressPanelC.outputPorts.out, decompressC.inputPorts.in) ) );
+// //... and the tileset
+// var unbitplanePanelC = new UnbitplanePanel( workspace1,  23, 24,    c2, c2+3, "Unbitplane");
+// links.push( workspace1.addLink( new Link(decompressC.outputPorts.out, unbitplanePanelC.inputPorts.in) ) );
+// var tilesetViewerC = new TilesetPanel( workspace1,  24, 28,   c2, d2-1,  "Tiles");
+// links.push( workspace1.addLink( new Link( unbitplanePanelC.outputPorts.out, tilesetViewerC.inputPorts.in) ) );
 var compPipelineText = `\
 <div class="text_content" >
   <p>This group of panels (16-18) represents a separate pipeline from the others above.</p>
@@ -190,9 +191,8 @@ var compPipelineText = `\
     In the compressed data hex viewer to the right, you can download the compressed data file from the "☰" menu.
   </p>
 </div>`;
-var descriptionC = new TextPanel( workspace1,  23, 28,    c0, c1+4+2,  "About - Compression ", compPipelineText );
+// var descriptionC = new TextPanel( workspace1,  23, 28,    c0, c1+4+2,  "About - Compression ", compPipelineText );
 
-*/
 
 
 
@@ -246,7 +246,7 @@ let verboseAboutThisApp = `
 <b>App Background</b><br>
   The app's first release was made to celebrate DKC's 30<sup>th</sup> anniversary. The goal is to de-mystify DKC hacking and to provide even more appreciation for what Rare developed in the 1990s. 
   <br><br>
-  There exist multiple editors and resources for the DKC series, already (though, nowhere near the depth of resources for SMW and other games). But if you're curious about how all this stuff <i>works</i>, it's tricky to comb through the assorted resources online and wrap your head around things. At least for me it was :) I like being able to play around with stuff, look at it in different ways, dive into the unique aspects like the custom compression, and trace the pipeline of data; I hope that sort of stuff can help other people more easily grasp DKC hacking as well. And, with a wacky user interface like this, I'm hoping users (and myself) can find a good workflow for unconventional hacks in the future.
+  There exist multiple editors and resources for the DKC series, already (though, nowhere near the depth of resources for SMW and other games). But if you're curious about how all this stuff works, it's tricky to comb through the assorted resources online and wrap your head around things. At least for me it was :) I like being able to play around with stuff, look at it in different ways, dive into the unique aspects like the custom compression, and trace the pipeline of data. By putting those features in this app, I hope that sort of stuff can help other people more easily grasp DKC hacking as well. And, with a node-based user interface like this, I'm hoping people can find a good workflow for unconventional hacks in the future.
   <br><br>
   More features will continue to be added. Works best in a full screen window, tested most thoroughly with firefox. You can expect more features for visualizing, documenting, and hacking the DKC series soon. Thanks!
   <br><br>
@@ -256,19 +256,21 @@ let verboseAboutThisApp = `
 `;
 let contact = `
 <b>Contact</b><br>
-Feel free to suggest features and point out bugs, it would be greatly appreciated! Even if you have some wacky idea for a feature you'd like to see.
+Feel free to suggest features and point out bugs, it would be greatly appreciated! 
 <br><br>
 Discord:<br>
 `;
 
 let paragraphs = [
-`<b>Hello!</b> <br>This app compresses and decompresses graphics data from DKC, and provides visualizations that can help in ROM hacking.
+`<b>Hello!</b> <br>This app compresses and decompresses graphics from DKC, and can extract tilesets and palettes.
+Choose a page below to get a pipeline more suited for specific features.
+<br><a href="comp.html">Compress DKC1 tileset graphics.</a>
+<br><a href="decomp.html">Decompress DKC1 tileset graphics.</a>
+<br><a href="extract.html">Extract tilesets, palettes, metatiles, level maps.</a>
 <br><br>
-It provides several panels with different applications. Most panels are part of a pipeline that can show you the steps to get from raw data to images and other game assets.
-<br><br>
-To simply decompress DKC1 graphics, upload to panel 0 and download the result from panel 3's "☰" menu. Or try this <a href="streamlined.html">streamlined "flowchart"</a>.
-<br><br>
-To <i>compress</i> a SNES tileset for use in DKC1, <a href="comp.html">go to this page</a>.`,
+The page you're on now will let you do all 3, but is more spread out (ctrl-click/cmd-click and drag to pan the workspace). You can activate an animation of the decompression process from within panel 1's "☰" menu.
+<br><br>Read on for more details about this app.<br>
+`,
 panelTypesMerged,
 `<b>Panel User Interface</b><br>
     Panels can be...<br>
@@ -323,9 +325,12 @@ aboutText2 = `<div class="text_content" >`+paragraphs.reduce((s,d,i)=>s+=`<div s
 var aboutPanel = new TextPanel( workspace1,   5, 19,    c0, d0,  "About - App", aboutText2);
 
 workspace1.repositionPanels(`
-{"0":{"left":24,"top":13,"width":221,"height":56.149993896484375},"1":{"left":338,"top":37,"width":437,"height":433.1499938964844},"2":{"left":736,"top":7,"width":117,"height":24.800003051757812},"3":{"left":820,"top":38,"width":440,"height":432.1499938964844},"4":{"left":1292,"top":28,"width":388,"height":411.6166687011719},"5":{"left":1733,"top":41,"width":121,"height":28.133331298828125},"6":{"left":1729,"top":145,"width":129,"height":217.61666870117188},"7":{"left":34,"top":771,"width":300,"height":71.14999389648438},"8":{"left":360,"top":770,"width":250,"height":35.899993896484375},"9":{"left":636,"top":801,"width":240,"height":104.71665954589844},"10":{"left":32,"top":675,"width":180,"height":71.14999389648438},"11":{"left":719,"top":682,"width":180,"height":24.800003051757812},"12":{"left":980,"top":622,"width":195,"height":257.433349609375},"13":{"left":33,"top":585,"width":180,"height":71.14999389648438},"14":{"left":1009,"top":531,"width":180,"height":24.800003051757812},"15":{"left":1262,"top":496,"width":630,"height":396.7166748046875},"16":{"left":16,"top":99,"width":300,"height":474}}
+{"0":{"left":11,"top":2,"width":265,"height":89.85000610351562},"1":{"left":335,"top":43,"width":428,"height":467.6166687011719},"2":{"left":705,"top":5,"width":150,"height":34},"3":{"left":803,"top":43,"width":430,"height":464.6166687011719},"4":{"left":1263,"top":10,"width":413,"height":495.48333740234375},"5":{"left":1701,"top":102,"width":121,"height":48.600006103515625},"6":{"left":1710,"top":205,"width":185,"height":548.316650390625},"7":{"left":1956,"top":1,"width":300,"height":91.61666870117188},"8":{"left":2045,"top":95,"width":312,"height":46.46665954589844},"9":{"left":2247,"top":147,"width":196,"height":142.4166717529297},"10":{"left":2508,"top":170,"width":232,"height":110.55000305175781},"11":{"left":2560,"top":296,"width":232,"height":40.23333740234375},"12":{"left":2620,"top":351,"width":263,"height":520},"13":{"left":2835,"top":137,"width":185,"height":110.85000610351562},"14":{"left":2867,"top":254,"width":249,"height":40.23333740234375},"15":{"left":2948,"top":323,"width":863,"height":555},"16":{"left":66,"top":715,"width":370,"height":86.93333435058594},"17":{"left":504,"top":676,"width":176,"height":42.46665954589844},"18":{"left":744,"top":618,"width":467,"height":243.93333435058594},"19":{"left":9,"top":106,"width":309.3999938964844,"height":547.4666748046875}}
 `);
 
+`
+,"16":{"left":6,"top":95,"width":334,"height":490},"17":{"left":6,"top":590,"width":300,"height":80},"18":{"left":350,"top":590,"width":300,"height":30}
+`;
 
 </script>
 

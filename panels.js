@@ -526,6 +526,7 @@ class Panel {
     //   this.fileBin = null;
       this.palette = pal; // from external grayscale 16-color palette
       this.fileInputs = []; // will be populated if there are file <input>s
+      this.resizeActions = []; // functions to call upon being resized
       this.settings = {};
 
       //HACK: get the workspace, which can be panned around.
@@ -910,10 +911,12 @@ class Panel {
       function resizeClose(event){
         document.onmouseup = null;
         document.onmousemove = null;
-        console.log("Resize ended.");
-        console.log(element.querySelector(".panel_content"));
-        console.log(element.querySelector(".panel_header").style.height);
-        console.log(headerHeight);
+        // console.log("Resize ended.");
+        // console.log(element.querySelector(".panel_content"));
+        // console.log(element.querySelector(".panel_header").style.height);
+        // console.log(headerHeight);
+        // call any functions (usually adjusting contnet)
+        panel.resizeActions.forEach(f=>f());
       }
   
   
@@ -1261,7 +1264,7 @@ class Panel {
       return group; // will return the last group
     }
   
-    hexScroll(){
+    hexScroll( refresh=false){
       // this is called within an event listener of the hex_content being scrolled
       const start = Date.now();
   
@@ -1279,7 +1282,7 @@ class Panel {
       // var currentOffsetGroup = this.groupSize * Math.floor( currentOffset/this.groupSize );
       var currentOffsetGroup = this.getGroupOffsetFromByteLocation( windowScrollTop );
   
-      if ( currentOffsetGroup == this.scrollGroup ) {
+      if ( (currentOffsetGroup == this.scrollGroup) && !refresh ) {
         this.scrolling = false;
         return 0;
       }
@@ -1350,7 +1353,7 @@ class Panel {
   
     }
   
-    tileScroll(){
+    tileScroll( refresh=false){
       const start = Date.now();
   
       // var byteLocation = this.selectHexData( byteOffset);
@@ -1380,8 +1383,9 @@ class Panel {
       // var currentOffsetGroup = this.getGroupOffsetFromByteLocation( windowScrollTop );
   
       // var currentGroup = 
-  
-      if ( currentOffset == this.scrollGroup ) {
+      
+      // exit if we're in the current scrollgroup already and we didn't give the "refresh" override
+      if ( (currentOffset == this.scrollGroup) && !refresh ) {
         this.scrolling = false;
         return 0;
       }
@@ -1523,7 +1527,7 @@ class Panel {
       
     }
   
-    lvlScroll(){
+    lvlScroll( refresh=false){
   
       // console.log('lvlScroll()');
        
@@ -1555,7 +1559,7 @@ class Panel {
       };
       // console.log(currentOffset);
       
-      if ( JSON.stringify(currentOffset)==JSON.stringify(this.scrollGroup)) {
+      if ( (JSON.stringify(currentOffset)==JSON.stringify(this.scrollGroup)) && !refresh) {
         this.scrolling = false;
         return 0;
       }
@@ -2938,6 +2942,12 @@ class TilesetPanel extends Panel{
 
     // this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
 
+    
+    // refresh the scrolling content
+    setTimeout(()=>this.tileScroll(true), 50);
+    // assign refresh to resizing
+    this.resizeActions.push(()=>{this.tileScroll(true)});
+
   }
 
 }
@@ -3205,6 +3215,10 @@ class HexPanel extends Panel{
 
     // this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
 
+    // refresh the scrolling content
+    setTimeout(()=>this.hexScroll(true), 50);
+    // assign refresh to resizing
+    this.resizeActions.push(()=>{this.hexScroll(true)});
   }
 
 }
@@ -3459,6 +3473,10 @@ class MetatilesPanel extends Panel{
 
     // this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
 
+    // refresh the scrolling content
+    setTimeout(()=>this.tileScroll(true), 50);
+    // assign refresh to resizing
+    this.resizeActions.push(()=>{this.tileScroll(true)});
   }
 
 }
@@ -3608,6 +3626,12 @@ class LevelMapPanel extends Panel{
     this.generateImgDownloadButton( "Partial_"+this.data.name.replace(".","_")+".png"  );
 
     // this.targets.forEach((targetLink) => { if (targetLink.target) targetLink.target.propagateSource()});
+
+    
+    // refresh the scrolling content
+    setTimeout(()=>this.lvlScroll(true), 50);
+    // assign refresh to resizing
+    this.resizeActions.push(()=>{this.lvlScroll(true)});
 
   }
 
